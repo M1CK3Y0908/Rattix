@@ -1,0 +1,10 @@
+# Git ignore for Forge Modding
+.gradle/
+build/
+run/
+out/
+*.iml
+.idea/
+!.idea/runConfigurations/
+*.log
+bin/
