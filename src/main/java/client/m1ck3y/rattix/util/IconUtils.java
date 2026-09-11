@@ -3,11 +3,16 @@ package client.m1ck3y.rattix.util;
 import org.lwjgl.opengl.Display;
 
 import javax.imageio.ImageIO;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class IconUtils {
@@ -33,30 +38,27 @@ public class IconUtils {
         }
         loaded = true;
         try {
-            List<ByteBuffer> buffers = new ArrayList<>();
-            String[] possiblePaths = new String[]{
-                    "/assets/rattix/icons/R_16x16.png",
-                    "/assets/rattix/icons/R_32x32.png",
-                    "/assets/rattix/icons/R_64x64.png",
-                    "/assets/rattix/icons/R_128x128.png",
-                    "/assets/rattix/icons/icon_16x16.png",
-                    "/assets/rattix/icons/icon_32x32.png",
-                    "/assets/rattix/icons/icon_64x64.png"
-            };
+            BufferedImage original = loadSvgIcon();
+            if (original != null) {
+                int[] sizes = new int[]{16, 32, 64, 128};
+                List<ByteBuffer> buffers = new ArrayList<>();
+                for (int s : sizes) {
+                    BufferedImage resized = new BufferedImage(s, s, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g = resized.createGraphics();
+                    g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                    g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g.drawImage(original, 0, 0, s, s, null);
+                    g.dispose();
 
-            for (String path : possiblePaths) {
-                try (InputStream stream = IconUtils.class.getResourceAsStream(path)) {
-                    if (stream != null) {
-                        ByteBuffer buf = readImageToBuffer(stream);
-                        if (buf != null) {
-                            buffers.add(buf);
-                        }
+                    ByteBuffer buf = imageToByteBuffer(resized);
+                    if (buf != null) {
+                        buffers.add(buf);
                     }
-                } catch (Throwable ignored) {}
-            }
-
-            if (!buffers.isEmpty()) {
-                cachedFavicon = buffers.toArray(new ByteBuffer[0]);
+                }
+                if (!buffers.isEmpty()) {
+                    cachedFavicon = buffers.toArray(new ByteBuffer[0]);
+                }
             }
         } catch (Throwable t) {
             t.printStackTrace();
@@ -64,9 +66,44 @@ public class IconUtils {
         return cachedFavicon;
     }
 
-    private static ByteBuffer readImageToBuffer(InputStream imageStream) throws IOException {
-        if (imageStream == null) return null;
-        BufferedImage bufferedImage = ImageIO.read(imageStream);
+    private static BufferedImage loadSvgIcon() {
+        String[] svgPaths = new String[]{
+                "/assets/rattix/icons/R_icon.svg",
+                "/assets/rattix/icons/icon.svg",
+                "/assets/rattix/R_icon.svg",
+                "/R_icon.svg"
+        };
+
+        for (String path : svgPaths) {
+            try (InputStream stream = IconUtils.class.getResourceAsStream(path)) {
+                if (stream != null) {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    byte[] tmp = new byte[4096];
+                    int r;
+                    while ((r = stream.read(tmp)) != -1) {
+                        baos.write(tmp, 0, r);
+                    }
+                    String content = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+                    int idx = content.indexOf("base64,");
+                    if (idx != -1) {
+                        int start = idx + "base64,".length();
+                        int end = content.indexOf("\"", start);
+                        if (end != -1) {
+                            String b64 = content.substring(start, end).trim();
+                            byte[] imgBytes = Base64.getDecoder().decode(b64);
+                            BufferedImage img = ImageIO.read(new ByteArrayInputStream(imgBytes));
+                            if (img != null) {
+                                return img;
+                            }
+                        }
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
+        return null;
+    }
+
+    private static ByteBuffer imageToByteBuffer(BufferedImage bufferedImage) {
         if (bufferedImage == null) return null;
         int width = bufferedImage.getWidth();
         int height = bufferedImage.getHeight();
