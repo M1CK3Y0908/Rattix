@@ -26,7 +26,7 @@ minecraft {
     runDir = "run"
     mappings = "stable_22"
     makeObfSourceJar = false
-    clientJvmArgs = ["-Dforge.forceNoStencil=true"]
+    clientJvmArgs = ["-Dforge.forceNoStencil=true", "-Dfml.coreMods.load=client.m1ck3y.rattix.core.RattixLoadingPlugin"]
 }
 
 dependencies {
@@ -55,7 +55,10 @@ jar {
             "Implementation-Title": project.name,
             "Implementation-Version": project.version,
             "Implementation-Vendor": "rattix",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "FMLCorePlugin": "client.m1ck3y.rattix.core.RattixLoadingPlugin",
+            "FMLCorePluginContainsFMLMod": "true",
+            "ForceLoadAsMod": "true"
         ])
     }
 }

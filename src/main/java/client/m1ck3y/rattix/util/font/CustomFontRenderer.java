@@ -168,21 +168,36 @@ public class CustomFontRenderer {
         drawString(text, x, y, color, false, 1.0f);
     }
 
+    public boolean isConsolas() {
+        if (this == FontUtil.getConsolasFont()) return true;
+        if (this.font != null) {
+            String name = this.font.getName();
+            String family = this.font.getFamily();
+            if ("Consolas".equalsIgnoreCase(name) || "Consolas".equalsIgnoreCase(family)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public float drawString(String text, float x, float y, int color, boolean dropShadow, float scale) {
         if (text == null || text.isEmpty()) return 0;
 
         Font font = FontUtil.getFont();
-        boolean isConsolasGlobal = "consolas.ttf".equalsIgnoreCase(FontUtil.getGlobalFontName());
-        boolean isConsolas = (this == FontUtil.getConsolasFont()) && !isConsolasGlobal;
-        float sizeScale = (!isConsolas && font != null) ? font.size.getValue().floatValue() / 100.0f : 1.0f;
+        boolean isConsolasFont = isConsolas();
+        boolean isConsolasGlobal = isConsolasFont && "consolas.ttf".equalsIgnoreCase(FontUtil.getGlobalFontName());
+        boolean isConsolasInternal = isConsolasFont && !isConsolasGlobal;
+
+        float sizeScale = (!isConsolasInternal && font != null) ? font.size.getValue().floatValue() / 100.0f : 1.0f;
         float effectiveScale = scale * sizeScale;
-        float offX = (!isConsolas && font != null) ? font.offsetX.getValue().floatValue() : 0.0f;
-        float offY = (!isConsolas && font != null) ? font.offsetY.getValue().floatValue() : 0.0f;
-        boolean shadowEnabled = dropShadow && (isConsolas || font == null || font.shadow.getValue());
-        float shadowOffX = (!isConsolas && font != null) ? font.shadowOffsetX.getValue().floatValue() : 1.0f;
-        float shadowOffY = (!isConsolas && font != null) ? font.shadowOffsetY.getValue().floatValue() : 1.0f;
-        String shadowMode = (!isConsolas && font != null) ? font.shadowMode.getValue() : "Vanilla";
-        boolean outlineEnabled = !isConsolas && font != null && font.outline.getValue();
+        float offX = (!isConsolasInternal && font != null) ? font.offsetX.getValue().floatValue() : 0.0f;
+        float consolasNativeOffsetY = isConsolasFont ? 0.5f : 0.0f;
+        float offY = ((!isConsolasInternal && font != null) ? font.offsetY.getValue().floatValue() : 0.0f) + consolasNativeOffsetY;
+        boolean shadowEnabled = dropShadow && (isConsolasInternal || font == null || font.shadow.getValue());
+        float shadowOffX = (!isConsolasInternal && font != null) ? font.shadowOffsetX.getValue().floatValue() : 1.0f;
+        float shadowOffY = (!isConsolasInternal && font != null) ? font.shadowOffsetY.getValue().floatValue() : 1.0f;
+        String shadowMode = (!isConsolasInternal && font != null) ? font.shadowMode.getValue() : "Vanilla";
+        boolean outlineEnabled = !isConsolasInternal && font != null && font.outline.getValue();
         float outlineWidth = font != null ? font.outlineWidth.getValue().floatValue() : 1.0f;
         String outlineMode = font != null ? font.outlineColor.getValue() : "Black";
 
