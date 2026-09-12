@@ -1,7 +1,7 @@
 package client.m1ck3y.rattix.utils;
 
 import client.m1ck3y.rattix.manager.FileManager;
-import client.m1ck3y.rattix.module.impl.Font;
+import client.m1ck3y.rattix.modules.Font;
 import client.m1ck3y.rattix.utils.font.CustomFontRenderer;
 import client.m1ck3y.rattix.utils.font.GlobalFontRenderer;
 import net.minecraft.client.Minecraft;

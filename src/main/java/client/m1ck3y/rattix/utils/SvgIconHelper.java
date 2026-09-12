@@ -1,6 +1,6 @@
 package client.m1ck3y.rattix.utils;
 
-import client.m1ck3y.rattix.module.Category;
+import client.m1ck3y.rattix.modules.Category;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;

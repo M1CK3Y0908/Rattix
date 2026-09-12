@@ -8,7 +8,7 @@ import client.m1ck3y.rattix.manager.CommandManager;
 import client.m1ck3y.rattix.manager.EventManager;
 import client.m1ck3y.rattix.manager.FileManager;
 import client.m1ck3y.rattix.manager.ModuleManager;
-import client.m1ck3y.rattix.module.clickgui.ClickGuiScreen;
+import client.m1ck3y.rattix.modules.clickgui.ClickGuiScreen;
 import client.m1ck3y.rattix.script.ScriptManager;
 import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.IconUtils;

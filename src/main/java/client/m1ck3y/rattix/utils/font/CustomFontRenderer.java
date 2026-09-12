@@ -1,6 +1,6 @@
 package client.m1ck3y.rattix.utils.font;
 
-import client.m1ck3y.rattix.module.impl.Font;
+import client.m1ck3y.rattix.modules.Font;
 import client.m1ck3y.rattix.utils.FontUtil;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
