@@ -1,4 +1,4 @@
-package client.m1ck3y.rattix.util;
+package client.m1ck3y.rattix.utils;
 
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;

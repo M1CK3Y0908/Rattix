@@ -1,10 +1,17 @@
 package client.m1ck3y.rattix;
 
-import client.m1ck3y.rattix.module.ModuleManager;
+import client.m1ck3y.rattix.config.ConfigManager;
+import client.m1ck3y.rattix.event.events.KeyEvent;
+import client.m1ck3y.rattix.event.events.Render2DEvent;
+import client.m1ck3y.rattix.event.events.TickEvent;
+import client.m1ck3y.rattix.manager.CommandManager;
+import client.m1ck3y.rattix.manager.EventManager;
+import client.m1ck3y.rattix.manager.FileManager;
+import client.m1ck3y.rattix.manager.ModuleManager;
 import client.m1ck3y.rattix.module.clickgui.ClickGuiScreen;
-import client.m1ck3y.rattix.util.FileManager;
-import client.m1ck3y.rattix.util.FontUtil;
-import client.m1ck3y.rattix.util.IconUtils;
+import client.m1ck3y.rattix.script.ScriptManager;
+import client.m1ck3y.rattix.utils.FontUtil;
+import client.m1ck3y.rattix.utils.IconUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -18,7 +25,6 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 
@@ -61,7 +67,9 @@ public class RattixMod {
     public void init(FMLInitializationEvent event) {
         FileManager.init();
         FontUtil.init();
-        moduleManager = new ModuleManager();
+        ConfigManager.getInstance().init();
+        ScriptManager.getInstance().init();
+        moduleManager = ModuleManager.getInstance();
 
         // 注册按键绑定
         clickGuiKey = new KeyBinding("key.rattix.clickgui", Keyboard.KEY_RSHIFT, "key.categories.rattix");
@@ -89,10 +97,12 @@ public class RattixMod {
         IconUtils.initLwjglIcon();
     }
 
+
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (Keyboard.getEventKeyState()) {
             int key = Keyboard.getEventKey();
+            EventManager.getInstance().call(new KeyEvent(key));
             if (clickGuiKey != null && clickGuiKey.isPressed() || key == Keyboard.KEY_RSHIFT) {
                 openClickGui();
             } else if (moduleManager != null) {
@@ -102,8 +112,9 @@ public class RattixMod {
     }
 
     @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
+    public void onClientTick(net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent event) {
+        if (event.phase == net.minecraftforge.fml.common.gameevent.TickEvent.Phase.END) {
+            EventManager.getInstance().call(new TickEvent());
             if (!NAME.equals(Display.getTitle())) {
                 Display.setTitle(NAME);
             }
@@ -133,6 +144,7 @@ public class RattixMod {
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
         if (event.type == RenderGameOverlayEvent.ElementType.TEXT) {
+            EventManager.getInstance().call(new Render2DEvent(event.partialTicks));
             Minecraft mc = Minecraft.getMinecraft();
             if (moduleManager != null && mc.thePlayer != null && !mc.gameSettings.showDebugInfo) {
                 moduleManager.onRender2D();
@@ -142,5 +154,17 @@ public class RattixMod {
 
     public ModuleManager getModuleManager() {
         return moduleManager;
+    }
+
+    public CommandManager getCommandManager() {
+        return CommandManager.getInstance();
+    }
+
+    public EventManager getEventManager() {
+        return EventManager.getInstance();
+    }
+
+    public ConfigManager getConfigManager() {
+        return ConfigManager.getInstance();
     }
 }

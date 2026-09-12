@@ -3,10 +3,11 @@ package client.m1ck3y.rattix.module.clickgui;
 import client.m1ck3y.rattix.RattixMod;
 import client.m1ck3y.rattix.module.Category;
 import client.m1ck3y.rattix.module.Module;
-import client.m1ck3y.rattix.util.CursorUtil;
-import client.m1ck3y.rattix.util.FileManager;
-import client.m1ck3y.rattix.util.FontUtil;
-import client.m1ck3y.rattix.util.RenderUtil;
+import client.m1ck3y.rattix.manager.FileManager;
+import client.m1ck3y.rattix.utils.CursorUtil;
+import client.m1ck3y.rattix.utils.FontUtil;
+import client.m1ck3y.rattix.utils.RenderUtil;
+import client.m1ck3y.rattix.utils.font.CustomFontRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ChatAllowedCharacters;
@@ -1265,7 +1266,7 @@ public class ClickGuiWindow {
                                 String fName = ttf.getName();
                                 boolean isCur = fName.equalsIgnoreCase(font.getSelectedFont());
                                 int fColor = isCur ? 0xFF76B9ED : 0xFFCCCCCC;
-                                client.m1ck3y.rattix.util.font.CustomFontRenderer cfr = FontUtil.getFontRenderer(fName);
+                                CustomFontRenderer cfr = FontUtil.getFontRenderer(fName);
                                 if (cfr != null) {
                                     cfr.drawStringWithShadow(fName, itemX, settingY + 2, fColor);
                                 } else {

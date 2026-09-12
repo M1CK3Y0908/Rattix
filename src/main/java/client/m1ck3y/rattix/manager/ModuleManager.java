@@ -1,5 +1,7 @@
-package client.m1ck3y.rattix.module;
+package client.m1ck3y.rattix.manager;
 
+import client.m1ck3y.rattix.module.Category;
+import client.m1ck3y.rattix.module.Module;
 import client.m1ck3y.rattix.module.impl.*;
 
 import java.util.ArrayList;
@@ -10,12 +12,22 @@ import java.util.List;
 import java.util.Map;
 
 public class ModuleManager {
+    private static ModuleManager instance;
+
+    public static ModuleManager getInstance() {
+        if (instance == null) {
+            instance = new ModuleManager();
+        }
+        return instance;
+    }
+
     private final List<Module> modules = new ArrayList<>();
     private final Map<Category, List<Module>> modulesByCategory = new EnumMap<>(Category.class);
     private final Map<Class<? extends Module>, Module> modulesByClass = new HashMap<>();
     private final Map<String, Module> modulesByName = new HashMap<>();
 
     public ModuleManager() {
+        instance = this;
         // Combat
         registerModule(new KillAura());
         registerModule(new BowAimbot());
@@ -83,6 +95,10 @@ public class ModuleManager {
     public Module getModuleByName(String name) {
         if (name == null) return null;
         return modulesByName.get(name.toLowerCase());
+    }
+
+    public Module getModule(String name) {
+        return getModuleByName(name);
     }
 
     public void onTick() {

@@ -142,6 +142,10 @@ public abstract class Module {
         this.keyCode = keyCode;
     }
 
+    public void setKey(int key) {
+        this.keyCode = key;
+    }
+
     public boolean isEnabled() {
         return enabled;
     }

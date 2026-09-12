@@ -3,8 +3,8 @@ package client.m1ck3y.rattix.module.impl;
 import client.m1ck3y.rattix.module.Category;
 import client.m1ck3y.rattix.module.Module;
 import client.m1ck3y.rattix.module.clickgui.BooleanSetting;
-import client.m1ck3y.rattix.util.FontUtil;
-import client.m1ck3y.rattix.util.RenderUtil;
+import client.m1ck3y.rattix.utils.FontUtil;
+import client.m1ck3y.rattix.utils.RenderUtil;
 import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;

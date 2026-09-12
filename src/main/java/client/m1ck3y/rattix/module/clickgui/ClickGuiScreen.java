@@ -1,8 +1,9 @@
 package client.m1ck3y.rattix.module.clickgui;
 
-import client.m1ck3y.rattix.util.CursorUtil;
-import client.m1ck3y.rattix.util.FontUtil;
-import client.m1ck3y.rattix.util.RenderUtil;
+import client.m1ck3y.rattix.config.ClickGuiConfig;
+import client.m1ck3y.rattix.utils.CursorUtil;
+import client.m1ck3y.rattix.utils.FontUtil;
+import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;

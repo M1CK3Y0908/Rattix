@@ -4,7 +4,7 @@ import client.m1ck3y.rattix.module.Category;
 import client.m1ck3y.rattix.module.Module;
 import client.m1ck3y.rattix.module.clickgui.BooleanSetting;
 import client.m1ck3y.rattix.module.clickgui.NumberSetting;
-import client.m1ck3y.rattix.util.RenderUtil;
+import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.gui.ScaledResolution;
 
 public class Crosshair extends Module {

@@ -1,4 +1,4 @@
-package client.m1ck3y.rattix.util;
+package client.m1ck3y.rattix.utils;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;

@@ -1,6 +1,6 @@
 package client.m1ck3y.rattix.module.clickgui.comp;
 
-import client.m1ck3y.rattix.util.RenderUtil;
+import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.ChatAllowedCharacters;
