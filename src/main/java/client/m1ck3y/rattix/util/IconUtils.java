@@ -1,6 +1,8 @@
 package client.m1ck3y.rattix.util;
 
 import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import javax.imageio.ImageIO;
 import java.awt.Graphics2D;
@@ -18,6 +20,7 @@ import java.util.List;
 public class IconUtils {
     private static ByteBuffer[] cachedFavicon = null;
     private static boolean loaded = false;
+    private static int iconTexId = -1;
 
     public static boolean initLwjglIcon() {
         try {
@@ -66,7 +69,7 @@ public class IconUtils {
         return cachedFavicon;
     }
 
-    private static BufferedImage loadSvgIcon() {
+    public static BufferedImage loadSvgIcon() {
         String[] svgPaths = new String[]{
                 "/assets/rattix/icons/R_icon.svg",
                 "/assets/rattix/icons/icon.svg",
@@ -87,7 +90,7 @@ public class IconUtils {
                     int idx = content.indexOf("base64,");
                     if (idx != -1) {
                         int start = idx + "base64,".length();
-                        int end = content.indexOf("\"", start);
+                        int end = content.indexOf('\"', start);
                         if (end != -1) {
                             String b64 = content.substring(start, end).trim();
                             byte[] imgBytes = Base64.getDecoder().decode(b64);
@@ -103,6 +106,58 @@ public class IconUtils {
         return null;
     }
 
+    public static int getIconTextureId() {
+        if (iconTexId != -1 && GL11.glIsTexture(iconTexId)) return iconTexId;
+        try {
+            BufferedImage img = loadSvgIcon();
+            if (img == null) return -1;
+            int w = img.getWidth();
+            int h = img.getHeight();
+            ByteBuffer buffer = imageToByteBufferDirect(img);
+            if (buffer == null) return -1;
+
+            iconTexId = GL11.glGenTextures();
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, iconTexId);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+            GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
+            return iconTexId;
+        } catch (Throwable t) {
+            t.printStackTrace();
+            return -1;
+        }
+    }
+
+    public static void drawIcon(float x, float y, float size) {
+        drawIconDirect(x, y, size);
+    }
+
+    public static void drawIconDirect(float x, float y, float size) {
+        int texId = getIconTextureId();
+        if (texId <= 0) return;
+
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_ALPHA_TEST);
+        GL11.glDisable(GL11.GL_CULL_FACE);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texId);
+        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+        GL11.glBegin(GL11.GL_QUADS);
+        GL11.glTexCoord2f(0.0f, 1.0f); GL11.glVertex2f(x, y + size);
+        GL11.glTexCoord2f(1.0f, 1.0f); GL11.glVertex2f(x + size, y + size);
+        GL11.glTexCoord2f(1.0f, 0.0f); GL11.glVertex2f(x + size, y);
+        GL11.glTexCoord2f(0.0f, 0.0f); GL11.glVertex2f(x, y);
+        GL11.glEnd();
+
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glDisable(GL11.GL_BLEND);
+    }
+
     private static ByteBuffer imageToByteBuffer(BufferedImage bufferedImage) {
         if (bufferedImage == null) return null;
         int width = bufferedImage.getWidth();
@@ -112,6 +167,24 @@ public class IconUtils {
 
         for (int pixel : rgb) {
             byteBuffer.putInt((pixel << 8) | ((pixel >>> 24) & 255));
+        }
+
+        byteBuffer.flip();
+        return byteBuffer;
+    }
+
+    private static ByteBuffer imageToByteBufferDirect(BufferedImage bufferedImage) {
+        if (bufferedImage == null) return null;
+        int width = bufferedImage.getWidth();
+        int height = bufferedImage.getHeight();
+        int[] rgb = bufferedImage.getRGB(0, 0, width, height, null, 0, width);
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * rgb.length);
+
+        for (int pixel : rgb) {
+            byteBuffer.put((byte) ((pixel >> 16) & 0xFF));
+            byteBuffer.put((byte) ((pixel >> 8) & 0xFF));
+            byteBuffer.put((byte) (pixel & 0xFF));
+            byteBuffer.put((byte) ((pixel >> 24) & 0xFF));
         }
 
         byteBuffer.flip();

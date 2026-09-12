@@ -267,7 +267,8 @@ public class FontUtil {
     public static float getMinecraftStringWidth2x(String text) {
         if (text == null || text.isEmpty()) return 0;
         float sizeScale = Font.getInstance().size.getValue().floatValue() / 100.0f;
-        FontRenderer fr = vanillaFontRenderer != null ? vanillaFontRenderer : Minecraft.getMinecraft().fontRendererObj;
+        FontRenderer fr = vanillaFontRenderer != null ? vanillaFontRenderer : (Minecraft.getMinecraft() != null ? Minecraft.getMinecraft().fontRendererObj : null);
+        if (fr == null) return text.length() * 6.0f * 2.0f * sizeScale;
         return fr.getStringWidth(text) * 2.0f * sizeScale;
     }
 

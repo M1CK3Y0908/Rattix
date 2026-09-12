@@ -9,3 +9,5 @@ out/
 *.log
 bin/
 *.zip
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
