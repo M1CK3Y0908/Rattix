@@ -1,7 +1,7 @@
 package client.m1ck3y.rattix.modules.clickgui;
 
-import client.m1ck3y.rattix.modules.Category;
-import client.m1ck3y.rattix.modules.Register;
+import client.m1ck3y.rattix.modules.manager.Category;
+import client.m1ck3y.rattix.modules.manager.Register;
 
 import java.util.*;
 

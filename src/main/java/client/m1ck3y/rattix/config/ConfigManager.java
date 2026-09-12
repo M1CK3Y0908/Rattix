@@ -1,6 +1,6 @@
 package client.m1ck3y.rattix.config;
 
-import client.m1ck3y.rattix.manager.FileManager;
+import client.m1ck3y.rattix.utils.FileManager;
 
 import java.io.File;
 

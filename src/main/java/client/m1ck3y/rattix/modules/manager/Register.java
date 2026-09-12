@@ -1,5 +1,6 @@
-package client.m1ck3y.rattix.modules;
+package client.m1ck3y.rattix.modules.manager;
 
+import client.m1ck3y.rattix.modules.*;
 import client.m1ck3y.rattix.modules.clickgui.CheckBoxSetting;
 import client.m1ck3y.rattix.modules.clickgui.Setting;
 import net.minecraft.client.Minecraft;
@@ -58,7 +59,6 @@ public abstract class Register {
     }
 
     public Register(String name, String description, Category category, int keyCode) {
-        // 模块名称自动为类名/文件名（除非显式指定非空名称）
         this.name = (name != null && !name.trim().isEmpty()) ? name : getClass().getSimpleName();
         this.description = (description != null) ? description : "";
         this.category = category;
@@ -244,7 +244,6 @@ public abstract class Register {
 
         Set<Class<? extends Register>> moduleClasses = scanModuleClasses();
 
-        // Fallback list of known modules in case class scanning is restricted by custom classloaders
         if (moduleClasses.isEmpty()) {
             moduleClasses.addAll(getFallbackClasses());
         }
@@ -267,6 +266,15 @@ public abstract class Register {
         if (module.getName() != null) {
             modulesByName.put(module.getName().toLowerCase(), module);
         }
+
+        // 根据 Category 中定义的集合动态同步分类
+        Category mappedCategory = Category.getCategoryForModule(module.getName());
+        if (mappedCategory != null && mappedCategory != Category.MISC) {
+            module.setCategory(mappedCategory);
+        } else if (module.getCategory() == null) {
+            module.setCategory(Category.MISC);
+        }
+
         if (module.getCategory() != null) {
             module.getCategory().addModule(module);
         }
@@ -299,7 +307,7 @@ public abstract class Register {
                             String name = entry.getName();
                             if (name.startsWith(packagePath + "/") && name.endsWith(".class")) {
                                 String sub = name.substring(packagePath.length() + 1);
-                                if (!sub.contains("/")) { // Only direct children, exclude clickgui
+                                if (!sub.contains("/")) { // 排除 manager 与 clickgui 子包
                                     String simpleName = sub.substring(0, sub.length() - 6);
                                     checkAndAddClass(packageName + "." + simpleName, classes);
                                 }
@@ -331,7 +339,6 @@ public abstract class Register {
     @SuppressWarnings("unchecked")
     private static void checkAndAddClass(String fullClassName, Set<Class<? extends Register>> classes) {
         String simpleName = fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
-        // 排除分类 (Category) 和注册 (Register) 以及内部类
         if ("Category".equals(simpleName) || "Register".equals(simpleName) || simpleName.contains("$")) {
             return;
         }
@@ -397,6 +404,38 @@ public abstract class Register {
     public static Register getModuleByName(String name) {
         if (name == null) return null;
         return modulesByName.get(name.toLowerCase());
+    }
+
+    public static Register getModule(String name) {
+        return getModuleByName(name);
+    }
+
+    // ==========================================
+    // Lifecycle Dispatchers
+    // ==========================================
+    public static void onClientTick() {
+        for (Register m : registeredModules) {
+            if (m.isEnabled()) {
+                m.onTick();
+            }
+        }
+    }
+
+    public static void onRenderOverlay() {
+        for (Register m : registeredModules) {
+            if (m.isEnabled()) {
+                m.onRender2D();
+            }
+        }
+    }
+
+    public static void onKey(int key) {
+        if (key == 0) return;
+        for (Register m : registeredModules) {
+            if (m.getKeyCode() == key) {
+                m.toggle();
+            }
+        }
     }
 
     // 兼容别名

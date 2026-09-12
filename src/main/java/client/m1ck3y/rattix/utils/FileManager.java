@@ -1,4 +1,4 @@
-package client.m1ck3y.rattix.manager;
+package client.m1ck3y.rattix.utils;
 
 import net.minecraft.client.Minecraft;
 

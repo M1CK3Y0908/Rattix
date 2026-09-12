@@ -1,5 +1,8 @@
 package client.m1ck3y.rattix.modules;
 
+import client.m1ck3y.rattix.modules.manager.Category;
+import client.m1ck3y.rattix.modules.manager.Register;
+
 
 public class Fullbright extends Register {
     private float previousGamma = 1.0f;

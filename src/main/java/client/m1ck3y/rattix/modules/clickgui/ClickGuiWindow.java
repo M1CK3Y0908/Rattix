@@ -1,9 +1,9 @@
 package client.m1ck3y.rattix.modules.clickgui;
 
 import client.m1ck3y.rattix.RattixMod;
-import client.m1ck3y.rattix.modules.Category;
-import client.m1ck3y.rattix.modules.Register;
-import client.m1ck3y.rattix.manager.FileManager;
+import client.m1ck3y.rattix.modules.manager.Category;
+import client.m1ck3y.rattix.modules.manager.Register;
+import client.m1ck3y.rattix.utils.FileManager;
 import client.m1ck3y.rattix.utils.CursorUtil;
 import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.RenderUtil;

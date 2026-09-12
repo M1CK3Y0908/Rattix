@@ -1,6 +1,6 @@
 package client.m1ck3y.rattix.modules.clickgui.comp;
 
-import client.m1ck3y.rattix.modules.Register;
+import client.m1ck3y.rattix.modules.manager.Register;
 import client.m1ck3y.rattix.modules.clickgui.BooleanSetting;
 import client.m1ck3y.rattix.modules.clickgui.ModeSetting;
 import client.m1ck3y.rattix.modules.clickgui.NumberSetting;

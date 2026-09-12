@@ -1,15 +1,15 @@
 package client.m1ck3y.rattix;
 
+import client.m1ck3y.rattix.command.CommandManager;
 import client.m1ck3y.rattix.config.ConfigManager;
+import client.m1ck3y.rattix.event.EventManager;
 import client.m1ck3y.rattix.event.events.KeyEvent;
 import client.m1ck3y.rattix.event.events.Render2DEvent;
 import client.m1ck3y.rattix.event.events.TickEvent;
-import client.m1ck3y.rattix.manager.CommandManager;
-import client.m1ck3y.rattix.manager.EventManager;
-import client.m1ck3y.rattix.manager.FileManager;
-import client.m1ck3y.rattix.manager.ModuleManager;
 import client.m1ck3y.rattix.modules.clickgui.ClickGuiScreen;
+import client.m1ck3y.rattix.modules.manager.Register;
 import client.m1ck3y.rattix.script.ScriptManager;
+import client.m1ck3y.rattix.utils.FileManager;
 import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.IconUtils;
 import net.minecraft.client.Minecraft;
@@ -45,7 +45,6 @@ public class RattixMod {
     @Mod.Instance(MODID)
     public static RattixMod instance;
 
-    private ModuleManager moduleManager;
     private KeyBinding clickGuiKey;
     private boolean rshiftPressed = false;
 
@@ -69,7 +68,7 @@ public class RattixMod {
         FontUtil.init();
         ConfigManager.getInstance().init();
         ScriptManager.getInstance().init();
-        moduleManager = ModuleManager.getInstance();
+        Register.registerAll();
 
         // 注册按键绑定
         clickGuiKey = new KeyBinding("key.rattix.clickgui", Keyboard.KEY_RSHIFT, "key.categories.rattix");
@@ -97,7 +96,6 @@ public class RattixMod {
         IconUtils.initLwjglIcon();
     }
 
-
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (Keyboard.getEventKeyState()) {
@@ -105,8 +103,8 @@ public class RattixMod {
             EventManager.getInstance().call(new KeyEvent(key));
             if (clickGuiKey != null && clickGuiKey.isPressed() || key == Keyboard.KEY_RSHIFT) {
                 openClickGui();
-            } else if (moduleManager != null) {
-                moduleManager.onKey(key);
+            } else {
+                Register.onKey(key);
             }
         }
     }
@@ -118,9 +116,7 @@ public class RattixMod {
             if (!NAME.equals(Display.getTitle())) {
                 Display.setTitle(NAME);
             }
-            if (moduleManager != null) {
-                moduleManager.onTick();
-            }
+            Register.onClientTick();
             FontUtil.ensureGlobalFontRenderer();
 
             // 直接轮询键盘状态，保证无论在任何状态下都能检测到右 Shift
@@ -146,14 +142,10 @@ public class RattixMod {
         if (event.type == RenderGameOverlayEvent.ElementType.TEXT) {
             EventManager.getInstance().call(new Render2DEvent(event.partialTicks));
             Minecraft mc = Minecraft.getMinecraft();
-            if (moduleManager != null && mc.thePlayer != null && !mc.gameSettings.showDebugInfo) {
-                moduleManager.onRender2D();
+            if (mc.thePlayer != null && !mc.gameSettings.showDebugInfo) {
+                Register.onRenderOverlay();
             }
         }
-    }
-
-    public ModuleManager getModuleManager() {
-        return moduleManager;
     }
 
     public CommandManager getCommandManager() {
@@ -162,9 +154,5 @@ public class RattixMod {
 
     public EventManager getEventManager() {
         return EventManager.getInstance();
-    }
-
-    public ConfigManager getConfigManager() {
-        return ConfigManager.getInstance();
     }
 }

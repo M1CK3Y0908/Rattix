@@ -1,5 +1,8 @@
 package client.m1ck3y.rattix.modules;
 
+import client.m1ck3y.rattix.modules.manager.Category;
+import client.m1ck3y.rattix.modules.manager.Register;
+
 import client.m1ck3y.rattix.modules.clickgui.NumberSetting;
 
 public class AutoSoup extends Register {

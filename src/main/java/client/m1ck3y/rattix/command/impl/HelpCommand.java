@@ -1,7 +1,7 @@
 package client.m1ck3y.rattix.command.impl;
 
 import client.m1ck3y.rattix.command.Command;
-import client.m1ck3y.rattix.manager.CommandManager;
+import client.m1ck3y.rattix.command.CommandManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 

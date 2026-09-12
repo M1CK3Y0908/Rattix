@@ -1,6 +1,4 @@
-package client.m1ck3y.rattix.manager;
-
-import client.m1ck3y.rattix.command.Command;
+package client.m1ck3y.rattix.command;
 import client.m1ck3y.rattix.command.impl.BindCommand;
 import client.m1ck3y.rattix.command.impl.HelpCommand;
 import client.m1ck3y.rattix.command.impl.ToggleCommand;

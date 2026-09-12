@@ -1,7 +1,4 @@
-package client.m1ck3y.rattix.manager;
-
-import client.m1ck3y.rattix.event.Event;
-import client.m1ck3y.rattix.event.EventTarget;
+package client.m1ck3y.rattix.event;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

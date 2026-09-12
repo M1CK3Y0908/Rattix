@@ -1,7 +1,7 @@
 package client.m1ck3y.rattix.config;
 
 import com.google.gson.*;
-import client.m1ck3y.rattix.manager.FileManager;
+import client.m1ck3y.rattix.utils.FileManager;
 import client.m1ck3y.rattix.modules.clickgui.ClickGuiWindow;
 import client.m1ck3y.rattix.modules.clickgui.TabInfo;
 
