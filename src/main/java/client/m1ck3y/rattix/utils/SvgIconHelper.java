@@ -86,21 +86,10 @@ public class SvgIconHelper {
     public static String getCategoryKey(Category category) {
         if (category == null) return null;
         switch (category) {
-            case COMBAT:
-            case LEGIT:
-                return "combat";
             case MOVEMENT:
                 return "movement";
-            case RENDER:
-            case HUD:
+            case VISUAL:
                 return "visual";
-            case PLAYER:
-            case LATENCY:
-                return "player";
-            case WORLD:
-            case MISC:
-            case FUN:
-                return "other";
             case THEME:
                 return "theme";
             default:

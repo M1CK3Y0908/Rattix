@@ -11,3 +11,5 @@ bin/
 *.zip
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
+FPSMaster-Edge-main/
+Rattix-*/

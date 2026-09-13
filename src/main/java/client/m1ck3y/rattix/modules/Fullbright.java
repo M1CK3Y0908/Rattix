@@ -8,7 +8,7 @@ public class Fullbright extends Register {
     private float previousGamma = 1.0f;
 
     public Fullbright() {
-        super("Brightens up everything in the world.", Category.RENDER);
+        super("Brightens up everything in the world.", Category.VISUAL);
     }
 
     @Override

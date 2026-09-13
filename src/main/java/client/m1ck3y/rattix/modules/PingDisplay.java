@@ -12,7 +12,7 @@ public class PingDisplay extends Register {
     public BooleanSetting showBackground = new BooleanSetting("Background", true);
 
     public PingDisplay() {
-        super("Displays your server ping in milliseconds.", Category.HUD);
+        super("Displays your server ping in milliseconds.", Category.VISUAL);
         addSettings(showBackground);
         setEnabled(true);
     }

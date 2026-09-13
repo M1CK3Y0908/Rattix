@@ -269,10 +269,10 @@ public abstract class Register {
 
         // 根据 Category 中定义的集合动态同步分类
         Category mappedCategory = Category.getCategoryForModule(module.getName());
-        if (mappedCategory != null && mappedCategory != Category.MISC) {
+        if (mappedCategory != null) {
             module.setCategory(mappedCategory);
         } else if (module.getCategory() == null) {
-            module.setCategory(Category.MISC);
+            module.setCategory(Category.VISUAL);
         }
 
         if (module.getCategory() != null) {
@@ -296,8 +296,19 @@ public abstract class Register {
                 String protocol = resource.getProtocol();
 
                 if ("file".equals(protocol)) {
-                    String filePath = URLDecoder.decode(resource.getFile(), "UTF-8");
-                    scanDirectory(new File(filePath), packageName, classes);
+                    File dir = null;
+                    try {
+                        dir = new File(resource.toURI());
+                    } catch (Exception ignored) {
+                    }
+                    if (dir == null || !dir.exists()) {
+                        String filePath = URLDecoder.decode(resource.getFile(), "UTF-8");
+                        if (filePath.startsWith("/") && filePath.contains(":")) {
+                            filePath = filePath.substring(1);
+                        }
+                        dir = new File(filePath);
+                    }
+                    scanDirectory(dir, packageName, classes);
                 } else if ("jar".equals(protocol)) {
                     JarURLConnection jarConn = (JarURLConnection) resource.openConnection();
                     try (JarFile jarFile = jarConn.getJarFile()) {
@@ -356,24 +367,16 @@ public abstract class Register {
     private static List<Class<? extends Register>> getFallbackClasses() {
         List<Class<? extends Register>> list = new ArrayList<>();
         Class<?>[] fallbacks = new Class<?>[]{
+                ClickGUI.class,
                 ArmorStatus.class,
-                AutoGapple.class,
-                AutoPot.class,
-                AutoSoup.class,
-                BowAimbot.class,
                 CPSDisplay.class,
-                Criticals.class,
                 Crosshair.class,
                 FPSDisplay.class,
                 Fullbright.class,
                 Keystrokes.class,
-                KillAura.class,
-                MoreKB.class,
                 PingDisplay.class,
-                Speed.class,
                 TimeChanger.class,
-                ToggleSprint.class,
-                Velocity.class
+                ToggleSprint.class
         };
         for (Class<?> c : fallbacks) {
             if (Register.class.isAssignableFrom(c)) {

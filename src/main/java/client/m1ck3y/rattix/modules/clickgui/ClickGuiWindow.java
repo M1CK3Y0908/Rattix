@@ -626,10 +626,10 @@ public class ClickGuiWindow {
 
         TabInfo currentTab = getActiveTab();
         if (currentTab != null) {
-            if (currentTab.isModulesTab() || currentTab.getCategory() != null) {
-                drawModuleManagement(currentTab, curX, bodyY, curW, bodyH, mouseX, mouseY);
-            } else {
+            if ("console".equalsIgnoreCase(currentTab.getType())) {
                 drawTerminalConsole(currentTab, curX, bodyY, curW, bodyH, mouseX, mouseY);
+            } else {
+                drawModuleManagement(currentTab, curX, bodyY, curW, bodyH, mouseX, mouseY);
             }
         }
 
@@ -786,6 +786,10 @@ public class ClickGuiWindow {
         }
 
         Register selectedModule = tab.getSelectedModule();
+        if (selectedModule == null && !mods.isEmpty()) {
+            selectedModule = mods.get(0);
+            tab.setSelectedModule(selectedModule);
+        }
         if (selectedModule != null) {
             float modTitleY = y + 20;
             drawString2x("\u00A7b" + selectedModule.getName().toUpperCase(), rightX, modTitleY, 0xFF76B9ED);
@@ -1885,6 +1889,7 @@ public class ClickGuiWindow {
                         if (RenderUtil.isHovered(mouseX, mouseY, curX + 6, itemY - 2, sidebarW - 12, 24)) {
                             if (mouseButton == 0) {
                                 m.toggle();
+                                activeTab.setSelectedModule(m);
                             } else if (mouseButton == 1) {
                                 activeTab.setSelectedModule(m);
                                 activeTab.setBindingModule(null);

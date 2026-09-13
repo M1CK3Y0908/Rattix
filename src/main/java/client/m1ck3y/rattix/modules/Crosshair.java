@@ -14,7 +14,7 @@ public class Crosshair extends Register {
     public BooleanSetting dot = new BooleanSetting("Center Dot", true);
 
     public Crosshair() {
-        super("Customizable screen crosshair.", Category.RENDER);
+        super("Customizable screen crosshair.", Category.VISUAL);
         addSettings(size, gap, dot);
     }
 

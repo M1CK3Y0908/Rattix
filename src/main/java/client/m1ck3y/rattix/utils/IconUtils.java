@@ -70,6 +70,21 @@ public class IconUtils {
     }
 
     public static BufferedImage loadSvgIcon() {
+        String[] pngPaths = new String[]{
+                "/assets/rattix/icons/R_icon.png",
+                "/assets/minecraft/textures/gui/title/mojang.png"
+        };
+        for (String path : pngPaths) {
+            try (InputStream stream = IconUtils.class.getResourceAsStream(path)) {
+                if (stream != null) {
+                    BufferedImage img = ImageIO.read(stream);
+                    if (img != null) {
+                        return img;
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
+
         String[] svgPaths = new String[]{
                 "/assets/rattix/icons/R_icon.svg",
                 "/assets/rattix/icons/icon.svg",

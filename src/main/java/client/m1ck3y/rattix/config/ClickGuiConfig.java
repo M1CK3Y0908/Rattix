@@ -82,13 +82,30 @@ public class ClickGuiConfig {
                             String tabId = tabObj.has("id") ? tabObj.get("id").getAsString() : null;
                             String type = tabObj.has("type") ? tabObj.get("type").getAsString() : "console";
                             String title = tabObj.has("title") ? tabObj.get("title").getAsString() : "Console";
+
+                            // 兼容旧分类 Tab（如 render, hud 映射为 visual），过滤已移除的分类（如 combat, player 等）
+                            if (!"console".equalsIgnoreCase(type) && !"modules".equalsIgnoreCase(type)) {
+                                client.m1ck3y.rattix.modules.manager.Category cat = client.m1ck3y.rattix.modules.manager.Category.fromName(type);
+                                if (cat == null) {
+                                    continue;
+                                }
+                                type = cat.name().toLowerCase();
+                                if ("render".equalsIgnoreCase(title) || "hud".equalsIgnoreCase(title)) {
+                                    title = cat.getDisplayName();
+                                }
+                            }
+
                             TabInfo tab = TabInfo.createTab(tabId, type, title);
                             tabs.add(tab);
                         }
                     }
 
                     if (tabs.isEmpty()) {
-                        tabs.add(TabInfo.createPreset("console"));
+                        tabs.add(TabInfo.createPreset("modules"));
+                    }
+
+                    if (activeTab < 0 || activeTab >= tabs.size()) {
+                        activeTab = 0;
                     }
 
                     ClickGuiWindow window = new ClickGuiWindow(id, posX, posY, w, h, isMax, isMin, tabs, activeTab);

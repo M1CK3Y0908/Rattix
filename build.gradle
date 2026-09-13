@@ -5,6 +5,10 @@ buildscript {
             name = "forge"
             url = "https://maven.minecraftforge.net/"
         }
+        maven {
+            name = "sponge"
+            url = "https://repo.spongepowered.org/maven/"
+        }
     }
     dependencies {
         // Forge 1.8.9 官方插件，与 Gradle 4.4.1 完美兼容
@@ -21,15 +25,47 @@ archivesBaseName = "Rattix"
 sourceCompatibility = targetCompatibility = '1.8'
 compileJava.options.encoding = 'UTF-8'
 
+compileJava {
+    File mcpSrg = file("${System.getProperty('user.home')}/.gradle/caches/minecraft/de/oceanlabs/mcp/mcp_stable/22/srgs/mcp-srg.srg")
+    File notchSrg = file("${System.getProperty('user.home')}/.gradle/caches/minecraft/de/oceanlabs/mcp/mcp_stable/22/srgs/mcp-notch.srg")
+    options.compilerArgs += [
+        "-AreobfSrgFile=${mcpSrg.canonicalPath}",
+        "-AreobfNotchSrgFile=${notchSrg.canonicalPath}",
+        "-AoutRefMapFile=${buildDir}/resources/main/mixins.rattix.refmap.json",
+        "-AdefaultObfuscationEnv=searge"
+    ]
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "sponge"
+        url = "https://repo.spongepowered.org/maven/"
+    }
+}
+
 minecraft {
     version = "1.8.9-11.15.1.2318-1.8.9"
     runDir = "run"
     mappings = "stable_22"
     makeObfSourceJar = false
-    clientJvmArgs = ["-Dforge.forceNoStencil=true"]
+    clientJvmArgs = [
+        "-Dforge.forceNoStencil=true",
+        "-Dfml.coreMods.load=client.m1ck3y.rattix.injection.RattixLoadingPlugin"
+    ]
+    clientRunArgs = [
+        "--tweakClass", "org.spongepowered.asm.launch.MixinTweaker",
+        "--mixin", "mixins.rattix.json"
+    ]
 }
 
 dependencies {
+    compile('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
+        exclude module: 'gson'
+        exclude module: 'commons-io'
+    }
 }
 
 processResources {
@@ -47,6 +83,20 @@ processResources {
 }
 
 jar {
+    from {
+        configurations.compile.filter { it.name.contains("mixin") }.collect {
+            zipTree(it)
+        }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+
+    exclude "META-INF/*.SF"
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
+
     manifest {
         attributes([
             "Specification-Title": "rattix",
@@ -55,7 +105,11 @@ jar {
             "Implementation-Title": project.name,
             "Implementation-Version": project.version,
             "Implementation-Vendor": "rattix",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "FMLCorePlugin": "client.m1ck3y.rattix.injection.RattixLoadingPlugin",
+            "FMLCorePluginContainsFMLMod": "true",
+            "ForceLoadAsMod": "true",
+            "MixinConfigs": "mixins.rattix.json"
         ])
     }
 }

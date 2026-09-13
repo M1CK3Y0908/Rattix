@@ -16,7 +16,7 @@ public class ArmorStatus extends Register {
     public BooleanSetting showBackground = new BooleanSetting("Background", true);
 
     public ArmorStatus() {
-        super("Displays equipped armor and held items with durability.", Category.HUD);
+        super("Displays equipped armor and held items with durability.", Category.VISUAL);
         addSettings(showDamage, showBackground);
         setEnabled(false);
     }

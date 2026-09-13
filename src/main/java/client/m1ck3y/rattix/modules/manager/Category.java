@@ -3,39 +3,20 @@ package client.m1ck3y.rattix.modules.manager;
 import java.util.*;
 
 public enum Category {
-    COMBAT("Combat", Arrays.asList(
-            "KillAura",
-            "BowAimbot",
-            "Criticals",
-            "MoreKB",
-            "Velocity"
-    )),
     MOVEMENT("Movement", Arrays.asList(
-            "ToggleSprint",
-            "Speed"
+            "ToggleSprint"
     )),
-    RENDER("Render", Arrays.asList(
+    VISUAL("Visual", Arrays.asList(
+            "ClickGUI",
             "ArmorStatus",
             "Fullbright",
             "TimeChanger",
-            "Crosshair"
-    )),
-    PLAYER("Player", Arrays.asList(
-            "AutoGapple",
-            "AutoPot",
-            "AutoSoup"
-    )),
-    HUD("HUD", Arrays.asList(
+            "Crosshair",
             "FPSDisplay",
             "CPSDisplay",
             "Keystrokes",
             "PingDisplay"
     )),
-    WORLD("World", Collections.emptyList()),
-    MISC("Misc", Collections.emptyList()),
-    FUN("Fun", Collections.emptyList()),
-    LEGIT("Legit", Collections.emptyList()),
-    LATENCY("Latency", Collections.emptyList()),
     THEME("Theme", Collections.emptyList());
 
     private final String displayName;
@@ -97,6 +78,22 @@ public enum Category {
                 }
             }
         }
-        return MISC;
+        return null;
+    }
+
+    /**
+     * 根据名称解析分类，支持旧版本分类别名（如 render, hud 映射为 VISUAL）
+     */
+    public static Category fromName(String name) {
+        if (name == null) return null;
+        for (Category cat : values()) {
+            if (cat.name().equalsIgnoreCase(name) || cat.displayName.equalsIgnoreCase(name)) {
+                return cat;
+            }
+        }
+        if ("render".equalsIgnoreCase(name) || "hud".equalsIgnoreCase(name)) {
+            return VISUAL;
+        }
+        return null;
     }
 }

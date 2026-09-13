@@ -11,7 +11,7 @@ public class TimeChanger extends Register {
     public NumberSetting customTime = new NumberSetting("Custom Time", 6000, 0, 24000, 500);
 
     public TimeChanger() {
-        super("Changes client-side world time visually.", Category.RENDER);
+        super("Changes client-side world time visually.", Category.VISUAL);
         addSettings(mode, customTime);
     }
 

@@ -66,10 +66,9 @@ public class TabInfo {
         if ("modules".equalsIgnoreCase(t)) {
             return new TabInfo(UUID.randomUUID().toString(), "modules", "Modules", null);
         }
-        for (Category cat : Category.values()) {
-            if (cat.name().equalsIgnoreCase(t)) {
-                return new TabInfo(UUID.randomUUID().toString(), t, cat.getDisplayName(), cat);
-            }
+        Category cat = Category.fromName(t);
+        if (cat != null) {
+            return new TabInfo(UUID.randomUUID().toString(), cat.name().toLowerCase(), cat.getDisplayName(), cat);
         }
         return new TabInfo(UUID.randomUUID().toString(), "console", "Console", null);
     }
@@ -78,17 +77,15 @@ public class TabInfo {
         String t = (type == null) ? "console" : type.toLowerCase();
         if ("modules".equalsIgnoreCase(t)) {
             String tabTitle = (title != null && !title.isEmpty()) ? title : "Modules";
-            return new TabInfo(id, t, tabTitle, null);
+            return new TabInfo(id, "modules", tabTitle, null);
         }
-        Category cat = null;
-        for (Category c : Category.values()) {
-            if (c.name().equalsIgnoreCase(t)) {
-                cat = c;
-                break;
-            }
+        Category cat = Category.fromName(t);
+        if (cat != null) {
+            String tabTitle = (title != null && !title.isEmpty()) ? title : cat.getDisplayName();
+            return new TabInfo(id, cat.name().toLowerCase(), tabTitle, cat);
         }
-        String tabTitle = (title != null && !title.isEmpty()) ? title : (cat != null ? cat.getDisplayName() : "Console");
-        return new TabInfo(id, t, tabTitle, cat);
+        String tabTitle = (title != null && !title.isEmpty()) ? title : "Console";
+        return new TabInfo(id, "console", tabTitle, null);
     }
 
     public String getId() { return id; }

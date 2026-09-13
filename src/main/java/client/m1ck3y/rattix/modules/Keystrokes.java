@@ -12,7 +12,7 @@ public class Keystrokes extends Register {
     public BooleanSetting showMouse = new BooleanSetting("Show Mouse Buttons", true);
 
     public Keystrokes() {
-        super("Displays movement keys and mouse presses on screen.", Category.HUD);
+        super("Displays movement keys and mouse presses on screen.", Category.VISUAL);
         addSettings(showMouse);
         setEnabled(false);
     }

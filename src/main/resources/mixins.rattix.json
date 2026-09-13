@@ -1,0 +1,12 @@
+{
+  "package": "client.m1ck3y.rattix.injection.mixin",
+  "refmap": "mixins.rattix.refmap.json",
+  "minVersion": "0.7",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinSplashScreen"
+  ],
+  "client": [
+    "MixinMinecraft"
+  ]
+}

@@ -1,6 +1,8 @@
 package client.m1ck3y.rattix.modules.clickgui;
 
 import client.m1ck3y.rattix.config.ClickGuiConfig;
+import client.m1ck3y.rattix.modules.ClickGUI;
+import client.m1ck3y.rattix.modules.manager.Register;
 import client.m1ck3y.rattix.utils.CursorUtil;
 import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.RenderUtil;
@@ -29,6 +31,7 @@ public class ClickGuiScreen extends GuiScreen {
     private boolean isDraggingTab = false;
     private ClickGuiWindow hoverTargetWindow = null;
     private int hoverInsertIndex = -1;
+    private long openTimestamp = 0;
 
     public ClickGuiScreen() {
     }
@@ -36,6 +39,7 @@ public class ClickGuiScreen extends GuiScreen {
     @Override
     public void initGui() {
         Keyboard.enableRepeatEvents(true);
+        openTimestamp = System.currentTimeMillis();
 
         if (windows.isEmpty()) {
             List<ClickGuiWindow> loaded = ClickGuiConfig.load();
@@ -49,7 +53,7 @@ public class ClickGuiScreen extends GuiScreen {
                 ClickGuiWindow defaultWindow = new ClickGuiWindow(
                         UUID.randomUUID().toString(),
                         posX, posY, defaultW, defaultH, false,
-                        Collections.singletonList(TabInfo.createPreset("console")),
+                        Collections.singletonList(TabInfo.createPreset("modules")),
                         0
                 );
                 windows.add(defaultWindow);
@@ -57,11 +61,23 @@ public class ClickGuiScreen extends GuiScreen {
         }
     }
 
+    private boolean inGuiClosed = false;
+
     @Override
     public void onGuiClosed() {
-        Keyboard.enableRepeatEvents(false);
-        ClickGuiConfig.save(windows);
-        CursorUtil.resetCursor();
+        if (inGuiClosed) return;
+        inGuiClosed = true;
+        try {
+            Keyboard.enableRepeatEvents(false);
+            ClickGuiConfig.save(windows);
+            CursorUtil.resetCursor();
+            Register clickGui = Register.getModule(client.m1ck3y.rattix.modules.ClickGUI.class);
+            if (clickGui != null && clickGui.isEnabled()) {
+                clickGui.setEnabled(false);
+            }
+        } finally {
+            inGuiClosed = false;
+        }
     }
 
     private int getRawMouseX() {
@@ -411,7 +427,8 @@ public class ClickGuiScreen extends GuiScreen {
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
-        if (keyCode == Keyboard.KEY_ESCAPE || keyCode == Keyboard.KEY_RSHIFT) {
+        // 1. ESC 始终关闭 GUI
+        if (keyCode == Keyboard.KEY_ESCAPE) {
             mc.displayGuiScreen(null);
             if (mc.currentScreen == null) {
                 mc.setIngameFocus();
@@ -419,11 +436,23 @@ public class ClickGuiScreen extends GuiScreen {
             return;
         }
 
+        // 2. 先将按键事件分发给顶层窗口内部组件（如模块按键绑定、终端控制台输入、搜索栏等）
         if (!windows.isEmpty()) {
             ClickGuiWindow topWindow = windows.get(windows.size() - 1);
             if (topWindow.keyTyped(typedChar, keyCode)) {
                 return;
             }
+        }
+
+        // 3. 按下 RSHIFT 或 ClickGUI 绑定键直接关闭界面
+        Register clickGui = Register.getModule(client.m1ck3y.rattix.modules.ClickGUI.class);
+        int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
+        if (keyCode == Keyboard.KEY_RSHIFT || (guiKey != 0 && keyCode == guiKey)) {
+            mc.displayGuiScreen(null);
+            if (mc.currentScreen == null) {
+                mc.setIngameFocus();
+            }
+            return;
         }
 
         super.keyTyped(typedChar, keyCode);

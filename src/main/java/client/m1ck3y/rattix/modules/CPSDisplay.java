@@ -21,7 +21,7 @@ public class CPSDisplay extends Register {
     private boolean lastRightState = false;
 
     public CPSDisplay() {
-        super("Displays your Clicks Per Second in real time.", Category.HUD);
+        super("Displays your Clicks Per Second in real time.", Category.VISUAL);
         addSettings(showRMB, showBackground);
         setEnabled(true);
     }

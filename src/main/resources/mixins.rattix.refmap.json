@@ -1,0 +1,19 @@
+{
+  "mappings": {
+    "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
+      "drawSplashScreen(Lnet/minecraft/client/renderer/texture/TextureManager;)V": "Lnet/minecraft/client/Minecraft;func_180510_a(Lnet/minecraft/client/renderer/texture/TextureManager;)V"
+    }
+  },
+  "data": {
+    "searge": {
+      "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
+        "drawSplashScreen(Lnet/minecraft/client/renderer/texture/TextureManager;)V": "Lnet/minecraft/client/Minecraft;func_180510_a(Lnet/minecraft/client/renderer/texture/TextureManager;)V"
+      }
+    },
+    "notch": {
+      "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
+        "drawSplashScreen(Lnet/minecraft/client/renderer/texture/TextureManager;)V": "Lave;a(Lbmj;)V"
+      }
+    }
+  }
+}

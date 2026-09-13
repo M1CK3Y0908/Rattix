@@ -13,7 +13,7 @@ public class FPSDisplay extends Register {
     public BooleanSetting showLabel = new BooleanSetting("Show 'FPS' text", true);
 
     public FPSDisplay() {
-        super("Shows current Frames Per Second.", Category.HUD);
+        super("Shows current Frames Per Second.", Category.VISUAL);
         addSettings(showBackground, showLabel);
         setEnabled(true);
     }
