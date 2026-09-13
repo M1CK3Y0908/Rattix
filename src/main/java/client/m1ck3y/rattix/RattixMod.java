@@ -6,7 +6,7 @@ import client.m1ck3y.rattix.event.EventManager;
 import client.m1ck3y.rattix.event.events.KeyEvent;
 import client.m1ck3y.rattix.event.events.Render2DEvent;
 import client.m1ck3y.rattix.event.events.TickEvent;
-import client.m1ck3y.rattix.modules.clickgui.ClickGuiScreen;
+import client.m1ck3y.rattix.modules.ClickGUI;
 import client.m1ck3y.rattix.modules.manager.Register;
 import client.m1ck3y.rattix.script.ScriptManager;
 import client.m1ck3y.rattix.utils.FileManager;
@@ -151,17 +151,7 @@ public class RattixMod {
     }
 
     public static void openClickGui() {
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc.currentScreen instanceof ClickGuiScreen) {
-            return;
-        }
-        Register clickGui = Register.getModule(client.m1ck3y.rattix.modules.ClickGUI.class);
-        if (clickGui != null && !clickGui.isEnabled()) {
-            clickGui.setEnabled(true);
-        }
-        if (mc.currentScreen == null) {
-            mc.displayGuiScreen(new ClickGuiScreen());
-        }
+        ClickGUI.open();
     }
 
     @SubscribeEvent

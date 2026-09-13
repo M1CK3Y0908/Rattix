@@ -3,8 +3,8 @@ package client.m1ck3y.rattix.modules;
 import client.m1ck3y.rattix.modules.manager.Category;
 import client.m1ck3y.rattix.modules.manager.Register;
 
-import client.m1ck3y.rattix.modules.clickgui.ModeSetting;
-import client.m1ck3y.rattix.modules.clickgui.NumberSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.ModeSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.NumberSetting;
 
 public class TimeChanger extends Register {
     public ModeSetting mode = new ModeSetting("Mode", "Day", "Day", "Sunset", "Night", "Custom");

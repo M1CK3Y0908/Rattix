@@ -3,7 +3,7 @@ package client.m1ck3y.rattix.modules;
 import client.m1ck3y.rattix.modules.manager.Category;
 import client.m1ck3y.rattix.modules.manager.Register;
 
-import client.m1ck3y.rattix.modules.clickgui.BooleanSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.BooleanSetting;
 import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.RenderUtil;
 import org.lwjgl.input.Mouse;

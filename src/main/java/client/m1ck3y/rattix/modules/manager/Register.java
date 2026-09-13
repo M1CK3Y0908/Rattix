@@ -1,8 +1,8 @@
 package client.m1ck3y.rattix.modules.manager;
 
 import client.m1ck3y.rattix.modules.*;
-import client.m1ck3y.rattix.modules.clickgui.CheckBoxSetting;
-import client.m1ck3y.rattix.modules.clickgui.Setting;
+import client.m1ck3y.rattix.modules.ClickGUI.CheckBoxSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.Setting;
 import net.minecraft.client.Minecraft;
 
 import java.io.File;

@@ -3,11 +3,11 @@ package client.m1ck3y.rattix.modules;
 import client.m1ck3y.rattix.modules.manager.Category;
 import client.m1ck3y.rattix.modules.manager.Register;
 
-import client.m1ck3y.rattix.modules.clickgui.BooleanSetting;
-import client.m1ck3y.rattix.modules.clickgui.ColorSetting;
-import client.m1ck3y.rattix.modules.clickgui.ModeSetting;
-import client.m1ck3y.rattix.modules.clickgui.NumberSetting;
-import client.m1ck3y.rattix.modules.clickgui.Setting;
+import client.m1ck3y.rattix.modules.ClickGUI.BooleanSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.ColorSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.ModeSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.NumberSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.Setting;
 
 import java.util.ArrayList;
 import java.util.Arrays;

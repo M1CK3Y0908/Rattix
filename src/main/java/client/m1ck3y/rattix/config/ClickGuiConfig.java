@@ -2,8 +2,8 @@ package client.m1ck3y.rattix.config;
 
 import com.google.gson.*;
 import client.m1ck3y.rattix.utils.FileManager;
-import client.m1ck3y.rattix.modules.clickgui.ClickGuiWindow;
-import client.m1ck3y.rattix.modules.clickgui.TabInfo;
+import client.m1ck3y.rattix.modules.ClickGUI.Window;
+import client.m1ck3y.rattix.modules.ClickGUI.TabInfo;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -13,14 +13,14 @@ public class ClickGuiConfig {
     private static final File CONFIG_FILE = new File(FileManager.RATTIX_DIR, "clickgui.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    public static void save(List<ClickGuiWindow> windows) {
+    public static void save(List<Window> windows) {
         try {
             if (!FileManager.RATTIX_DIR.exists()) {
                 FileManager.RATTIX_DIR.mkdirs();
             }
             JsonObject root = new JsonObject();
             JsonArray winArray = new JsonArray();
-            for (ClickGuiWindow win : windows) {
+            for (Window win : windows) {
                 JsonObject winObj = new JsonObject();
                 winObj.addProperty("id", win.getId());
                 winObj.addProperty("posX", win.getPosX());
@@ -52,8 +52,8 @@ public class ClickGuiConfig {
         }
     }
 
-    public static List<ClickGuiWindow> load() {
-        List<ClickGuiWindow> windows = new ArrayList<>();
+    public static List<Window> load() {
+        List<Window> windows = new ArrayList<>();
         if (!CONFIG_FILE.exists()) {
             return windows;
         }
@@ -108,7 +108,7 @@ public class ClickGuiConfig {
                         activeTab = 0;
                     }
 
-                    ClickGuiWindow window = new ClickGuiWindow(id, posX, posY, w, h, isMax, isMin, tabs, activeTab);
+                    Window window = new Window(id, posX, posY, w, h, isMax, isMin, tabs, activeTab);
                     windows.add(window);
                 }
             }

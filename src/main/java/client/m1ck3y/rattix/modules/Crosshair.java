@@ -3,8 +3,8 @@ package client.m1ck3y.rattix.modules;
 import client.m1ck3y.rattix.modules.manager.Category;
 import client.m1ck3y.rattix.modules.manager.Register;
 
-import client.m1ck3y.rattix.modules.clickgui.BooleanSetting;
-import client.m1ck3y.rattix.modules.clickgui.NumberSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.BooleanSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.NumberSetting;
 import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.gui.ScaledResolution;
 
