@@ -14,7 +14,9 @@ import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.IconUtils;
 import client.m1ck3y.rattix.utils.StartupScreen;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -91,7 +93,6 @@ public class RattixMod {
 
         updateTitleAndIcon();
         StartupScreen.draw("Rattix Client Ready", 1.0f);
-        StartupScreen.installLoadingScreen();
     }
 
     public static void updateTitleAndIcon() {
@@ -180,7 +181,18 @@ public class RattixMod {
 
     @SubscribeEvent
     public void onGuiOpen(net.minecraftforge.client.event.GuiOpenEvent event) {
-        StartupScreen.installLoadingScreen();
+        StartupScreen.onStartupComplete();
+    }
+
+    @SubscribeEvent
+    public void onDrawScreenPost(GuiScreenEvent.DrawScreenEvent.Post event) {
+        if (event.gui instanceof GuiMainMenu) {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc != null && mc.fontRendererObj != null) {
+                String text = "Loaded " + Register.getLoadedModuleCount() + " modules and " + Register.getLoadedOptionCount() + " options";
+                event.gui.drawString(mc.fontRendererObj, text, 2, 2, -1);
+            }
+        }
     }
 
     public CommandManager getCommandManager() {

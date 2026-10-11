@@ -13,7 +13,6 @@ import java.util.List;
 
 public class CPSDisplay extends Register {
     public BooleanSetting showRMB = new BooleanSetting("Show Right Click", true);
-    public BooleanSetting showBackground = new BooleanSetting("Background", true);
 
     private final List<Long> leftClicks = new ArrayList<>();
     private final List<Long> rightClicks = new ArrayList<>();
@@ -22,7 +21,8 @@ public class CPSDisplay extends Register {
 
     public CPSDisplay() {
         super("Displays your Clicks Per Second in real time.", Category.VISUAL);
-        addSettings(showRMB, showBackground);
+        addSettings(showRMB);
+        initVisualSettings();
         setEnabled(true);
     }
 
@@ -53,17 +53,18 @@ public class CPSDisplay extends Register {
         int lCps = leftClicks.size();
         int rCps = rightClicks.size();
 
-        String text = showRMB.getValue() ? "CPS: §f" + lCps + " §7| §f" + rCps : "CPS: §f" + lCps;
+        String text = showRMB.getValue() ? "CPS: " + lCps + " | " + rCps : "CPS: " + lCps;
 
-        int x = 4;
-        int y = 22;
-        int width = (int) Math.ceil(FontUtil.getHudStringWidth(text)) + 8;
-        int height = 14;
+        float x = 4.0f;
+        float y = 22.0f;
+        float textW = getVisualTextWidth(text);
+        float textH = getVisualTextHeight();
+        float width = (float) Math.ceil(textW) + 8.0f;
+        float height = Math.max(14.0f, textH + 6.0f);
 
-        if (showBackground.getValue()) {
-            RenderUtil.drawRoundedRect(x, y, width, height, 4, 0x90000000);
-            RenderUtil.drawRoundedOutline(x, y, width, height, 4, 1.0f, 0x25FFFFFF);
-        }
-        FontUtil.drawHudString("§b" + text, x + 4, y + 3, 0xFFFFFF);
+        beginVisualTransform(x + width * 0.5f, y + height * 0.5f);
+        drawVisualBackground(x, y, width, height);
+        drawVisualText(text, x + 4.0f, y + (height - textH) * 0.5f);
+        endVisualTransform();
     }
 }

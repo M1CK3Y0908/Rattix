@@ -9,11 +9,10 @@ import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.network.NetworkPlayerInfo;
 
 public class PingDisplay extends Register {
-    public BooleanSetting showBackground = new BooleanSetting("Background", true);
 
     public PingDisplay() {
         super("Displays your server ping in milliseconds.", Category.VISUAL);
-        addSettings(showBackground);
+        initVisualSettings();
         setEnabled(true);
     }
 
@@ -22,17 +21,18 @@ public class PingDisplay extends Register {
         if (!isEnabled() || mc.thePlayer == null || mc.getNetHandler() == null) return;
         NetworkPlayerInfo info = mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID());
         int ping = info != null ? info.getResponseTime() : 0;
-        String text = "Ping: §f" + ping + "ms";
+        String text = "Ping: " + ping + "ms";
 
-        int x = 4;
-        int y = 40;
-        int width = (int) Math.ceil(FontUtil.getHudStringWidth(text)) + 8;
-        int height = 14;
+        float x = 4.0f;
+        float y = 40.0f;
+        float textW = getVisualTextWidth(text);
+        float textH = getVisualTextHeight();
+        float width = (float) Math.ceil(textW) + 8.0f;
+        float height = Math.max(14.0f, textH + 6.0f);
 
-        if (showBackground.getValue()) {
-            RenderUtil.drawRoundedRect(x, y, width, height, 4, 0x90000000);
-            RenderUtil.drawRoundedOutline(x, y, width, height, 4, 1.0f, 0x25FFFFFF);
-        }
-        FontUtil.drawHudString("§b" + text, x + 4, y + 3, 0xFFFFFF);
+        beginVisualTransform(x + width * 0.5f, y + height * 0.5f);
+        drawVisualBackground(x, y, width, height);
+        drawVisualText(text, x + 4.0f, y + (height - textH) * 0.5f);
+        endVisualTransform();
     }
 }

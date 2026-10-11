@@ -9,12 +9,12 @@ import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.Minecraft;
 
 public class FPSDisplay extends Register {
-    public BooleanSetting showBackground = new BooleanSetting("Background", true);
     public BooleanSetting showLabel = new BooleanSetting("Show 'FPS' text", true);
 
     public FPSDisplay() {
         super("Shows current Frames Per Second.", Category.VISUAL);
-        addSettings(showBackground, showLabel);
+        addSettings(showLabel);
+        initVisualSettings();
         setEnabled(true);
     }
 
@@ -22,17 +22,18 @@ public class FPSDisplay extends Register {
     public void onRender2D() {
         if (!isEnabled()) return;
         int fps = Minecraft.getDebugFPS();
-        String text = showLabel.getValue() ? "FPS: §f" + fps : "§f" + fps;
+        String text = showLabel.getValue() ? "FPS: " + fps : String.valueOf(fps);
 
-        int x = 4;
-        int y = 4;
-        int width = (int) Math.ceil(FontUtil.getHudStringWidth(text)) + 8;
-        int height = 14;
+        float x = 4.0f;
+        float y = 4.0f;
+        float textW = getVisualTextWidth(text);
+        float textH = getVisualTextHeight();
+        float width = (float) Math.ceil(textW) + 8.0f;
+        float height = Math.max(14.0f, textH + 6.0f);
 
-        if (showBackground.getValue()) {
-            RenderUtil.drawRoundedRect(x, y, width, height, 4, 0x90000000);
-            RenderUtil.drawRoundedOutline(x, y, width, height, 4, 1.0f, 0x25FFFFFF);
-        }
-        FontUtil.drawHudString("§b" + text, x + 4, y + 3, 0xFFFFFF);
+        beginVisualTransform(x + width * 0.5f, y + height * 0.5f);
+        drawVisualBackground(x, y, width, height);
+        drawVisualText(text, x + 4.0f, y + (height - textH) * 0.5f);
+        endVisualTransform();
     }
 }

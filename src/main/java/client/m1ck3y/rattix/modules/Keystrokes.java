@@ -14,6 +14,7 @@ public class Keystrokes extends Register {
     public Keystrokes() {
         super("Displays movement keys and mouse presses on screen.", Category.VISUAL);
         addSettings(showMouse);
+        initVisualSettings();
         setEnabled(false);
     }
 
@@ -25,6 +26,10 @@ public class Keystrokes extends Register {
         int startY = 40;
         int keySize = 18;
         int gap = 2;
+        int totalW = keySize * 3 + gap * 2;
+        int totalH = showMouse.getValue() ? (keySize * 3 + gap * 2) : (keySize * 2 + gap);
+
+        beginVisualTransform(startX + totalW * 0.5f, startY + totalH * 0.5f);
 
         // W Key
         drawKey("W", startX + keySize + gap, startY, keySize, keySize, mc.gameSettings.keyBindForward.isKeyDown());
@@ -42,16 +47,18 @@ public class Keystrokes extends Register {
             drawKey("LMB", startX, row3Y, mouseWidth, keySize, Mouse.isButtonDown(0));
             drawKey("RMB", startX + mouseWidth + gap, row3Y, mouseWidth, keySize, Mouse.isButtonDown(1));
         }
+
+        endVisualTransform();
     }
 
     private void drawKey(String text, int x, int y, int width, int height, boolean pressed) {
-        int bgColor = pressed ? 0xCC38B6FF : 0x90000000;
-        int textColor = pressed ? 0xFFFFFFFF : 0xFFE0E0E0;
-        int outlineColor = pressed ? 0x8838B6FF : 0x25FFFFFF;
-
-        RenderUtil.drawRoundedRect(x, y, width, height, 4, bgColor);
-        RenderUtil.drawRoundedOutline(x, y, width, height, 4, 1.0f, outlineColor);
-        float textWidth = FontUtil.getHudStringWidth(text);
-        FontUtil.drawHudString(text, x + (width - textWidth) / 2.0f, y + (height - 8) / 2.0f, textColor);
+        drawVisualBackground(x, y, width, height);
+        if (pressed) {
+            float radius = visualBgRadius != null ? visualBgRadius.getValue().floatValue() : 4.0f;
+            RenderUtil.drawRoundedRect(x, y, width, height, radius, 0x5538B6FF);
+        }
+        float textWidth = getVisualTextWidth(text);
+        float textHeight = getVisualTextHeight();
+        drawVisualText(text, x + (width - textWidth) / 2.0f, y + (height - textHeight) / 2.0f);
     }
 }

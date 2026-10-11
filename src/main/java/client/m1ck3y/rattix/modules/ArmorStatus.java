@@ -13,11 +13,11 @@ import net.minecraft.item.ItemStack;
 
 public class ArmorStatus extends Register {
     public BooleanSetting showDamage = new BooleanSetting("Show Durability", true);
-    public BooleanSetting showBackground = new BooleanSetting("Background", true);
 
     public ArmorStatus() {
         super("Displays equipped armor and held items with durability.", Category.VISUAL);
-        addSettings(showDamage, showBackground);
+        addSettings(showDamage);
+        initVisualSettings();
         setEnabled(false);
     }
 
@@ -38,7 +38,7 @@ public class ArmorStatus extends Register {
                 if (showDamage.getValue() && stack.isItemStackDamageable()) {
                     int max = stack.getMaxDamage();
                     int cur = max - stack.getItemDamage();
-                    maxTextWidth = Math.max(maxTextWidth, (int) Math.ceil(FontUtil.getHudStringWidth(cur + "/" + max)));
+                    maxTextWidth = Math.max(maxTextWidth, (int) Math.ceil(getVisualTextWidth(cur + "/" + max)));
                 }
             }
         }
@@ -48,10 +48,8 @@ public class ArmorStatus extends Register {
         int totalH = count * 18 + 4;
         int boxW = (maxTextWidth > 0 ? 24 + maxTextWidth : 18) + 6;
 
-        if (showBackground.getValue()) {
-            RenderUtil.drawRoundedRect(x - 3, y - 3, boxW, totalH, 4, 0x90000000);
-            RenderUtil.drawRoundedOutline(x - 3, y - 3, boxW, totalH, 4, 1.0f, 0x25FFFFFF);
-        }
+        beginVisualTransform(x - 3 + boxW * 0.5f, y - 3 + totalH * 0.5f);
+        drawVisualBackground(x - 3, y - 3, boxW, totalH);
 
         RenderHelper.enableGUIStandardItemLighting();
         for (int i = 3; i >= 0; i--) {
@@ -63,12 +61,16 @@ public class ArmorStatus extends Register {
                 if (showDamage.getValue() && stack.isItemStackDamageable()) {
                     int max = stack.getMaxDamage();
                     int cur = max - stack.getItemDamage();
-                    FontUtil.drawHudString(cur + "/" + max, x + 20, y + 4, 0xFFFFFF);
+                    RenderHelper.disableStandardItemLighting();
+                    GlStateManager.disableLighting();
+                    drawVisualText(cur + "/" + max, x + 20, y + 4);
+                    RenderHelper.enableGUIStandardItemLighting();
                 }
                 y += 18;
             }
         }
         RenderHelper.disableStandardItemLighting();
         GlStateManager.disableLighting();
+        endVisualTransform();
     }
 }

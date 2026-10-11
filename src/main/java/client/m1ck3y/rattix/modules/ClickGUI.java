@@ -251,7 +251,7 @@ public class ClickGUI extends Register {
          */
         public String getDisplayValue() {
             if (cachedDisplayValue == null) {
-                if (getName().equalsIgnoreCase("Size")) {
+                if (getName() != null && getName().toLowerCase().contains("size")) {
                     cachedDisplayValue = String.format("%.0f%%", getValue());
                 } else {
                     cachedDisplayValue = String.format("%.1f", getValue());
@@ -1562,343 +1562,10 @@ public class ClickGUI extends Register {
 
                     if (!isCollapsed) {
                         List<Setting<?>> topSettings = selectedModule.getTopSettingsByGroup(groupName);
-                        int topCount = topSettings.size();
-                        float trunkX1 = rightX + indentStep / 2.0f;
-                        float prevTopExitY = groupBottomY;
-
-                        for (int ti = 0; ti < topCount; ti++) {
-                            Setting<?> s = topSettings.get(ti);
-                            boolean isLastTop = (ti == topCount - 1);
-                            float itemX = rightX + indentStep;
-                            float centerY1 = settingY + rowH / 2.0f;
-
-                            boolean topVisible = (settingY >= clipTop && settingY <= clipBottom);
-                            if (topVisible) {
-                                drawTreeBranch(trunkX1, itemX, prevTopExitY, centerY1);
-                            }
-
-                            float lastTopRowCenterY = centerY1;
-
-                            if (s instanceof CheckBoxSetting) {
-                                if (topVisible) {
-                                    CheckBoxSetting bs = (CheckBoxSetting) s;
-                                    drawString2x(bs.getDisplayText(), itemX, settingY + 2, 0xFFD7D7D7);
-                                }
-                                settingY += lineStep;
-                            } else if (s instanceof NumberSetting) {
-                                NumberSetting ns = (NumberSetting) s;
-                                if (topVisible) {
-                                    String val = ns.getDisplayValue();
-                                    String label = ns.getLabel();
-                                    float labelW = getStringWidth2x(label);
-                                    drawString2x(label, itemX, settingY + 2, 0xFFD7D7D7);
-
-                                    float sX = itemX + labelW;
-                                    float sY = settingY;
-
-                                    double progress = (ns.getValue() - ns.getMin()) / (ns.getMax() - ns.getMin());
-                                    float filledW = (float) (sW * Math.max(0, Math.min(1, progress)));
-                                    RenderUtil.drawRect(sX, sY, sX + sW, sY + sH, 0x1A000000);
-                                    if (filledW > 0) {
-                                        RenderUtil.drawRect(sX, sY, sX + filledW, sY + sH, 0xFF76B9ED);
-                                    }
-                                    RenderUtil.drawRectOutline(sX, sY, sW, sH, 1.0f, 0xFF000000);
-
-                                    float valW = getStringWidth2x(val);
-                                    float textX = sX + (sW - valW) / 2.0f;
-                                    float textY = sY + (sH - 14.0f) / 2.0f;
-                                    drawString2x(val, textX, textY, 0xFFFFFFFF);
-                                }
-
-                                if (draggingSlider == ns) {
-                                    String label = ns.getLabel();
-                                    float labelW = getStringWidth2x(label);
-                                    float sX = itemX + labelW;
-                                    double v = ns.getMin() + Math.max(0, Math.min(1, (mouseX - sX) / sW)) * (ns.getMax() - ns.getMin());
-                                    ns.setValue(v);
-                                }
-                                settingY += lineStep;
-                            } else if (s instanceof ModeSetting) {
-                                ModeSetting ms = (ModeSetting) s;
-                                String prefix = ms.getName() + ": ";
-                                float prefixW = getStringWidth2x(prefix);
-                                float mCurX = itemX;
-                                float mCurY = settingY;
-
-                                if (topVisible) {
-                                    drawString2x(prefix, mCurX, mCurY + 2, 0xFFD7D7D7);
-                                }
-                                mCurX += prefixW;
-
-                                List<String> modes = ms.getModes();
-                                if (modes != null) {
-                                    float spaceW = getStringWidth2x(" ");
-                                    float commaW = getStringWidth2x(",");
-                                    float wrapIndent = itemX + prefixW;
-
-                                    for (int mi = 0; mi < modes.size(); mi++) {
-                                        String mode = modes.get(mi);
-                                        boolean isLast = (mi == modes.size() - 1);
-                                        boolean isSelected = mode != null && mode.equalsIgnoreCase(ms.getValue());
-
-                                        float modeW = getStringWidth2x(mode);
-                                        float itemBlockW = modeW + (isLast ? 0 : commaW);
-
-                                        if (mCurX + itemBlockW > maxRightX && mCurX > wrapIndent) {
-                                            mCurX = wrapIndent;
-                                            float prevLineY = mCurY + rowH / 2.0f;
-                                            mCurY += lineStep;
-                                            float nextLineY = mCurY + rowH / 2.0f;
-                                            if (mCurY >= clipTop && mCurY <= clipBottom) {
-                                                drawTreeTrunk(trunkX1, prevLineY, nextLineY);
-                                            }
-                                        }
-
-                                        if (mCurY >= clipTop && mCurY <= clipBottom) {
-                                            int modeColor = isSelected ? 0xFF76B9ED : 0xFFD7D7D7;
-                                            drawString2x(mode, mCurX, mCurY + 2, modeColor);
-                                            if (!isLast) {
-                                                drawString2x(",", mCurX + modeW, mCurY + 2, 0xFFD7D7D7);
-                                            }
-                                        }
-
-                                        mCurX += itemBlockW + spaceW;
-                                    }
-                                }
-                                lastTopRowCenterY = mCurY + rowH / 2.0f;
-                                settingY = mCurY + lineStep;
-                            }
-
-                            List<Setting<?>> subSettings = selectedModule.getChildrenSettings(s);
-                            if (subSettings != null && !subSettings.isEmpty()) {
-                                boolean showSubs = !(s instanceof CheckBoxSetting) || ((CheckBoxSetting) s).getValue();
-                                if (showSubs) {
-                                    int subCount = subSettings.size();
-                                    float trunkX2 = itemX + indentStep / 2.0f;
-                                    float subItemX = itemX + indentStep;
-                                    float prevSubY = lastTopRowCenterY + rowH / 2.0f;
-                                    float prevL1Y = centerY1;
-
-                                    for (int subI = 0; subI < subCount; subI++) {
-                                        Setting<?> sub = subSettings.get(subI);
-                                        boolean subVisible = (settingY >= clipTop && settingY <= clipBottom);
-
-                                        if (sub instanceof CheckBoxSetting) {
-                                            float subCenterY = settingY + rowH / 2.0f;
-                                            if (subVisible) {
-                                                drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY);
-                                                if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY);
-                                                CheckBoxSetting bs = (CheckBoxSetting) sub;
-                                                drawString2x(bs.getDisplayText(), subItemX, settingY + 2, 0xFFD7D7D7);
-                                            }
-
-                                            prevSubY = subCenterY;
-                                            prevL1Y = subCenterY;
-                                            settingY += lineStep;
-                                        } else if (sub instanceof NumberSetting) {
-                                            float subCenterY = settingY + rowH / 2.0f;
-                                            NumberSetting ns = (NumberSetting) sub;
-
-                                            if (subVisible) {
-                                                drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY);
-                                                if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY);
-
-                                                String val = ns.getDisplayValue();
-                                                String label = ns.getLabel();
-                                                float labelW = getStringWidth2x(label);
-                                                drawString2x(label, subItemX, settingY + 2, 0xFFD7D7D7);
-
-                                                float sX = subItemX + labelW;
-                                                float sY = settingY;
-
-                                                double progress = (ns.getValue() - ns.getMin()) / (ns.getMax() - ns.getMin());
-                                                float filledW = (float) (sW * Math.max(0, Math.min(1, progress)));
-                                                RenderUtil.drawRect(sX, sY, sX + sW, sY + sH, 0x1A000000);
-                                                if (filledW > 0) {
-                                                    RenderUtil.drawRect(sX, sY, sX + filledW, sY + sH, 0xFF76B9ED);
-                                                }
-                                                RenderUtil.drawRectOutline(sX, sY, sW, sH, 1.0f, 0xFF000000);
-
-                                                float valW = getStringWidth2x(val);
-                                                float textX = sX + (sW - valW) / 2.0f;
-                                                float textY = sY + (sH - 14.0f) / 2.0f;
-                                                drawString2x(val, textX, textY, 0xFFFFFFFF);
-                                            }
-
-                                            if (draggingSlider == ns) {
-                                                String label = ns.getLabel();
-                                                float labelW = getStringWidth2x(label);
-                                                float sX = subItemX + labelW;
-                                                double v = ns.getMin() + Math.max(0, Math.min(1, (mouseX - sX) / sW)) * (ns.getMax() - ns.getMin());
-                                                ns.setValue(v);
-                                            }
-
-                                            prevSubY = subCenterY;
-                                            prevL1Y = subCenterY;
-                                            settingY += lineStep;
-                                        } else if (sub instanceof ModeSetting) {
-                                            float subCenterY = settingY + rowH / 2.0f;
-                                            if (subVisible) {
-                                                drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY);
-                                                if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY);
-                                            }
-
-                                            ModeSetting ms = (ModeSetting) sub;
-                                            String prefix = ms.getName() + ": ";
-                                            float prefixW = getStringWidth2x(prefix);
-                                            float mCurX = subItemX;
-                                            float mCurY = settingY;
-
-                                            if (subVisible) {
-                                                drawString2x(prefix, mCurX, mCurY + 2, 0xFFD7D7D7);
-                                            }
-                                            mCurX += prefixW;
-
-                                            List<String> modes = ms.getModes();
-                                            if (modes != null) {
-                                                float spaceW = getStringWidth2x(" ");
-                                                float commaW = getStringWidth2x(",");
-                                                float wrapIndent = subItemX + prefixW;
-
-                                                for (int mi = 0; mi < modes.size(); mi++) {
-                                                    String mode = modes.get(mi);
-                                                    boolean isLast = (mi == modes.size() - 1);
-                                                    boolean isSelected = mode != null && mode.equalsIgnoreCase(ms.getValue());
-
-                                                    float modeW = getStringWidth2x(mode);
-                                                    float itemBlockW = modeW + (isLast ? 0 : commaW);
-
-                                                    if (mCurX + itemBlockW > maxRightX && mCurX > wrapIndent) {
-                                                        mCurX = wrapIndent;
-                                                        float prevLineY = mCurY + rowH / 2.0f;
-                                                        mCurY += lineStep;
-                                                        float nextLineY = mCurY + rowH / 2.0f;
-                                                        if (mCurY >= clipTop && mCurY <= clipBottom) {
-                                                            drawTreeTrunk(trunkX2, prevLineY, nextLineY);
-                                                            if (!isLastTop) drawTreeTrunk(trunkX1, prevLineY, nextLineY);
-                                                        }
-                                                    }
-
-                                                    if (mCurY >= clipTop && mCurY <= clipBottom) {
-                                                        int modeColor = isSelected ? 0xFF76B9ED : 0xFFD7D7D7;
-                                                        drawString2x(mode, mCurX, mCurY + 2, modeColor);
-                                                        if (!isLast) {
-                                                            drawString2x(",", mCurX + modeW, mCurY + 2, 0xFFD7D7D7);
-                                                        }
-                                                    }
-
-                                                    mCurX += itemBlockW + spaceW;
-                                                }
-                                            }
-                                            prevSubY = mCurY + rowH / 2.0f;
-                                            prevL1Y = prevSubY;
-                                            settingY = mCurY + lineStep;
-                                        } else if (sub instanceof ColorSetting) {
-                                            ColorSetting cs = (ColorSetting) sub;
-
-                                            float subCenterY1 = settingY + rowH / 2.0f;
-                                            float sX1 = subItemX;
-                                            float sY1 = settingY;
-                                            if (settingY >= clipTop && settingY <= clipBottom) {
-                                                drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY1);
-                                                if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY1);
-                                                RenderUtil.drawHorizontalRainbow(sX1, sY1, sW, sH);
-                                                RenderUtil.drawRectOutline(sX1, sY1, sW, sH, 1.0f, 0xFF000000);
-                                                float thumbX1 = sX1 + cs.getHue() * sW;
-                                                RenderUtil.drawRect(thumbX1 - 1.0f, sY1, thumbX1 + 1.0f, sY1 + sH, 0xFF000000);
-                                                float togX1 = sX1 + sW + 14.0f;
-                                                drawString2x(cs.rainbow.getDisplayText(), togX1, settingY + 2, 0xFFD7D7D7);
-                                            }
-
-                                            if (draggingColorSetting == cs && draggingColorType == ColorDragType.HUE) {
-                                                cs.setHue((mouseX - sX1) / sW);
-                                            }
-
-                                            prevSubY = subCenterY1;
-                                            prevL1Y = subCenterY1;
-                                            settingY += lineStep;
-
-                                            float subCenterY2 = settingY + rowH / 2.0f;
-                                            float sX2 = subItemX;
-                                            float sY2 = settingY;
-                                            if (settingY >= clipTop && settingY <= clipBottom) {
-                                                drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY2);
-                                                if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY2);
-                                                int satLeft = 0xFFFFFFFF;
-                                                int satRight = 0xFF000000 | java.awt.Color.HSBtoRGB(cs.getHue(), 1.0f, 1.0f);
-                                                RenderUtil.drawHorizontalGradient(sX2, sY2, sW, sH, satLeft, satRight);
-                                                RenderUtil.drawRectOutline(sX2, sY2, sW, sH, 1.0f, 0xFF000000);
-                                                float thumbX2 = sX2 + cs.getSaturation() * sW;
-                                                RenderUtil.drawRect(thumbX2 - 1.0f, sY2, thumbX2 + 1.0f, sY2 + sH, 0xFF000000);
-                                                float togX2 = sX2 + sW + 14.0f;
-                                                drawString2x(cs.fade.getDisplayText(), togX2, settingY + 2, 0xFFD7D7D7);
-                                            }
-
-                                            if (draggingColorSetting == cs && draggingColorType == ColorDragType.SATURATION) {
-                                                cs.setSaturation((mouseX - sX2) / sW);
-                                            }
-
-                                            prevSubY = subCenterY2;
-                                            prevL1Y = subCenterY2;
-                                            settingY += lineStep;
-
-                                            float subCenterY3 = settingY + rowH / 2.0f;
-                                            float sX3 = subItemX;
-                                            float sY3 = settingY;
-                                            if (settingY >= clipTop && settingY <= clipBottom) {
-                                                drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY3);
-                                                if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY3);
-                                                int briLeft = 0xFF000000;
-                                                int briRight = 0xFF000000 | java.awt.Color.HSBtoRGB(cs.getHue(), cs.getSaturation(), 1.0f);
-                                                RenderUtil.drawHorizontalGradient(sX3, sY3, sW, sH, briLeft, briRight);
-                                                RenderUtil.drawRectOutline(sX3, sY3, sW, sH, 1.0f, 0xFF000000);
-                                                float thumbX3 = sX3 + cs.getBrightness() * sW;
-                                                RenderUtil.drawRect(thumbX3 - 1.0f, sY3, thumbX3 + 1.0f, sY3 + sH, 0xFF000000);
-                                                float togX3 = sX3 + sW + 14.0f;
-                                                drawString2x(cs.astolfo.getDisplayText(), togX3, settingY + 2, 0xFFD7D7D7);
-                                            }
-
-                                            if (draggingColorSetting == cs && draggingColorType == ColorDragType.BRIGHTNESS) {
-                                                cs.setBrightness((mouseX - sX3) / sW);
-                                            }
-
-                                            prevSubY = subCenterY3;
-                                            prevL1Y = subCenterY3;
-                                            settingY += lineStep;
-
-                                            float subCenterY4 = settingY + rowH / 2.0f;
-                                            float sX4 = subItemX;
-                                            float sY4 = settingY;
-                                            if (settingY >= clipTop && settingY <= clipBottom) {
-                                                drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY4);
-                                                if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY4);
-                                                int rgbBase = java.awt.Color.HSBtoRGB(cs.getHue(), cs.getSaturation(), cs.getBrightness()) & 0x00FFFFFF;
-                                                int alpLeft = 0x00000000 | rgbBase;
-                                                int alpRight = 0xFF000000 | rgbBase;
-                                                RenderUtil.drawHorizontalGradient(sX4, sY4, sW, sH, alpLeft, alpRight);
-                                                RenderUtil.drawRectOutline(sX4, sY4, sW, sH, 1.0f, 0xFF000000);
-                                                float thumbX4 = sX4 + (cs.getAlpha() / 255.0f) * sW;
-                                                RenderUtil.drawRect(thumbX4 - 1.0f, sY4, thumbX4 + 1.0f, sY4 + sH, 0xFF000000);
-                                                float togX4 = sX4 + sW + 14.0f;
-                                                drawString2x(cs.clientColor.getDisplayText(), togX4, settingY + 2, 0xFFD7D7D7);
-                                            }
-
-                                            if (draggingColorSetting == cs && draggingColorType == ColorDragType.ALPHA) {
-                                                cs.setAlpha((int) (((mouseX - sX4) / sW) * 255));
-                                            }
-
-                                            prevSubY = subCenterY4;
-                                            prevL1Y = subCenterY4;
-                                            settingY += lineStep;
-                                        }
-                                    }
-                                    prevTopExitY = prevL1Y;
-                                } else {
-                                    prevTopExitY = lastTopRowCenterY;
-                                }
-                            } else {
-                                prevTopExitY = lastTopRowCenterY;
-                            }
+                        if (topSettings != null && !topSettings.isEmpty()) {
+                            List<Float> activeTrunkXs = new ArrayList<>();
+                            float[] res = renderSettingsList(selectedModule, topSettings, 0, rightX, indentStep, maxRightX, settingY, groupBottomY, groupBottomY, activeTrunkXs, rowH, lineStep, sW, sH, clipTop, clipBottom, mouseX, mouseY);
+                            settingY = res[0];
                         }
                     }
                 }
@@ -1914,6 +1581,253 @@ public class ClickGUI extends Register {
                     tab.setSettingsScrollY(0);
                 }
             }
+        }
+
+        private float[] renderSettingsList(Register module, List<Setting<?>> settingsList, int depth, float rightX, float indentStep, float maxRightX, float settingY, float prevBranchY, float prevAncestorY, List<Float> activeTrunkXs, float rowH, float lineStep, float sW, float sH, float clipTop, float clipBottom, int mouseX, int mouseY) {
+            int count = settingsList.size();
+            float trunkX = rightX + indentStep * depth + indentStep / 2.0f;
+            float itemX = rightX + indentStep * (depth + 1);
+
+            for (int i = 0; i < count; i++) {
+                Setting<?> s = settingsList.get(i);
+                boolean isLast = (i == count - 1);
+                float centerY = settingY + rowH / 2.0f;
+                float lastRowCenterY = centerY;
+                boolean visible = (settingY >= clipTop && settingY <= clipBottom);
+
+                if (s instanceof CheckBoxSetting) {
+                    if (visible) {
+                        drawTreeBranch(trunkX, itemX, prevBranchY, centerY);
+                        for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
+                            drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, centerY);
+                        }
+                        CheckBoxSetting bs = (CheckBoxSetting) s;
+                        drawString2x(bs.getDisplayText(), itemX, settingY + 2, 0xFFD7D7D7);
+                    }
+                    prevBranchY = centerY;
+                    prevAncestorY = centerY;
+                    settingY += lineStep;
+                } else if (s instanceof NumberSetting) {
+                    NumberSetting ns = (NumberSetting) s;
+                    if (visible) {
+                        drawTreeBranch(trunkX, itemX, prevBranchY, centerY);
+                        for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
+                            drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, centerY);
+                        }
+
+                        String val = ns.getDisplayValue();
+                        String label = ns.getLabel();
+                        float labelW = getStringWidth2x(label);
+                        drawString2x(label, itemX, settingY + 2, 0xFFD7D7D7);
+
+                        float sX = itemX + labelW;
+                        float sY = settingY;
+
+                        double progress = (ns.getValue() - ns.getMin()) / (ns.getMax() - ns.getMin());
+                        float filledW = (float) (sW * Math.max(0, Math.min(1, progress)));
+                        RenderUtil.drawRect(sX, sY, sX + sW, sY + sH, 0x1A000000);
+                        if (filledW > 0) {
+                            RenderUtil.drawRect(sX, sY, sX + filledW, sY + sH, 0xFF76B9ED);
+                        }
+                        RenderUtil.drawRectOutline(sX, sY, sW, sH, 1.0f, 0xFF000000);
+
+                        float valW = getStringWidth2x(val);
+                        float textX = sX + (sW - valW) / 2.0f;
+                        float textY = sY + (sH - 14.0f) / 2.0f;
+                        drawString2x(val, textX, textY, 0xFFFFFFFF);
+                    }
+
+                    if (draggingSlider == ns) {
+                        String label = ns.getLabel();
+                        float labelW = getStringWidth2x(label);
+                        float sX = itemX + labelW;
+                        double v = ns.getMin() + Math.max(0, Math.min(1, (mouseX - sX) / sW)) * (ns.getMax() - ns.getMin());
+                        ns.setValue(v);
+                    }
+
+                    prevBranchY = centerY;
+                    prevAncestorY = centerY;
+                    settingY += lineStep;
+                } else if (s instanceof ModeSetting) {
+                    if (visible) {
+                        drawTreeBranch(trunkX, itemX, prevBranchY, centerY);
+                        for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
+                            drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, centerY);
+                        }
+                    }
+
+                    ModeSetting ms = (ModeSetting) s;
+                    String prefix = ms.getName() + ": ";
+                    float prefixW = getStringWidth2x(prefix);
+                    float mCurX = itemX;
+                    float mCurY = settingY;
+
+                    if (visible) {
+                        drawString2x(prefix, mCurX, mCurY + 2, 0xFFD7D7D7);
+                    }
+                    mCurX += prefixW;
+
+                    List<String> modes = ms.getModes();
+                    if (modes != null) {
+                        float spaceW = getStringWidth2x(" ");
+                        float commaW = getStringWidth2x(",");
+                        float wrapIndent = itemX + prefixW;
+
+                        for (int mi = 0; mi < modes.size(); mi++) {
+                            String mode = modes.get(mi);
+                            boolean isLastMode = (mi == modes.size() - 1);
+                            boolean isSelected = mode != null && mode.equalsIgnoreCase(ms.getValue());
+
+                            float modeW = getStringWidth2x(mode);
+                            float itemBlockW = modeW + (isLastMode ? 0 : commaW);
+
+                            if (mCurX + itemBlockW > maxRightX && mCurX > wrapIndent) {
+                                mCurX = wrapIndent;
+                                float prevLineY = mCurY + rowH / 2.0f;
+                                mCurY += lineStep;
+                                float nextLineY = mCurY + rowH / 2.0f;
+                                if (mCurY >= clipTop && mCurY <= clipBottom) {
+                                    if (!isLast) drawTreeTrunk(trunkX, prevLineY, nextLineY);
+                                    for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
+                                        drawTreeTrunk(activeTrunkXs.get(ti), prevLineY, nextLineY);
+                                    }
+                                }
+                            }
+
+                            if (mCurY >= clipTop && mCurY <= clipBottom) {
+                                int modeColor = isSelected ? 0xFF76B9ED : 0xFFD7D7D7;
+                                drawString2x(mode, mCurX, mCurY + 2, modeColor);
+                                if (!isLastMode) {
+                                    drawString2x(",", mCurX + modeW, mCurY + 2, 0xFFD7D7D7);
+                                }
+                            }
+
+                            mCurX += itemBlockW + spaceW;
+                        }
+                    }
+                    lastRowCenterY = mCurY + rowH / 2.0f;
+                    prevBranchY = lastRowCenterY;
+                    prevAncestorY = lastRowCenterY;
+                    settingY = mCurY + lineStep;
+                } else if (s instanceof ColorSetting) {
+                    ColorSetting cs = (ColorSetting) s;
+
+                    float subCenterY1 = settingY + rowH / 2.0f;
+                    float sX1 = itemX;
+                    float sY1 = settingY;
+                    if (settingY >= clipTop && settingY <= clipBottom) {
+                        drawTreeBranch(trunkX, itemX, prevBranchY, subCenterY1);
+                        for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
+                            drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, subCenterY1);
+                        }
+                        RenderUtil.drawHorizontalRainbow(sX1, sY1, sW, sH);
+                        RenderUtil.drawRectOutline(sX1, sY1, sW, sH, 1.0f, 0xFF000000);
+                        float thumbX1 = sX1 + cs.getHue() * sW;
+                        RenderUtil.drawRect(thumbX1 - 1.0f, sY1, thumbX1 + 1.0f, sY1 + sH, 0xFF000000);
+                        float togX1 = sX1 + sW + 14.0f;
+                        drawString2x(cs.rainbow.getDisplayText(), togX1, settingY + 2, 0xFFD7D7D7);
+                    }
+                    if (draggingColorSetting == cs && draggingColorType == ColorDragType.HUE) {
+                        cs.setHue((mouseX - sX1) / sW);
+                    }
+                    prevBranchY = subCenterY1;
+                    prevAncestorY = subCenterY1;
+                    settingY += lineStep;
+
+                    float subCenterY2 = settingY + rowH / 2.0f;
+                    float sX2 = itemX;
+                    float sY2 = settingY;
+                    if (settingY >= clipTop && settingY <= clipBottom) {
+                        drawTreeBranch(trunkX, itemX, prevBranchY, subCenterY2);
+                        for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
+                            drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, subCenterY2);
+                        }
+                        int satLeft = 0xFFFFFFFF;
+                        int satRight = 0xFF000000 | java.awt.Color.HSBtoRGB(cs.getHue(), 1.0f, 1.0f);
+                        RenderUtil.drawHorizontalGradient(sX2, sY2, sW, sH, satLeft, satRight);
+                        RenderUtil.drawRectOutline(sX2, sY2, sW, sH, 1.0f, 0xFF000000);
+                        float thumbX2 = sX2 + cs.getSaturation() * sW;
+                        RenderUtil.drawRect(thumbX2 - 1.0f, sY2, thumbX2 + 1.0f, sY2 + sH, 0xFF000000);
+                        float togX2 = sX2 + sW + 14.0f;
+                        drawString2x(cs.fade.getDisplayText(), togX2, settingY + 2, 0xFFD7D7D7);
+                    }
+                    if (draggingColorSetting == cs && draggingColorType == ColorDragType.SATURATION) {
+                        cs.setSaturation((mouseX - sX2) / sW);
+                    }
+                    prevBranchY = subCenterY2;
+                    prevAncestorY = subCenterY2;
+                    settingY += lineStep;
+
+                    float subCenterY3 = settingY + rowH / 2.0f;
+                    float sX3 = itemX;
+                    float sY3 = settingY;
+                    if (settingY >= clipTop && settingY <= clipBottom) {
+                        drawTreeBranch(trunkX, itemX, prevBranchY, subCenterY3);
+                        for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
+                            drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, subCenterY3);
+                        }
+                        int briLeft = 0xFF000000;
+                        int briRight = 0xFF000000 | java.awt.Color.HSBtoRGB(cs.getHue(), cs.getSaturation(), 1.0f);
+                        RenderUtil.drawHorizontalGradient(sX3, sY3, sW, sH, briLeft, briRight);
+                        RenderUtil.drawRectOutline(sX3, sY3, sW, sH, 1.0f, 0xFF000000);
+                        float thumbX3 = sX3 + cs.getBrightness() * sW;
+                        RenderUtil.drawRect(thumbX3 - 1.0f, sY3, thumbX3 + 1.0f, sY3 + sH, 0xFF000000);
+                        float togX3 = sX3 + sW + 14.0f;
+                        drawString2x(cs.astolfo.getDisplayText(), togX3, settingY + 2, 0xFFD7D7D7);
+                    }
+                    if (draggingColorSetting == cs && draggingColorType == ColorDragType.BRIGHTNESS) {
+                        cs.setBrightness((mouseX - sX3) / sW);
+                    }
+                    prevBranchY = subCenterY3;
+                    prevAncestorY = subCenterY3;
+                    settingY += lineStep;
+
+                    float subCenterY4 = settingY + rowH / 2.0f;
+                    float sX4 = itemX;
+                    float sY4 = settingY;
+                    if (settingY >= clipTop && settingY <= clipBottom) {
+                        drawTreeBranch(trunkX, itemX, prevBranchY, subCenterY4);
+                        for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
+                            drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, subCenterY4);
+                        }
+                        int rgbBase = java.awt.Color.HSBtoRGB(cs.getHue(), cs.getSaturation(), cs.getBrightness()) & 0x00FFFFFF;
+                        int alpLeft = 0x00000000 | rgbBase;
+                        int alpRight = 0xFF000000 | rgbBase;
+                        RenderUtil.drawHorizontalGradient(sX4, sY4, sW, sH, alpLeft, alpRight);
+                        RenderUtil.drawRectOutline(sX4, sY4, sW, sH, 1.0f, 0xFF000000);
+                        float thumbX4 = sX4 + (cs.getAlpha() / 255.0f) * sW;
+                        RenderUtil.drawRect(thumbX4 - 1.0f, sY4, thumbX4 + 1.0f, sY4 + sH, 0xFF000000);
+                        float togX4 = sX4 + sW + 14.0f;
+                        drawString2x(cs.clientColor.getDisplayText(), togX4, settingY + 2, 0xFFD7D7D7);
+                    }
+                    if (draggingColorSetting == cs && draggingColorType == ColorDragType.ALPHA) {
+                        cs.setAlpha((int) (((mouseX - sX4) / sW) * 255));
+                    }
+                    lastRowCenterY = subCenterY4;
+                    prevBranchY = subCenterY4;
+                    prevAncestorY = subCenterY4;
+                    settingY += lineStep;
+                }
+
+                List<Setting<?>> subSettings = module.getChildrenSettings(s);
+                if (subSettings != null && !subSettings.isEmpty()) {
+                    boolean showSubs = !(s instanceof CheckBoxSetting) || ((CheckBoxSetting) s).getValue();
+                    if (showSubs) {
+                        if (!isLast) {
+                            activeTrunkXs.add(trunkX);
+                        }
+                        float childStartBranchY = lastRowCenterY + rowH / 2.0f;
+                        float[] res = renderSettingsList(module, subSettings, depth + 1, rightX, indentStep, maxRightX, settingY, childStartBranchY, prevAncestorY, activeTrunkXs, rowH, lineStep, sW, sH, clipTop, clipBottom, mouseX, mouseY);
+                        settingY = res[0];
+                        prevAncestorY = res[1];
+                        if (!isLast) {
+                            activeTrunkXs.remove(activeTrunkXs.size() - 1);
+                            prevBranchY = prevAncestorY;
+                        }
+                    }
+                }
+            }
+            return new float[]{settingY, prevAncestorY};
         }
 
         private void drawThemeFontManagement(TabInfo tab, float x, float y, float w, float h, float rightX, float sidebarW, int mouseX, int mouseY) {
@@ -2696,192 +2610,12 @@ public class ClickGUI extends Register {
 
                         if (!isCollapsed) {
                             List<Setting<?>> topSettings = selectedModule.getTopSettingsByGroup(groupName);
-                            if (topSettings != null) {
-                                int topCount = topSettings.size();
-                                for (int ti = 0; ti < topCount; ti++) {
-                                    Setting<?> s = topSettings.get(ti);
-                                    float itemX = rightX + indentStep;
-
-                                    if (s instanceof CheckBoxSetting) {
-                                        CheckBoxSetting bs = (CheckBoxSetting) s;
-                                        if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, itemX, settingY, 260, (int) rowH)) {
-                                            bs.toggle();
-                                            return WindowClickResult.CONSUMED;
-                                        }
-                                        settingY += lineStep;
-                                    } else if (s instanceof NumberSetting) {
-                                        NumberSetting ns = (NumberSetting) s;
-                                        String label = ns.getName() + ": ";
-                                        float labelW = getStringWidth2x(label);
-                                        float sX = itemX + labelW;
-
-                                        if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX, settingY, sW, (int) rowH)) {
-                                            draggingSlider = ns;
-                                            double v = ns.getMin() + Math.max(0, Math.min(1, (mouseX - sX) / sW)) * (ns.getMax() - ns.getMin());
-                                            ns.setValue(v);
-                                            return WindowClickResult.CONSUMED;
-                                        }
-                                        settingY += lineStep;
-                                    } else if (s instanceof ModeSetting) {
-                                        ModeSetting ms = (ModeSetting) s;
-                                        String prefix = ms.getName() + ": ";
-                                        float prefixW = getStringWidth2x(prefix);
-                                        float mCurX = itemX + prefixW;
-                                        float mCurY = settingY;
-                                        float wrapIndent = itemX + prefixW;
-
-                                        List<String> modes = ms.getModes();
-                                        if (modes != null) {
-                                            float spaceW = getStringWidth2x(" ");
-                                            float commaW = getStringWidth2x(",");
-
-                                            for (int mi = 0; mi < modes.size(); mi++) {
-                                                String mode = modes.get(mi);
-                                                boolean isLast = (mi == modes.size() - 1);
-                                                float modeW = getStringWidth2x(mode);
-                                                float itemBlockW = modeW + (isLast ? 0 : commaW);
-
-                                                if (mCurX + itemBlockW > maxRightX && mCurX > wrapIndent) {
-                                                    mCurX = wrapIndent;
-                                                    mCurY += lineStep;
-                                                }
-
-                                                if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, mCurX - 2, mCurY, modeW + 4, (int) rowH)) {
-                                                    ms.setValue(mode);
-                                                    return WindowClickResult.CONSUMED;
-                                                }
-
-                                                mCurX += itemBlockW + spaceW;
-                                            }
-                                        }
-                                        settingY = mCurY + lineStep;
-                                    }
-
-                                    List<Setting<?>> subSettings = selectedModule.getChildrenSettings(s);
-                                    if (subSettings != null && !subSettings.isEmpty()) {
-                                        boolean showSubs = !(s instanceof CheckBoxSetting) || ((CheckBoxSetting) s).getValue();
-                                        if (showSubs) {
-                                            int subCount = subSettings.size();
-                                            for (int subI = 0; subI < subCount; subI++) {
-                                                Setting<?> sub = subSettings.get(subI);
-                                                float subItemX = itemX + indentStep;
-
-                                                if (sub instanceof CheckBoxSetting) {
-                                                    CheckBoxSetting bs = (CheckBoxSetting) sub;
-                                                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, subItemX, settingY, 260, (int) rowH)) {
-                                                        bs.toggle();
-                                                        return WindowClickResult.CONSUMED;
-                                                    }
-                                                    settingY += lineStep;
-                                                } else if (sub instanceof NumberSetting) {
-                                                    NumberSetting ns = (NumberSetting) sub;
-                                                    String label = ns.getName() + ": ";
-                                                    float labelW = getStringWidth2x(label);
-                                                    float sX = subItemX + labelW;
-
-                                                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX, settingY, sW, (int) rowH)) {
-                                                        draggingSlider = ns;
-                                                        double v = ns.getMin() + Math.max(0, Math.min(1, (mouseX - sX) / sW)) * (ns.getMax() - ns.getMin());
-                                                        ns.setValue(v);
-                                                        return WindowClickResult.CONSUMED;
-                                                    }
-                                                    settingY += lineStep;
-                                                } else if (sub instanceof ModeSetting) {
-                                                    ModeSetting ms = (ModeSetting) sub;
-                                                    String prefix = ms.getName() + ": ";
-                                                    float prefixW = getStringWidth2x(prefix);
-                                                    float mCurX = subItemX + prefixW;
-                                                    float mCurY = settingY;
-                                                    float wrapIndent = subItemX + prefixW;
-
-                                                    List<String> modes = ms.getModes();
-                                                    if (modes != null) {
-                                                        float spaceW = getStringWidth2x(" ");
-                                                        float commaW = getStringWidth2x(",");
-
-                                                        for (int mi = 0; mi < modes.size(); mi++) {
-                                                            String mode = modes.get(mi);
-                                                            boolean isLast = (mi == modes.size() - 1);
-                                                            float modeW = getStringWidth2x(mode);
-                                                            float itemBlockW = modeW + (isLast ? 0 : commaW);
-
-                                                            if (mCurX + itemBlockW > maxRightX && mCurX > wrapIndent) {
-                                                                mCurX = wrapIndent;
-                                                                mCurY += lineStep;
-                                                            }
-
-                                                            if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, mCurX - 2, mCurY, modeW + 4, (int) rowH)) {
-                                                                ms.setValue(mode);
-                                                                return WindowClickResult.CONSUMED;
-                                                            }
-
-                                                            mCurX += itemBlockW + spaceW;
-                                                        }
-                                                    }
-                                                    settingY = mCurY + lineStep;
-                                                } else if (sub instanceof ColorSetting) {
-                                                    ColorSetting cs = (ColorSetting) sub;
-
-                                                    float sX1 = subItemX;
-                                                    float togX1 = sX1 + sW + 14.0f;
-                                                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX1, settingY, sW, (int) rowH)) {
-                                                        draggingColorSetting = cs;
-                                                        draggingColorType = ColorDragType.HUE;
-                                                        cs.setHue((mouseX - sX1) / sW);
-                                                        return WindowClickResult.CONSUMED;
-                                                    }
-                                                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX1 - 2, settingY, 140, (int) rowH)) {
-                                                        cs.rainbow.toggle();
-                                                        return WindowClickResult.CONSUMED;
-                                                    }
-                                                    settingY += lineStep;
-
-                                                    float sX2 = subItemX;
-                                                    float togX2 = sX2 + sW + 14.0f;
-                                                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX2, settingY, sW, (int) rowH)) {
-                                                        draggingColorSetting = cs;
-                                                        draggingColorType = ColorDragType.SATURATION;
-                                                        cs.setSaturation((mouseX - sX2) / sW);
-                                                        return WindowClickResult.CONSUMED;
-                                                    }
-                                                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX2 - 2, settingY, 140, (int) rowH)) {
-                                                        cs.fade.toggle();
-                                                        return WindowClickResult.CONSUMED;
-                                                    }
-                                                    settingY += lineStep;
-
-                                                    float sX3 = subItemX;
-                                                    float togX3 = sX3 + sW + 14.0f;
-                                                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX3, settingY, sW, (int) rowH)) {
-                                                        draggingColorSetting = cs;
-                                                        draggingColorType = ColorDragType.BRIGHTNESS;
-                                                        cs.setBrightness((mouseX - sX3) / sW);
-                                                        return WindowClickResult.CONSUMED;
-                                                    }
-                                                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX3 - 2, settingY, 140, (int) rowH)) {
-                                                        cs.astolfo.toggle();
-                                                        return WindowClickResult.CONSUMED;
-                                                    }
-                                                    settingY += lineStep;
-
-                                                    float sX4 = subItemX;
-                                                    float togX4 = sX4 + sW + 14.0f;
-                                                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX4, settingY, sW, (int) rowH)) {
-                                                        draggingColorSetting = cs;
-                                                        draggingColorType = ColorDragType.ALPHA;
-                                                        cs.setAlpha((int) (((mouseX - sX4) / sW) * 255));
-                                                        return WindowClickResult.CONSUMED;
-                                                    }
-                                                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX4 - 2, settingY, 140, (int) rowH)) {
-                                                        cs.clientColor.toggle();
-                                                        return WindowClickResult.CONSUMED;
-                                                    }
-                                                    settingY += lineStep;
-                                                }
-                                            }
-                                        }
-                                    }
+                            if (topSettings != null && !topSettings.isEmpty()) {
+                                float[] clickRes = mouseClickedSettingsList(selectedModule, topSettings, 0, rightX, indentStep, maxRightX, settingY, rowH, lineStep, sW, mouseX, mouseY, mouseButton);
+                                if (clickRes[1] > 0) {
+                                    return WindowClickResult.CONSUMED;
                                 }
+                                settingY = clickRes[0];
                             }
                         }
                     }
@@ -2889,6 +2623,141 @@ public class ClickGUI extends Register {
             }
 
             return WindowClickResult.CONSUMED;
+        }
+
+        private float[] mouseClickedSettingsList(Register module, List<Setting<?>> settingsList, int depth, float rightX, float indentStep, float maxRightX, float settingY, float rowH, float lineStep, float sW, int mouseX, int mouseY, int mouseButton) {
+            int count = settingsList.size();
+            float itemX = rightX + indentStep * (depth + 1);
+
+            for (int i = 0; i < count; i++) {
+                Setting<?> s = settingsList.get(i);
+
+                if (s instanceof CheckBoxSetting) {
+                    CheckBoxSetting bs = (CheckBoxSetting) s;
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, itemX, settingY, 260, (int) rowH)) {
+                        bs.toggle();
+                        return new float[]{settingY, 1.0f};
+                    }
+                    settingY += lineStep;
+                } else if (s instanceof NumberSetting) {
+                    NumberSetting ns = (NumberSetting) s;
+                    String label = ns.getName() + ": ";
+                    float labelW = getStringWidth2x(label);
+                    float sX = itemX + labelW;
+
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX, settingY, sW, (int) rowH)) {
+                        draggingSlider = ns;
+                        double v = ns.getMin() + Math.max(0, Math.min(1, (mouseX - sX) / sW)) * (ns.getMax() - ns.getMin());
+                        ns.setValue(v);
+                        return new float[]{settingY, 1.0f};
+                    }
+                    settingY += lineStep;
+                } else if (s instanceof ModeSetting) {
+                    ModeSetting ms = (ModeSetting) s;
+                    String prefix = ms.getName() + ": ";
+                    float prefixW = getStringWidth2x(prefix);
+                    float mCurX = itemX + prefixW;
+                    float mCurY = settingY;
+                    float wrapIndent = itemX + prefixW;
+
+                    List<String> modes = ms.getModes();
+                    if (modes != null) {
+                        float spaceW = getStringWidth2x(" ");
+                        float commaW = getStringWidth2x(",");
+
+                        for (int mi = 0; mi < modes.size(); mi++) {
+                            String mode = modes.get(mi);
+                            boolean isLast = (mi == modes.size() - 1);
+                            float modeW = getStringWidth2x(mode);
+                            float itemBlockW = modeW + (isLast ? 0 : commaW);
+
+                            if (mCurX + itemBlockW > maxRightX && mCurX > wrapIndent) {
+                                mCurX = wrapIndent;
+                                mCurY += lineStep;
+                            }
+
+                            if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, mCurX - 2, mCurY, modeW + 4, (int) rowH)) {
+                                ms.setValue(mode);
+                                return new float[]{mCurY, 1.0f};
+                            }
+
+                            mCurX += itemBlockW + spaceW;
+                        }
+                    }
+                    settingY = mCurY + lineStep;
+                } else if (s instanceof ColorSetting) {
+                    ColorSetting cs = (ColorSetting) s;
+
+                    float sX1 = itemX;
+                    float togX1 = sX1 + sW + 14.0f;
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX1, settingY, sW, (int) rowH)) {
+                        draggingColorSetting = cs;
+                        draggingColorType = ColorDragType.HUE;
+                        cs.setHue((mouseX - sX1) / sW);
+                        return new float[]{settingY, 1.0f};
+                    }
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX1 - 2, settingY, 140, (int) rowH)) {
+                        cs.rainbow.toggle();
+                        return new float[]{settingY, 1.0f};
+                    }
+                    settingY += lineStep;
+
+                    float sX2 = itemX;
+                    float togX2 = sX2 + sW + 14.0f;
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX2, settingY, sW, (int) rowH)) {
+                        draggingColorSetting = cs;
+                        draggingColorType = ColorDragType.SATURATION;
+                        cs.setSaturation((mouseX - sX2) / sW);
+                        return new float[]{settingY, 1.0f};
+                    }
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX2 - 2, settingY, 140, (int) rowH)) {
+                        cs.fade.toggle();
+                        return new float[]{settingY, 1.0f};
+                    }
+                    settingY += lineStep;
+
+                    float sX3 = itemX;
+                    float togX3 = sX3 + sW + 14.0f;
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX3, settingY, sW, (int) rowH)) {
+                        draggingColorSetting = cs;
+                        draggingColorType = ColorDragType.BRIGHTNESS;
+                        cs.setBrightness((mouseX - sX3) / sW);
+                        return new float[]{settingY, 1.0f};
+                    }
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX3 - 2, settingY, 140, (int) rowH)) {
+                        cs.astolfo.toggle();
+                        return new float[]{settingY, 1.0f};
+                    }
+                    settingY += lineStep;
+
+                    float sX4 = itemX;
+                    float togX4 = sX4 + sW + 14.0f;
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX4, settingY, sW, (int) rowH)) {
+                        draggingColorSetting = cs;
+                        draggingColorType = ColorDragType.ALPHA;
+                        cs.setAlpha((int) (((mouseX - sX4) / sW) * 255));
+                        return new float[]{settingY, 1.0f};
+                    }
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX4 - 2, settingY, 140, (int) rowH)) {
+                        cs.clientColor.toggle();
+                        return new float[]{settingY, 1.0f};
+                    }
+                    settingY += lineStep;
+                }
+
+                List<Setting<?>> subSettings = module.getChildrenSettings(s);
+                if (subSettings != null && !subSettings.isEmpty()) {
+                    boolean showSubs = !(s instanceof CheckBoxSetting) || ((CheckBoxSetting) s).getValue();
+                    if (showSubs) {
+                        float[] subRes = mouseClickedSettingsList(module, subSettings, depth + 1, rightX, indentStep, maxRightX, settingY, rowH, lineStep, sW, mouseX, mouseY, mouseButton);
+                        if (subRes[1] > 0) {
+                            return subRes;
+                        }
+                        settingY = subRes[0];
+                    }
+                }
+            }
+            return new float[]{settingY, 0.0f};
         }
 
         public void mouseReleased(int mouseX, int mouseY, int state) {

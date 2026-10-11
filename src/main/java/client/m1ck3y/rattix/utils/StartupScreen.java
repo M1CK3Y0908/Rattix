@@ -1,11 +1,6 @@
 package client.m1ck3y.rattix.utils;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.shader.Framebuffer;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
@@ -16,7 +11,7 @@ import java.lang.reflect.Method;
 import java.util.Properties;
 
 /**
- * StartupScreen - 纯黑背景 + 居中Logo + Win11同款转圈动画启动屏与加载屏
+ * StartupScreen - 纯黑背景 + 屏幕中上方 20% 窗口宽度的 Rattix 图标启动屏（仅在游戏启动阶段显示）
  */
 public class StartupScreen {
     private static final int BG_COLOR = 0xFF000000; // 纯黑背景
@@ -25,22 +20,6 @@ public class StartupScreen {
     private static String currentStatus = "Initializing Rattix...";
     private static volatile boolean forgeSplashStopped = false;
     private static volatile boolean gameStarted = false;
-
-    // Win11 转圈动画关键帧数据：时间进度 (0.0~1.0), 旋转角度 (度), 不透明度 (0.0~1.0)
-    private static final float[][] WIN11_KEYFRAMES = new float[][]{
-            {0.00f, 225.0f, 0.0f},
-            {0.06f, 345.0f, 1.0f},
-            {0.28f, 455.0f, 1.0f},
-            {0.40f, 690.0f, 1.0f},
-            {0.68f, 815.0f, 1.0f},
-            {0.80f, 945.0f, 1.0f},
-            {0.84f, 945.0f, 0.0f},
-            {1.00f, 945.0f, 0.0f}
-    };
-
-    private static final int NUM_DOTS = 5;
-    private static final float CYCLE_DURATION_MS = 3200.0f;
-    private static final float DOT_DELAY_MS = 150.0f;
 
     /**
      * 终止 Forge 原生 SplashProgress 后台渲染线程，杜绝多线程双缓冲画面争夺与闪烁
@@ -71,14 +50,14 @@ public class StartupScreen {
     private static volatile boolean rendering = false;
 
     /**
-     * 泵送单帧（供 Mixin / Forge 加载管线高频调用，内置 ~60 FPS 节流阀）
+     * 泵送单帧（供 Mixin / Forge 加载管线调用，保持窗口响应与画面刷新）
      */
     public static void pumpFrame() {
         if (gameStarted) return;
         if (!Display.isCreated()) return;
 
         long now = System.currentTimeMillis();
-        if (now - lastPumpTime < 16) {
+        if (now - lastPumpTime < 100) {
             return;
         }
         if (rendering) return;
@@ -94,28 +73,30 @@ public class StartupScreen {
     }
 
     /**
-     * 客户端启动完成时调用，停止启动帧泵送
+     * 客户端启动完成时调用，停止启动帧泵送，后续加载世界和进入服务器均使用原版界面
      */
     public static void onStartupComplete() {
         gameStarted = true;
     }
 
     /**
-     * 渲染启动屏幕（由 MixinSplashScreen / MixinMinecraft 或外部调用）
+     * 渲染启动屏幕（仅在启动阶段由 MixinSplashScreen / MixinMinecraft 调用）
      */
     public static void renderSplashScreen() {
+        if (gameStarted) return;
         stopForgeSplash();
         renderFrameDirect();
         Display.processMessages();
     }
 
     /**
-     * 绘制启动屏界面
+     * 绘制启动屏界面（仅在启动阶段生效）
      *
      * @param status   当前执行的状态文本
      * @param progress 当前加载进度 (0.0F - 1.0F)
      */
     public static void draw(String status, float progress) {
+        if (gameStarted) return;
         stopForgeSplash();
 
         if (status != null && !status.isEmpty()) {
@@ -143,10 +124,10 @@ public class StartupScreen {
     }
 
     /**
-     * 直接渲染一帧纯黑背景 + 居中Logo + Win11转圈动画
+     * 直接渲染一帧纯黑背景 + 屏幕中央固定 175x175 的 Rattix 图标
      */
     public static void renderFrameDirect() {
-        if (!Display.isCreated()) {
+        if (gameStarted || !Display.isCreated()) {
             return;
         }
 
@@ -184,17 +165,11 @@ public class StartupScreen {
             float h = (float) height;
             float w = (float) width;
 
-            // 2. Logo位置为距离顶部30%的垂直，水平居中，大小为15%的垂直高度
-            float logoSize = h * 0.15f;
+            // 2. Rattix 图标：固定 175x175 大小，固定在屏幕正中央
+            float logoSize = 175.0f;
             float logoX = (w - logoSize) / 2.0f;
-            float logoY = h * 0.30f;
+            float logoY = (h - logoSize) / 2.0f;
             IconUtils.drawIconDirect(logoX, logoY, logoSize);
-
-            // 3. 在距离顶部80%的垂直高度显示win11同款转圈动画，大小为5%的垂直高度
-            float spinnerSize = h * 0.05f;
-            float spinnerX = (w - spinnerSize) / 2.0f;
-            float spinnerY = h * 0.80f;
-            drawWin11Spinner(spinnerX, spinnerY, spinnerSize, System.currentTimeMillis());
 
             Display.update();
         } catch (Throwable t) {
@@ -225,96 +200,6 @@ public class StartupScreen {
     }
 
     /**
-     * 计算 Win11 动效小圆点的实时角度和透明度
-     */
-    private static float[] getDotState(float p) {
-        p = Math.max(0.0f, Math.min(1.0f, p));
-        for (int k = 0; k < WIN11_KEYFRAMES.length - 1; k++) {
-            float t0 = WIN11_KEYFRAMES[k][0];
-            float t1 = WIN11_KEYFRAMES[k + 1][0];
-            if (t0 <= p && p <= t1) {
-                float deg0 = WIN11_KEYFRAMES[k][1];
-                float deg1 = WIN11_KEYFRAMES[k + 1][1];
-                float op0 = WIN11_KEYFRAMES[k][2];
-                float op1 = WIN11_KEYFRAMES[k + 1][2];
-                float u = (p - t0) / (t1 - t0);
-                float ease = u * u * (3.0f - 2.0f * u); // Smooth cubic ease-in-out
-                float deg = deg0 + (deg1 - deg0) * ease;
-                float op = op0 + (op1 - op0) * u;
-                return new float[]{deg, op};
-            }
-        }
-        return new float[]{945.0f, 0.0f};
-    }
-
-    /**
-     * 绘制 Win11 5点聚散加速转圈动效
-     *
-     * @param x    转圈区域左上角 X
-     * @param y    转圈区域左上角 Y (距离顶部80%高度)
-     * @param size 转圈区域尺寸 (5%高度)
-     * @param time 当前系统毫秒时间
-     */
-    public static void drawWin11Spinner(float x, float y, float size, long time) {
-        float centerX = x + size / 2.0f;
-        float centerY = y + size / 2.0f;
-        float dotRadius = Math.max(1.5f, size * 0.075f);
-        float orbitRadius = (size / 2.0f) - dotRadius;
-
-        for (int i = 0; i < NUM_DOTS; i++) {
-            float tau = (time - i * DOT_DELAY_MS) % CYCLE_DURATION_MS;
-            if (tau < 0) tau += CYCLE_DURATION_MS;
-            float p = tau / CYCLE_DURATION_MS;
-            float[] state = getDotState(p);
-            float deg = state[0];
-            float opacity = state[1];
-
-            if (opacity > 0.01f) {
-                double rad = Math.toRadians(deg);
-                float dotX = centerX + (float) (Math.cos(rad) * orbitRadius);
-                float dotY = centerY + (float) (Math.sin(rad) * orbitRadius);
-                drawSmoothDot(dotX, dotY, dotRadius, opacity);
-            }
-        }
-    }
-
-    /**
-     * 绘制高抗锯齿平滑小圆点
-     */
-    private static void drawSmoothDot(float cx, float cy, float r, float alpha) {
-        GlStateManager.enableBlend();
-        GlStateManager.disableTexture2D();
-        GlStateManager.disableCull();
-        GlStateManager.disableAlpha();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        GlStateManager.color(1.0f, 1.0f, 1.0f, alpha);
-
-        GL11.glEnable(GL11.GL_POINT_SMOOTH);
-        GL11.glHint(GL11.GL_POINT_SMOOTH_HINT, GL11.GL_NICEST);
-        GL11.glPointSize(r * 2.0f);
-        GL11.glBegin(GL11.GL_POINTS);
-        GL11.glVertex2f(cx, cy);
-        GL11.glEnd();
-
-        GL11.glEnable(GL11.GL_POLYGON_SMOOTH);
-        GL11.glHint(GL11.GL_POLYGON_SMOOTH_HINT, GL11.GL_NICEST);
-        GL11.glBegin(GL11.GL_TRIANGLE_FAN);
-        GL11.glVertex2f(cx, cy);
-        int segments = 24;
-        for (int i = 0; i <= segments; i++) {
-            double theta = i * (Math.PI * 2.0) / segments;
-            GL11.glVertex2f(cx + (float) (Math.cos(theta) * r), cy + (float) (Math.sin(theta) * r));
-        }
-        GL11.glEnd();
-
-        GlStateManager.enableAlpha();
-        GlStateManager.enableCull();
-        GlStateManager.enableTexture2D();
-        GlStateManager.disableBlend();
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
      * 禁用 Forge 原生双缓冲争夺线程，设置 splash.properties enabled=false
      */
     public static void setupSplashProgress() {
@@ -338,21 +223,6 @@ public class StartupScreen {
 
             try (FileWriter writer = new FileWriter(splashFile)) {
                 props.store(writer, "Rattix Splash Screen Properties");
-            }
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-    }
-
-    /**
-     * 替换原版 loadingScreen，使后续世界载入和资源刷新均呈现统一的黑底 + ricon 风格
-     */
-    public static void installLoadingScreen() {
-        gameStarted = true;
-        try {
-            Minecraft mc = Minecraft.getMinecraft();
-            if (mc != null && !(mc.loadingScreen instanceof RattixLoadingScreen)) {
-                mc.loadingScreen = new RattixLoadingScreen(mc);
             }
         } catch (Throwable t) {
             t.printStackTrace();
