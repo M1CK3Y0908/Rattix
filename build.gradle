@@ -109,7 +109,14 @@ jar {
             "FMLCorePlugin": "client.m1ck3y.rattix.injection.RattixLoadingPlugin",
             "FMLCorePluginContainsFMLMod": "true",
             "ForceLoadAsMod": "true",
-            "MixinConfigs": "mixins.rattix.json"
+            "MixinConfigs": "mixins.rattix.json",
+            "ModSide": "CLIENT"
         ])
+    }
+}
+
+reobf {
+    jar {
+        mappingType = 'SEARGE'
     }
 }

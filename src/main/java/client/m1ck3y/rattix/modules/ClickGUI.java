@@ -25,16 +25,33 @@ import java.util.*;
 
 public class ClickGUI extends Register {
     private boolean closing = false;
+    private static Screen screenInstance = null;
+    private static long lastCloseTime = 0;
 
     public ClickGUI() {
         super("Opens the Graphical User Interface.", Category.VISUAL, Keyboard.KEY_RSHIFT);
         this.showInArrayList.setValue(false);
     }
 
+    public static Screen getScreenInstance() {
+        if (screenInstance == null) {
+            screenInstance = new Screen();
+        }
+        return screenInstance;
+    }
+
+    public static void markClosed() {
+        lastCloseTime = System.currentTimeMillis();
+    }
+
+    public static boolean wasRecentlyClosed() {
+        return System.currentTimeMillis() - lastCloseTime < 150L;
+    }
+
     @Override
     public void onEnable() {
         if (mc.currentScreen == null) {
-            mc.displayGuiScreen(new Screen());
+            mc.displayGuiScreen(getScreenInstance());
         }
     }
 
@@ -61,7 +78,7 @@ public class ClickGUI extends Register {
             clickGui.setEnabled(true);
         }
         if (mc.currentScreen == null) {
-            mc.displayGuiScreen(new Screen());
+            mc.displayGuiScreen(getScreenInstance());
         }
     }
 
@@ -559,6 +576,9 @@ public class ClickGUI extends Register {
         private final Map<String, Boolean> collapsedGroups = new HashMap<>();
         private Register bindingModule = null;
         private float moduleListScrollY = 0;
+        private float maxModuleListScroll = 0;
+        private float settingsScrollY = 0;
+        private float maxSettingsScroll = 0;
 
         public TabInfo(String id, String type, String title, Category category) {
             this.id = (id != null && !id.isEmpty()) ? id : UUID.randomUUID().toString();
@@ -640,12 +660,23 @@ public class ClickGUI extends Register {
         public void setMaxTerminalScroll(float maxTerminalScroll) { this.maxTerminalScroll = maxTerminalScroll; }
 
         public Register getSelectedModule() { return selectedModule; }
-        public void setSelectedModule(Register selectedModule) { this.selectedModule = selectedModule; }
+        public void setSelectedModule(Register selectedModule) {
+            if (this.selectedModule != selectedModule) {
+                this.selectedModule = selectedModule;
+                this.settingsScrollY = 0;
+            }
+        }
         public Map<String, Boolean> getCollapsedGroups() { return collapsedGroups; }
         public Register getBindingModule() { return bindingModule; }
         public void setBindingModule(Register bindingModule) { this.bindingModule = bindingModule; }
         public float getModuleListScrollY() { return moduleListScrollY; }
         public void setModuleListScrollY(float moduleListScrollY) { this.moduleListScrollY = moduleListScrollY; }
+        public float getMaxModuleListScroll() { return maxModuleListScroll; }
+        public void setMaxModuleListScroll(float maxModuleListScroll) { this.maxModuleListScroll = maxModuleListScroll; }
+        public float getSettingsScrollY() { return settingsScrollY; }
+        public void setSettingsScrollY(float settingsScrollY) { this.settingsScrollY = settingsScrollY; }
+        public float getMaxSettingsScroll() { return maxSettingsScroll; }
+        public void setMaxSettingsScroll(float maxSettingsScroll) { this.maxSettingsScroll = maxSettingsScroll; }
 
         public String getSelectedThemeItem() { return selectedThemeItem; }
         public void setSelectedThemeItem(String selectedThemeItem) { this.selectedThemeItem = selectedThemeItem; }
@@ -1055,11 +1086,6 @@ public class ClickGUI extends Register {
             }
 
             Minecraft mc = Minecraft.getMinecraft();
-            float curX = isMaximized ? 0 : posX;
-            float curY = isMaximized ? 0 : posY;
-            float curW = isMaximized ? mc.displayWidth : windowWidth;
-            float curH = isMaximized ? mc.displayHeight : windowHeight;
-            float winRadius = isMaximized ? 0 : 8.0f;
 
             // 1. 处理拖拽
             if (dragging && !isMaximized) {
@@ -1068,8 +1094,6 @@ public class ClickGUI extends Register {
                 } else {
                     posX = mouseX - dragX;
                     posY = mouseY - dragY;
-                    curX = posX;
-                    curY = posY;
                 }
             }
 
@@ -1117,12 +1141,37 @@ public class ClickGUI extends Register {
                     posY = newY;
                     windowWidth = newW;
                     windowHeight = newH;
-                    curX = posX;
-                    curY = posY;
-                    curW = windowWidth;
-                    curH = windowHeight;
                 }
             }
+
+            if (!isMaximized && mc.displayWidth > 0 && mc.displayHeight > 0) {
+                if (!resizing) {
+                    if (windowWidth > mc.displayWidth) {
+                        windowWidth = Math.max(Math.min(MIN_WINDOW_WIDTH, mc.displayWidth), mc.displayWidth);
+                    }
+                    if (windowHeight > mc.displayHeight) {
+                        windowHeight = Math.max(Math.min(MIN_WINDOW_HEIGHT, mc.displayHeight), mc.displayHeight);
+                    }
+                }
+                if (!dragging && !resizing) {
+                    if (posX + windowWidth > mc.displayWidth) {
+                        posX = Math.max(0, mc.displayWidth - windowWidth);
+                    }
+                    if (posY + windowHeight > mc.displayHeight) {
+                        posY = Math.max(0, mc.displayHeight - windowHeight);
+                    }
+                    if (posX < 0) posX = 0;
+                    if (posY < 0) posY = 0;
+                } else if (dragging) {
+                    posY = Math.max(0, Math.min(mc.displayHeight - 40, posY));
+                }
+            }
+
+            float curX = isMaximized ? 0 : posX;
+            float curY = isMaximized ? 0 : posY;
+            float curW = isMaximized ? mc.displayWidth : windowWidth;
+            float curH = isMaximized ? mc.displayHeight : windowHeight;
+            float winRadius = isMaximized ? 0 : 8.0f;
 
             // 3. 柔和阴影与主体背景 (#0C0C0C)
             if (!isMaximized) {
@@ -1383,6 +1432,16 @@ public class ClickGUI extends Register {
                     ? Register.getAlphabeticalModules()
                     : (cat != null ? cat.getModules() : Collections.emptyList());
 
+            int itemCount = (cat == Category.THEME) ? 1 : mods.size();
+            float totalSidebarH = 14 + itemCount * 28;
+            float maxSidebarScroll = Math.max(0, totalSidebarH - h + 14);
+            tab.setMaxModuleListScroll(maxSidebarScroll);
+            if (tab.getModuleListScrollY() < -maxSidebarScroll) {
+                tab.setModuleListScrollY(-maxSidebarScroll);
+            } else if (tab.getModuleListScrollY() > 0) {
+                tab.setModuleListScrollY(0);
+            }
+
             float sidebarW = 240;
             RenderUtil.drawRect(x, y, x + sidebarW, y + h, 0xFF101010);
             RenderUtil.drawRect(x + sidebarW, y, x + sidebarW + 1, y + h, 0xFF2A2A2A);
@@ -1475,11 +1534,12 @@ public class ClickGUI extends Register {
                 float sW = 200.0f;
                 float sH = 22.0f;
 
-                float settingY = curMetaY + 30;
-                float scissorY = settingY - 4;
-                float scissorH = h - (settingY - y) + 4;
+                float baseSettingY = curMetaY + 30;
+                float scissorY = baseSettingY - 4;
+                float scissorH = h - (baseSettingY - y) + 4;
                 RenderUtil.enablePixelScissor(rightX - 6, scissorY, w - sidebarW - 14, scissorH);
 
+                float settingY = baseSettingY + tab.getSettingsScrollY();
                 float clipTop = scissorY - 30;
                 float clipBottom = scissorY + scissorH + 30;
 
@@ -1844,6 +1904,15 @@ public class ClickGUI extends Register {
                 }
 
                 RenderUtil.disableScissor();
+
+                float totalSettingsH = settingY - (baseSettingY + tab.getSettingsScrollY());
+                float maxScroll = Math.max(0, totalSettingsH - scissorH + 12);
+                tab.setMaxSettingsScroll(maxScroll);
+                if (tab.getSettingsScrollY() < -maxScroll) {
+                    tab.setSettingsScrollY(-maxScroll);
+                } else if (tab.getSettingsScrollY() > 0) {
+                    tab.setSettingsScrollY(0);
+                }
             }
         }
 
@@ -1862,11 +1931,12 @@ public class ClickGUI extends Register {
             float sW = 200.0f;
             float sH = 22.0f;
 
-            float settingY = metaY + 16;
-            float scissorY = settingY - 4;
-            float scissorH = h - (settingY - y) + 4;
+            float baseSettingY = metaY + 16;
+            float scissorY = baseSettingY - 4;
+            float scissorH = h - (baseSettingY - y) + 4;
             RenderUtil.enablePixelScissor(rightX - 6, scissorY, w - sidebarW - 14, scissorH);
 
+            float settingY = baseSettingY + tab.getSettingsScrollY();
             float clipTop = scissorY - 30;
             float clipBottom = scissorY + scissorH + 30;
 
@@ -2323,6 +2393,15 @@ public class ClickGUI extends Register {
             }
 
             RenderUtil.disableScissor();
+
+            float totalSettingsH = settingY - (baseSettingY + tab.getSettingsScrollY());
+            float maxScroll = Math.max(0, totalSettingsH - scissorH + 12);
+            tab.setMaxSettingsScroll(maxScroll);
+            if (tab.getSettingsScrollY() < -maxScroll) {
+                tab.setSettingsScrollY(-maxScroll);
+            } else if (tab.getSettingsScrollY() > 0) {
+                tab.setSettingsScrollY(0);
+            }
         }
 
         public static class WindowClickResult {
@@ -2524,8 +2603,11 @@ public class ClickGUI extends Register {
                         for (Register m : mods) {
                             if (RenderUtil.isHovered(mouseX, mouseY, curX + 6, itemY - 2, sidebarW - 12, 24)) {
                                 if (mouseButton == 0) {
-                                    m.toggle();
+                                    if (!(m instanceof ClickGUI)) {
+                                        m.toggle();
+                                    }
                                     activeTab.setSelectedModule(m);
+                                    activeTab.setBindingModule(null);
                                 } else if (mouseButton == 1) {
                                     activeTab.setSelectedModule(m);
                                     activeTab.setBindingModule(null);
@@ -2588,7 +2670,11 @@ public class ClickGUI extends Register {
                         curMetaX += totalW + metaGap;
                     }
 
-                    float settingY = curMetaY + 30;
+                    float baseSettingY = curMetaY + 30;
+                    if (mouseY < baseSettingY - 4) {
+                        return WindowClickResult.CONSUMED;
+                    }
+                    float settingY = baseSettingY + activeTab.getSettingsScrollY();
                     float rowH = 22.0f;
                     float lineGap = 10.0f;
                     float lineStep = rowH + lineGap;
@@ -2837,9 +2923,16 @@ public class ClickGUI extends Register {
                         else activeTab.setTerminalScrollY(activeTab.getTerminalScrollY() - 28);
                         activeTab.setTerminalScrollY(Math.min(0, Math.max(-activeTab.getMaxTerminalScroll(), activeTab.getTerminalScrollY())));
                     } else {
-                        if (dWheel > 0) activeTab.setModuleListScrollY(activeTab.getModuleListScrollY() + 28);
-                        else activeTab.setModuleListScrollY(activeTab.getModuleListScrollY() - 28);
-                        activeTab.setModuleListScrollY(Math.min(0, activeTab.getModuleListScrollY()));
+                        float sidebarW = 240;
+                        if (mouseX <= curX + sidebarW) {
+                            if (dWheel > 0) activeTab.setModuleListScrollY(activeTab.getModuleListScrollY() + 28);
+                            else activeTab.setModuleListScrollY(activeTab.getModuleListScrollY() - 28);
+                            activeTab.setModuleListScrollY(Math.min(0, Math.max(-activeTab.getMaxModuleListScroll(), activeTab.getModuleListScrollY())));
+                        } else {
+                            if (dWheel > 0) activeTab.setSettingsScrollY(activeTab.getSettingsScrollY() + 28);
+                            else activeTab.setSettingsScrollY(activeTab.getSettingsScrollY() - 28);
+                            activeTab.setSettingsScrollY(Math.min(0, Math.max(-activeTab.getMaxSettingsScroll(), activeTab.getSettingsScrollY())));
+                        }
                     }
                 }
             }
@@ -2960,6 +3053,11 @@ public class ClickGUI extends Register {
             tab.setTerminalScrollY(-tab.getMaxTerminalScroll());
         }
 
+        public boolean isBindingKey() {
+            TabInfo activeTab = getActiveTab();
+            return activeTab != null && activeTab.getBindingModule() != null;
+        }
+
         public boolean keyTyped(char typedChar, int keyCode) {
             TabInfo activeTab = getActiveTab();
             if (activeTab == null) return false;
@@ -3016,7 +3114,11 @@ public class ClickGUI extends Register {
             float metaY = modTitleY + 30;
             float maxRightX = curX + curW - 20;
 
-            float settingY = metaY + 16;
+            float baseSettingY = metaY + 16;
+            if (mouseY < baseSettingY - 4) {
+                return WindowClickResult.CONSUMED;
+            }
+            float settingY = baseSettingY + activeTab.getSettingsScrollY();
             float rowH = 22.0f;
             float lineGap = 10.0f;
             float lineStep = rowH + lineGap;
@@ -3337,7 +3439,21 @@ public class ClickGUI extends Register {
             if (inGuiClosed) return;
             inGuiClosed = true;
             try {
+                ClickGUI.markClosed();
                 Keyboard.enableRepeatEvents(false);
+                dragCandidateTab = null;
+                dragCandidateWindow = null;
+                dragCandidateIndex = -1;
+                isDraggingTab = false;
+                hoverTargetWindow = null;
+                hoverInsertIndex = -1;
+                for (Window win : windows) {
+                    win.mouseReleased(0, 0, 0);
+                    win.showNewTabMenu = false;
+                    for (TabInfo tab : win.getOpenTabs()) {
+                        tab.setBindingModule(null);
+                    }
+                }
                 ClickGuiConfig.save(windows);
                 CursorUtil.resetCursor();
                 Register clickGui = Register.getModule(ClickGUI.class);
@@ -3640,8 +3756,15 @@ public class ClickGUI extends Register {
                 if (win.isMenuHovered(mouseX, mouseY)) {
                     Window.WindowClickResult res = win.mouseClicked(mouseX, mouseY, mouseButton);
                     if (res.type == Window.WindowClickResult.Type.CLOSE_WINDOW) {
-                        windows.remove(i);
-                        if (windows.isEmpty()) mc.displayGuiScreen(null);
+                        if (windows.size() > 1) {
+                            windows.remove(i);
+                        } else {
+                            if (win.getOpenTabs().isEmpty()) {
+                                win.getOpenTabs().add(TabInfo.createPreset("modules"));
+                                win.setActiveTabIndex(0);
+                            }
+                            mc.displayGuiScreen(null);
+                        }
                     }
                     return;
                 }
@@ -3661,8 +3784,13 @@ public class ClickGUI extends Register {
                             : win.mouseClicked(mouseX, mouseY, mouseButton);
 
                     if (res.type == Window.WindowClickResult.Type.CLOSE_WINDOW) {
-                        windows.remove(win);
-                        if (windows.isEmpty()) {
+                        if (windows.size() > 1) {
+                            windows.remove(win);
+                        } else {
+                            if (win.getOpenTabs().isEmpty()) {
+                                win.getOpenTabs().add(TabInfo.createPreset("modules"));
+                                win.setActiveTabIndex(0);
+                            }
                             mc.displayGuiScreen(null);
                         }
                     } else if (res.type == Window.WindowClickResult.Type.DRAG_TAB) {
@@ -3696,7 +3824,15 @@ public class ClickGUI extends Register {
 
         @Override
         protected void keyTyped(char typedChar, int keyCode) throws IOException {
-            // 1. ESC 始终关闭 GUI
+            // 1. 若顶层窗口正在绑定按键，优先分发（允许用 ESC / DELETE 清除绑定）
+            if (!windows.isEmpty()) {
+                Window topWindow = windows.get(windows.size() - 1);
+                if (topWindow.isBindingKey() && topWindow.keyTyped(typedChar, keyCode)) {
+                    return;
+                }
+            }
+
+            // 2. ESC 始终关闭 GUI
             if (keyCode == Keyboard.KEY_ESCAPE) {
                 mc.displayGuiScreen(null);
                 if (mc.currentScreen == null) {
@@ -3705,7 +3841,7 @@ public class ClickGUI extends Register {
                 return;
             }
 
-            // 2. 先将按键事件分发给顶层窗口内部组件（如模块按键绑定、终端控制台输入、搜索栏等）
+            // 3. 将按键事件分发给顶层窗口内部组件（如终端控制台输入等）
             if (!windows.isEmpty()) {
                 Window topWindow = windows.get(windows.size() - 1);
                 if (topWindow.keyTyped(typedChar, keyCode)) {
@@ -3713,7 +3849,7 @@ public class ClickGUI extends Register {
                 }
             }
 
-            // 3. 按下 RSHIFT 或 ClickGUI 绑定键直接关闭界面
+            // 4. 按下 RSHIFT 或 ClickGUI 绑定键直接关闭界面
             Register clickGui = Register.getModule(ClickGUI.class);
             int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
             if (keyCode == Keyboard.KEY_RSHIFT || (guiKey != 0 && keyCode == guiKey)) {

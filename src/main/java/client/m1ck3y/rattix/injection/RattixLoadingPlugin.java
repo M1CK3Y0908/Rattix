@@ -9,6 +9,7 @@ import java.util.Map;
 
 @IFMLLoadingPlugin.MCVersion("1.8.9")
 @IFMLLoadingPlugin.Name("Rattix")
+@IFMLLoadingPlugin.SortingIndex(1000)
 public class RattixLoadingPlugin implements IFMLLoadingPlugin {
 
     public RattixLoadingPlugin() {

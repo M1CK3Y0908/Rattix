@@ -118,10 +118,16 @@ public class RattixMod {
             }
             EventManager.getInstance().call(new KeyEvent(key));
 
+            while (this.clickGuiKey != null && this.clickGuiKey.isPressed()) {
+                // Drain accumulated pressTime so other keys do not trigger ClickGUI
+            }
+
             Register clickGui = Register.getModule(client.m1ck3y.rattix.modules.ClickGUI.class);
             int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
+            int bindKey = (this.clickGuiKey != null) ? this.clickGuiKey.getKeyCode() : 0;
 
-            if ((this.clickGuiKey != null && this.clickGuiKey.isPressed()) || key == Keyboard.KEY_RSHIFT || key == guiKey) {
+            if (key == Keyboard.KEY_RSHIFT || (guiKey != 0 && key == guiKey) || (bindKey != 0 && key == bindKey)) {
+                this.rshiftPressed = true;
                 openClickGui();
             } else {
                 Register.onKey(key);
@@ -141,11 +147,18 @@ public class RattixMod {
 
             Minecraft mc = Minecraft.getMinecraft();
             if (mc.theWorld != null && mc.thePlayer != null) {
-                boolean isDown = Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
-                if (isDown && !this.rshiftPressed && mc.currentScreen == null) {
-                    openClickGui();
+                Register clickGui = Register.getModule(client.m1ck3y.rattix.modules.ClickGUI.class);
+                int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
+                boolean isDown = Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)
+                        || (guiKey > 0 && guiKey < Keyboard.KEYBOARD_SIZE && Keyboard.isKeyDown(guiKey));
+                if (mc.currentScreen != null || ClickGUI.wasRecentlyClosed()) {
+                    this.rshiftPressed = isDown;
+                } else {
+                    if (isDown && !this.rshiftPressed) {
+                        openClickGui();
+                    }
+                    this.rshiftPressed = isDown;
                 }
-                this.rshiftPressed = isDown;
             }
         }
     }

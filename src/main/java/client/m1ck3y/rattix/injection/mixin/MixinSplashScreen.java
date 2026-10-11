@@ -17,4 +17,13 @@ public class MixinSplashScreen {
     public static void start() {
         StartupScreen.renderSplashScreen();
     }
+
+    /**
+     * @author Rattix Team
+     * @reason Custom Loading Screen - Completes the startup screen when Forge loading finishes
+     */
+    @Overwrite(remap = false)
+    public static void finish() {
+        StartupScreen.onStartupComplete();
+    }
 }
