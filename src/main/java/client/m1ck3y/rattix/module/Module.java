@@ -1,26 +1,23 @@
-package client.m1ck3y.rattix.modules.manager;
+package client.m1ck3y.rattix.module;
 
-import client.m1ck3y.rattix.modules.*;
-import client.m1ck3y.rattix.modules.ClickGUI.BooleanSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.CheckBoxSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.ColorSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.ModeSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.NumberSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.Setting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.BooleanSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.CheckBoxSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.ColorSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.ModeSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.NumberSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.Setting;
 import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 
-import java.io.File;
-import java.net.JarURLConnection;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
-public abstract class Register {
+/**
+ * Rattix 核心模块基类。
+ * 所有客户端功能模块均继承此类。
+ */
+public abstract class Module {
     protected final Minecraft mc = Minecraft.getMinecraft();
     private final String name;
     private String description;
@@ -42,31 +39,31 @@ public abstract class Register {
     private Map<Setting<?>, List<Setting<?>>> childrenSettings = null;
 
     // Constructors
-    public Register() {
+    public Module() {
         this("", null, 0);
     }
 
-    public Register(Category category) {
+    public Module(Category category) {
         this("", category, 0);
     }
 
-    public Register(Category category, int keyCode) {
+    public Module(Category category, int keyCode) {
         this("", category, keyCode);
     }
 
-    public Register(String description, Category category) {
+    public Module(String description, Category category) {
         this(description, category, 0);
     }
 
-    public Register(String description, Category category, int keyCode) {
+    public Module(String description, Category category, int keyCode) {
         this("", description, category, keyCode);
     }
 
-    public Register(String name, String description, Category category) {
+    public Module(String name, String description, Category category) {
         this(name, description, category, 0);
     }
 
-    public Register(String name, String description, Category category, int keyCode) {
+    public Module(String name, String description, Category category, int keyCode) {
         this.name = (name != null && !name.trim().isEmpty()) ? name : getClass().getSimpleName();
         this.description = (description != null) ? description : "";
         this.category = category;
@@ -407,249 +404,4 @@ public abstract class Register {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.popMatrix();
     }
-
-    // ==========================================
-    // Registry & Auto-Registration
-    // ==========================================
-    private static final List<Register> registeredModules = new ArrayList<>();
-    private static final Map<String, Register> modulesByName = new HashMap<>();
-    private static final Map<Class<? extends Register>, Register> modulesByClass = new HashMap<>();
-    private static final List<Register> alphabeticalModules = new ArrayList<>();
-    private static boolean registered = false;
-
-    public static synchronized void registerAll() {
-        if (registered) return;
-        registered = true;
-
-        for (Category cat : Category.values()) {
-            cat.clearModules();
-        }
-        registeredModules.clear();
-        modulesByName.clear();
-        modulesByClass.clear();
-        alphabeticalModules.clear();
-
-        Set<Class<? extends Register>> moduleClasses = scanModuleClasses();
-
-        if (moduleClasses.isEmpty()) {
-            moduleClasses.addAll(getFallbackClasses());
-        }
-
-        for (Class<? extends Register> clazz : moduleClasses) {
-            try {
-                Register instance = clazz.getDeclaredConstructor().newInstance();
-                register(instance);
-            } catch (Throwable t) {
-                System.err.println("[Rattix] Failed to instantiate module: " + clazz.getName());
-                t.printStackTrace();
-            }
-        }
-    }
-
-    public static void register(Register module) {
-        if (module == null) return;
-        registeredModules.add(module);
-        modulesByClass.put(module.getClass(), module);
-        if (module.getName() != null) {
-            modulesByName.put(module.getName().toLowerCase(), module);
-        }
-
-        // 根据 Category 中定义的集合动态同步分类
-        Category mappedCategory = Category.getCategoryForModule(module.getName());
-        if (mappedCategory != null) {
-            module.setCategory(mappedCategory);
-        } else if (module.getCategory() == null) {
-            module.setCategory(Category.VISUAL);
-        }
-
-        if (module.getCategory() != null) {
-            module.getCategory().addModule(module);
-        }
-    }
-
-    private static Set<Class<? extends Register>> scanModuleClasses() {
-        Set<Class<? extends Register>> classes = new LinkedHashSet<>();
-        String packageName = "client.m1ck3y.rattix.modules";
-        String packagePath = packageName.replace('.', '/');
-
-        try {
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            if (classLoader == null) {
-                classLoader = Register.class.getClassLoader();
-            }
-            Enumeration<URL> resources = classLoader.getResources(packagePath);
-            while (resources.hasMoreElements()) {
-                URL resource = resources.nextElement();
-                String protocol = resource.getProtocol();
-
-                if ("file".equals(protocol)) {
-                    File dir = null;
-                    try {
-                        dir = new File(resource.toURI());
-                    } catch (Exception ignored) {
-                    }
-                    if (dir == null || !dir.exists()) {
-                        String filePath = URLDecoder.decode(resource.getFile(), "UTF-8");
-                        if (filePath.startsWith("/") && filePath.contains(":")) {
-                            filePath = filePath.substring(1);
-                        }
-                        dir = new File(filePath);
-                    }
-                    scanDirectory(dir, packageName, classes);
-                } else if ("jar".equals(protocol)) {
-                    JarURLConnection jarConn = (JarURLConnection) resource.openConnection();
-                    try (JarFile jarFile = jarConn.getJarFile()) {
-                        Enumeration<JarEntry> entries = jarFile.entries();
-                        while (entries.hasMoreElements()) {
-                            JarEntry entry = entries.nextElement();
-                            String name = entry.getName();
-                            if (name.startsWith(packagePath + "/") && name.endsWith(".class")) {
-                                String sub = name.substring(packagePath.length() + 1);
-                                if (!sub.contains("/")) { // 排除 manager 与 clickgui 子包
-                                    String simpleName = sub.substring(0, sub.length() - 6);
-                                    checkAndAddClass(packageName + "." + simpleName, classes);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Throwable t) {
-            System.err.println("[Rattix] Note: Auto scan encountered issue, falling back to built-in list: " + t.getMessage());
-        }
-        return classes;
-    }
-
-    private static void scanDirectory(File directory, String packageName, Set<Class<? extends Register>> classes) {
-        if (!directory.exists() || !directory.isDirectory()) return;
-
-        File[] files = directory.listFiles();
-        if (files == null) return;
-
-        for (File file : files) {
-            if (file.isFile() && file.getName().endsWith(".class")) {
-                String simpleName = file.getName().substring(0, file.getName().length() - 6);
-                checkAndAddClass(packageName + "." + simpleName, classes);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void checkAndAddClass(String fullClassName, Set<Class<? extends Register>> classes) {
-        String simpleName = fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
-        if ("Category".equals(simpleName) || "Register".equals(simpleName) || simpleName.contains("$")) {
-            return;
-        }
-
-        try {
-            Class<?> clazz = Class.forName(fullClassName);
-            if (Register.class.isAssignableFrom(clazz) && !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers())) {
-                classes.add((Class<? extends Register>) clazz);
-            }
-        } catch (Throwable ignored) {
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<Class<? extends Register>> getFallbackClasses() {
-        List<Class<? extends Register>> list = new ArrayList<>();
-        Class<?>[] fallbacks = new Class<?>[]{
-                ClickGUI.class,
-                ArmorStatus.class,
-                CPSDisplay.class,
-                Crosshair.class,
-                FPSDisplay.class,
-                Fullbright.class,
-                Keystrokes.class,
-                PingDisplay.class,
-                TimeChanger.class,
-                ToggleSprint.class
-        };
-        for (Class<?> c : fallbacks) {
-            if (Register.class.isAssignableFrom(c)) {
-                list.add((Class<? extends Register>) c);
-            }
-        }
-        return list;
-    }
-
-    public static List<Register> getRegisteredModules() {
-        return registeredModules;
-    }
-
-    public static int getLoadedModuleCount() {
-        return registeredModules.size();
-    }
-
-    public static int getLoadedOptionCount() {
-        int count = 0;
-        for (Register m : registeredModules) {
-            // Key 绑定 (1) + 顶部通用选项 (LoadFromConfig, ShowInArrayList, ToggleSound) + addSettings 注册的 Setting
-            count += 1 + m.getMetaOptions().size() + m.getSettings().size();
-        }
-        if (Font.getInstance() != null && Font.getInstance().getSettings() != null) {
-            count += Font.getInstance().getSettings().size();
-        }
-        return count;
-    }
-
-    public static List<Register> getAlphabeticalModules() {
-        if (alphabeticalModules.size() != registeredModules.size()) {
-            alphabeticalModules.clear();
-            alphabeticalModules.addAll(registeredModules);
-            alphabeticalModules.sort((m1, m2) -> String.CASE_INSENSITIVE_ORDER.compare(m1.getName(), m2.getName()));
-        }
-        return alphabeticalModules;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T extends Register> T getModule(Class<T> clazz) {
-        return (T) modulesByClass.get(clazz);
-    }
-
-    public static Register getModuleByName(String name) {
-        if (name == null) return null;
-        return modulesByName.get(name.toLowerCase());
-    }
-
-    public static Register getModule(String name) {
-        return getModuleByName(name);
-    }
-
-    // ==========================================
-    // Lifecycle Dispatchers
-    // ==========================================
-    public static void onClientTick() {
-        int size = registeredModules.size();
-        for (int i = 0; i < size; i++) {
-            Register m = registeredModules.get(i);
-            if (m.isEnabled()) {
-                m.onTick();
-            }
-        }
-    }
-
-    public static void onRenderOverlay() {
-        int size = registeredModules.size();
-        for (int i = 0; i < size; i++) {
-            Register m = registeredModules.get(i);
-            if (m.isEnabled()) {
-                m.onRender2D();
-            }
-        }
-    }
-
-    public static void onKey(int key) {
-        if (key == 0) return;
-        int size = registeredModules.size();
-        for (int i = 0; i < size; i++) {
-            Register m = registeredModules.get(i);
-            if (m.getKeyCode() == key) {
-                m.toggle();
-            }
-        }
-    }
-
-    // 兼容别名
-    public static abstract class Module extends Register {}
 }

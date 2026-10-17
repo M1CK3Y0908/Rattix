@@ -1,6 +1,6 @@
 package client.m1ck3y.rattix.injection.mixin;
 
-import client.m1ck3y.rattix.modules.MenuShader;
+import client.m1ck3y.rattix.module.modules.MenuShader;
 import client.m1ck3y.rattix.utils.IconUtils;
 import client.m1ck3y.rattix.utils.shader.ShaderManager;
 import net.minecraft.client.LoadingScreenRenderer;

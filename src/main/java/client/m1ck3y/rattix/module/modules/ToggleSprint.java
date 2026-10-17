@@ -1,15 +1,15 @@
-package client.m1ck3y.rattix.modules;
+package client.m1ck3y.rattix.module.modules;
 
-import client.m1ck3y.rattix.modules.manager.Category;
-import client.m1ck3y.rattix.modules.manager.Register;
+import client.m1ck3y.rattix.module.Category;
+import client.m1ck3y.rattix.module.Module;
 
-import client.m1ck3y.rattix.modules.ClickGUI.BooleanSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.BooleanSetting;
 import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
 
-public class ToggleSprint extends Register {
+public class ToggleSprint extends Module {
     public BooleanSetting showText = new BooleanSetting("Show HUD Status", true);
     public BooleanSetting showBackground = new BooleanSetting("Background", true);
 

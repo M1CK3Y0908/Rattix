@@ -1,14 +1,14 @@
-package client.m1ck3y.rattix.modules;
+package client.m1ck3y.rattix.module.modules;
 
-import client.m1ck3y.rattix.modules.manager.Category;
-import client.m1ck3y.rattix.modules.manager.Register;
+import client.m1ck3y.rattix.module.Category;
+import client.m1ck3y.rattix.module.Module;
 
-import client.m1ck3y.rattix.modules.ClickGUI.BooleanSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.BooleanSetting;
 import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.Minecraft;
 
-public class FPSDisplay extends Register {
+public class FPSDisplay extends Module {
     public BooleanSetting showLabel = new BooleanSetting("Show 'FPS' text", true);
 
     public FPSDisplay() {

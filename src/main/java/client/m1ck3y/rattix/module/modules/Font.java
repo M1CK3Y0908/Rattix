@@ -1,10 +1,10 @@
-package client.m1ck3y.rattix.modules;
+package client.m1ck3y.rattix.module.modules;
 
-import client.m1ck3y.rattix.modules.ClickGUI.BooleanSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.ColorSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.ModeSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.NumberSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.Setting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.BooleanSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.ColorSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.ModeSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.NumberSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.Setting;
 import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.font.CustomFontRenderer;
 

@@ -1,14 +1,14 @@
-package client.m1ck3y.rattix.modules;
+package client.m1ck3y.rattix.module.modules;
 
-import client.m1ck3y.rattix.modules.manager.Category;
-import client.m1ck3y.rattix.modules.manager.Register;
+import client.m1ck3y.rattix.module.Category;
+import client.m1ck3y.rattix.module.Module;
 
-import client.m1ck3y.rattix.modules.ClickGUI.BooleanSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.NumberSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.BooleanSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.NumberSetting;
 import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.gui.ScaledResolution;
 
-public class Crosshair extends Register {
+public class Crosshair extends Module {
     public NumberSetting length = new NumberSetting("Length", 4, 1, 10, 1);
     public NumberSetting gap = new NumberSetting("Gap", 2, 0, 8, 1);
     public BooleanSetting dot = new BooleanSetting("Center Dot", true);

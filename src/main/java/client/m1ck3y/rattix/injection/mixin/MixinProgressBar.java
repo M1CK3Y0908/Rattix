@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(targets = "net.minecraftforge.fml.common.ProgressManager$ProgressBar", remap = false)
+@Mixin(value = net.minecraftforge.fml.common.ProgressManager.ProgressBar.class, remap = false)
 public class MixinProgressBar {
 
     @Inject(method = "step(Ljava/lang/String;)V", at = @At("HEAD"), remap = false)

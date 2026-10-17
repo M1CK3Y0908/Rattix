@@ -22,6 +22,7 @@ public class CommandManager {
         registerCommand(new HelpCommand());
         registerCommand(new ToggleCommand());
         registerCommand(new BindCommand());
+        registerCommand(new client.m1ck3y.rattix.module.ModuleCommand());
     }
 
     public void registerCommand(Command cmd) {

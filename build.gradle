@@ -110,6 +110,8 @@ jar {
             "FMLCorePluginContainsFMLMod": "true",
             "ForceLoadAsMod": "true",
             "MixinConfigs": "mixins.rattix.json",
+            "TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+            "TweakOrder": "0",
             "ModSide": "CLIENT"
         ])
     }
@@ -120,3 +122,5 @@ reobf {
         mappingType = 'SEARGE'
     }
 }
+
+jar.finalizedBy 'reobfJar'

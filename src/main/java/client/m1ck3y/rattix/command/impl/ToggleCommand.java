@@ -2,7 +2,8 @@ package client.m1ck3y.rattix.command.impl;
 
 import client.m1ck3y.rattix.command.Command;
 
-import client.m1ck3y.rattix.modules.manager.Register;
+import client.m1ck3y.rattix.module.Module;
+import client.m1ck3y.rattix.module.ModuleManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 
@@ -22,7 +23,7 @@ public class ToggleCommand extends Command {
         }
 
         String modName = args[1];
-        Register module = Register.getModuleByName(modName);
+        Module module = ModuleManager.getModuleByName(modName);
         if (module != null) {
             module.toggle();
             mc.thePlayer.addChatMessage(new ChatComponentText("§a[Rattix] §f" + module.getName() + " is now " + (module.isEnabled() ? "§aEnabled" : "§cDisabled")));

@@ -1,10 +1,11 @@
-package client.m1ck3y.rattix.modules;
+package client.m1ck3y.rattix.module.modules;
 
 import client.m1ck3y.rattix.RattixMod;
 import java.awt.Color;
 import client.m1ck3y.rattix.config.ClickGuiConfig;
-import client.m1ck3y.rattix.modules.manager.Category;
-import client.m1ck3y.rattix.modules.manager.Register;
+import client.m1ck3y.rattix.module.Category;
+import client.m1ck3y.rattix.module.Module;
+import client.m1ck3y.rattix.module.ModuleManager;
 import client.m1ck3y.rattix.utils.CursorUtil;
 import client.m1ck3y.rattix.utils.FileManager;
 import client.m1ck3y.rattix.utils.FontUtil;
@@ -23,7 +24,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class ClickGUI extends Register {
+public class ClickGUI extends Module {
     private boolean closing = false;
     private static Screen screenInstance = null;
     private static long lastCloseTime = 0;
@@ -151,7 +152,7 @@ public class ClickGUI extends Register {
         if (mc.currentScreen instanceof Screen) {
             return;
         }
-        ClickGUI clickGui = Register.getModule(ClickGUI.class);
+        ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
         if (clickGui != null && !clickGui.isEnabled()) {
             clickGui.setEnabled(true);
         }
@@ -734,10 +735,10 @@ public class ClickGUI extends Register {
         private float maxTerminalScroll = 0;
 
         // Module View State (for category tabs)
-        private Register selectedModule = null;
+        private Module selectedModule = null;
         private String selectedThemeItem = "Font";
         private final Map<String, Boolean> collapsedGroups = new HashMap<>();
-        private Register bindingModule = null;
+        private Module bindingModule = null;
         private float moduleListScrollY = 0;
         private float maxModuleListScroll = 0;
         private float settingsScrollY = 0;
@@ -750,14 +751,14 @@ public class ClickGUI extends Register {
             this.category = category;
 
             if (isModulesTab()) {
-                List<Register> mods = Register.getAlphabeticalModules();
+                List<Module> mods = ModuleManager.getAlphabeticalModules();
                 if (!mods.isEmpty()) {
                     selectedModule = mods.get(0);
                 }
             } else if (category == null) {
                 initTerminalWelcome();
             } else {
-                List<Register> mods = category.getModules();
+                List<Module> mods = category.getModules();
                 if (!mods.isEmpty()) {
                     selectedModule = mods.get(0);
                 }
@@ -822,16 +823,16 @@ public class ClickGUI extends Register {
         public float getMaxTerminalScroll() { return maxTerminalScroll; }
         public void setMaxTerminalScroll(float maxTerminalScroll) { this.maxTerminalScroll = maxTerminalScroll; }
 
-        public Register getSelectedModule() { return selectedModule; }
-        public void setSelectedModule(Register selectedModule) {
+        public Module getSelectedModule() { return selectedModule; }
+        public void setSelectedModule(Module selectedModule) {
             if (this.selectedModule != selectedModule) {
                 this.selectedModule = selectedModule;
                 this.settingsScrollY = 0;
             }
         }
         public Map<String, Boolean> getCollapsedGroups() { return collapsedGroups; }
-        public Register getBindingModule() { return bindingModule; }
-        public void setBindingModule(Register bindingModule) { this.bindingModule = bindingModule; }
+        public Module getBindingModule() { return bindingModule; }
+        public void setBindingModule(Module bindingModule) { this.bindingModule = bindingModule; }
         public float getModuleListScrollY() { return moduleListScrollY; }
         public void setModuleListScrollY(float moduleListScrollY) { this.moduleListScrollY = moduleListScrollY; }
         public float getMaxModuleListScroll() { return maxModuleListScroll; }
@@ -900,7 +901,7 @@ public class ClickGUI extends Register {
         private float newTabMenuY = 0;
         private final float newTabMenuW = 215;
         public float getNewTabMenuH() {
-            return AVAILABLE_PRESETS.size() * 32.0f;
+            return getAvailablePresets().size() * 32.0f;
         }
 
         // Tab Scrolling
@@ -1181,7 +1182,7 @@ public class ClickGUI extends Register {
             float curH = MINIMIZED_HEIGHT;
             float winRadius = 6.0f;
 
-            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+            ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
 
             // 1. 柔和阴影
             int shadowColor = clickGui != null ? clickGui.dropShadowColor.getRGB() : (isTopFocus ? 0x65000000 : 0x40000000);
@@ -1346,7 +1347,7 @@ public class ClickGUI extends Register {
             float curH = isMaximized ? mc.displayHeight : windowHeight;
             float winRadius = isMaximized ? 0 : 8.0f;
 
-            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+            ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
 
             // 3. 柔和阴影与主体背景
             if (!isMaximized) {
@@ -1540,7 +1541,7 @@ public class ClickGUI extends Register {
             GlStateManager.disableDepth();
             RenderUtil.disableScissor();
 
-            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+            ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
 
             float menuRadius = 6.0f;
             float menuH = getNewTabMenuH();
@@ -1555,15 +1556,16 @@ public class ClickGUI extends Register {
             int accentColor = clickGui != null ? clickGui.accentColor.getRGB() : 0xFF76B9ED;
             int tabIconColor = clickGui != null ? clickGui.tabIconColor.getRGB() : 0xFFB0B0B0;
 
-            for (int i = 0; i < AVAILABLE_PRESETS.size(); i++) {
-                TabPreset preset = AVAILABLE_PRESETS.get(i);
+            List<TabPreset> presets = getAvailablePresets();
+            for (int i = 0; i < presets.size(); i++) {
+                TabPreset preset = presets.get(i);
                 boolean isHover = RenderUtil.isHovered(mouseX, mouseY, mx, itemY, newTabMenuW, itemH);
 
                 if (isHover) {
                     float tl = (i == 0) ? menuRadius : 0;
                     float tr = (i == 0) ? menuRadius : 0;
-                    float br = (i == AVAILABLE_PRESETS.size() - 1) ? menuRadius : 0;
-                    float bl = (i == AVAILABLE_PRESETS.size() - 1) ? menuRadius : 0;
+                    float br = (i == presets.size() - 1) ? menuRadius : 0;
+                    float bl = (i == presets.size() - 1) ? menuRadius : 0;
                     RenderUtil.drawRoundedRect(mx, itemY, newTabMenuW, itemH, tl, tr, br, bl, menuHoverBg);
                 }
 
@@ -1597,7 +1599,7 @@ public class ClickGUI extends Register {
 
             RenderUtil.enablePixelScissor(x, y, w, h);
 
-            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+            ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
             int termText = clickGui != null ? clickGui.terminalTextColor.getRGB() : 0xFFF2F2F2;
 
             float lineHeight = 22;
@@ -1637,8 +1639,8 @@ public class ClickGUI extends Register {
 
         private void drawModuleManagement(TabInfo tab, float x, float y, float w, float h, int mouseX, int mouseY) {
             Category cat = tab.getCategory();
-            List<Register> mods = tab.isModulesTab()
-                    ? Register.getAlphabeticalModules()
+            List<Module> mods = tab.isModulesTab()
+                    ? ModuleManager.getAlphabeticalModules()
                     : (cat != null ? cat.getModules() : Collections.emptyList());
 
             int itemCount = (cat == Category.THEME) ? 1 : mods.size();
@@ -1651,7 +1653,7 @@ public class ClickGUI extends Register {
                 tab.setModuleListScrollY(0);
             }
 
-            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+            ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
             float sidebarW = 240;
             int sideBg = clickGui != null ? clickGui.sidebarColor.getRGB() : 0xFF101010;
             int sideDiv = clickGui != null ? clickGui.sidebarDividerColor.getRGB() : 0xFF2A2A2A;
@@ -1674,7 +1676,7 @@ public class ClickGUI extends Register {
             } else {
                 int modCount = mods.size();
                 for (int mi = 0; mi < modCount; mi++) {
-                    Register m = mods.get(mi);
+                    Module m = mods.get(mi);
                     if (itemY + 28 >= y && itemY <= y + h) {
                         boolean isSelected = (tab.getSelectedModule() == m);
 
@@ -1696,7 +1698,7 @@ public class ClickGUI extends Register {
                 return;
             }
 
-            Register selectedModule = tab.getSelectedModule();
+            Module selectedModule = tab.getSelectedModule();
             if (selectedModule == null && !mods.isEmpty()) {
                 selectedModule = mods.get(0);
                 tab.setSelectedModule(selectedModule);
@@ -1809,7 +1811,7 @@ public class ClickGUI extends Register {
             }
         }
 
-        private float[] renderSettingsList(Register module, List<Setting<?>> settingsList, int depth, float rightX, float indentStep, float maxRightX, float settingY, float prevBranchY, float prevAncestorY, List<Float> activeTrunkXs, float rowH, float lineStep, float sW, float sH, float clipTop, float clipBottom, int mouseX, int mouseY) {
+        private float[] renderSettingsList(Module module, List<Setting<?>> settingsList, int depth, float rightX, float indentStep, float maxRightX, float settingY, float prevBranchY, float prevAncestorY, List<Float> activeTrunkXs, float rowH, float lineStep, float sW, float sH, float clipTop, float clipBottom, int mouseX, int mouseY) {
             int count = settingsList.size();
             float trunkX = rightX + indentStep * depth + indentStep / 2.0f;
             float itemX = rightX + indentStep * (depth + 1);
@@ -2114,7 +2116,7 @@ public class ClickGUI extends Register {
             float clipTop = scissorY - 30;
             float clipBottom = scissorY + scissorH + 30;
 
-            client.m1ck3y.rattix.modules.Font font = client.m1ck3y.rattix.modules.Font.getInstance();
+            Font font = Font.getInstance();
             List<String> groupOrder = font.getGroupNames();
             int totalGroups = groupOrder.size();
             for (int gi = 0; gi < totalGroups; gi++) {
@@ -2668,7 +2670,7 @@ public class ClickGUI extends Register {
                     if (mouseButton == 0) {
                         float itemH = 32.0f;
                         float itemY = newTabMenuY;
-                        for (TabPreset preset : AVAILABLE_PRESETS) {
+                        for (TabPreset preset : getAvailablePresets()) {
                             if (RenderUtil.isHovered(mouseX, mouseY, newTabMenuX, itemY, newTabMenuW, itemH)) {
                                 TabInfo newTab = TabInfo.createPreset(preset.type);
                                 openTabs.add(newTab);
@@ -2783,12 +2785,12 @@ public class ClickGUI extends Register {
                             return WindowClickResult.CONSUMED;
                         }
                     } else {
-                        List<Register> mods = activeTab.isModulesTab()
-                                ? Register.getAlphabeticalModules()
+                        List<Module> mods = activeTab.isModulesTab()
+                                ? ModuleManager.getAlphabeticalModules()
                                 : (cat != null ? cat.getModules() : Collections.emptyList());
                         float itemY = bodyY + 14 + activeTab.getModuleListScrollY();
 
-                        for (Register m : mods) {
+                        for (Module m : mods) {
                             if (RenderUtil.isHovered(mouseX, mouseY, curX + 6, itemY - 2, sidebarW - 12, 24)) {
                                 if (mouseButton == 0) {
                                     if (!(m instanceof ClickGUI)) {
@@ -2815,7 +2817,7 @@ public class ClickGUI extends Register {
                     return WindowClickResult.CONSUMED;
                 }
 
-                Register selectedModule = activeTab.getSelectedModule();
+                Module selectedModule = activeTab.getSelectedModule();
                 if (selectedModule != null && RenderUtil.isHovered(mouseX, mouseY, rightX, bodyY, curW - sidebarW - 24, bodyH)) {
                     float modTitleY = bodyY + 20;
                     float maxRightX = curX + curW - 20;
@@ -2907,7 +2909,7 @@ public class ClickGUI extends Register {
             return WindowClickResult.CONSUMED;
         }
 
-        private float[] mouseClickedSettingsList(Register module, List<Setting<?>> settingsList, int depth, float rightX, float indentStep, float maxRightX, float settingY, float rowH, float lineStep, float sW, int mouseX, int mouseY, int mouseButton) {
+        private float[] mouseClickedSettingsList(Module module, List<Setting<?>> settingsList, int depth, float rightX, float indentStep, float maxRightX, float settingY, float rowH, float lineStep, float sW, int mouseX, int mouseY, int mouseButton) {
             int count = settingsList.size();
             float itemX = rightX + indentStep * (depth + 1);
 
@@ -3119,7 +3121,7 @@ public class ClickGUI extends Register {
                 tab.getTerminalOutput().add("  cls / clear               - Clear terminal screen");
             } else if (cmd.equals("list") || cmd.equals("modules") || cmd.equals("mods")) {
                 tab.getTerminalOutput().add("------- Modules List -------");
-                for (Register m : Register.getRegisteredModules()) {
+                for (Module m : ModuleManager.getRegisteredModules()) {
                     String st = m.isEnabled() ? "\u00A7a[ENABLED]\u00A7r" : "\u00A78[DISABLED]\u00A7r";
                     String key = (m.getKeyCode() == 0) ? "None" : Keyboard.getKeyName(m.getKeyCode());
                     tab.getTerminalOutput().add("  " + String.format("%-18s", m.getName()) + " " + st + " (Key: " + key + ") - " + m.getDescription());
@@ -3127,7 +3129,7 @@ public class ClickGUI extends Register {
             } else if (cmd.equals("toggle") || cmd.equals("t")) {
                 if (parts.length > 1) {
                     String name = parts[1];
-                    Register m = Register.getModuleByName(name);
+                    Module m = ModuleManager.getModuleByName(name);
                     if (m != null) {
                         m.toggle();
                         tab.getTerminalOutput().add("\u00A7aModule '" + m.getName() + "' is now " + (m.isEnabled() ? "\u00A7aENABLED" : "\u00A7cDISABLED"));
@@ -3141,7 +3143,7 @@ public class ClickGUI extends Register {
                 if (parts.length > 2) {
                     String name = parts[1];
                     String keyStr = parts[2].toUpperCase();
-                    Register m = Register.getModuleByName(name);
+                    Module m = ModuleManager.getModuleByName(name);
                     if (m != null) {
                         int key = Keyboard.getKeyIndex(keyStr);
                         m.setKeyCode(key);
@@ -3271,7 +3273,7 @@ public class ClickGUI extends Register {
             float resetTextW = getStringWidth2x(resetText);
             float resetBtnX = maxRightX - resetTextW;
             if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, resetBtnX - 8, modTitleY - 4, resetTextW + 16, 22)) {
-                Screen.openResetConfirm("Font", Category.THEME, () -> client.m1ck3y.rattix.modules.Font.getInstance().resetSettings());
+                Screen.openResetConfirm("Font", Category.THEME, () -> Font.getInstance().resetSettings());
                 return WindowClickResult.CONSUMED;
             }
 
@@ -3286,7 +3288,7 @@ public class ClickGUI extends Register {
             float indentStep = getStringWidth2x("    ");
             float sW = 200.0f;
 
-            client.m1ck3y.rattix.modules.Font font = client.m1ck3y.rattix.modules.Font.getInstance();
+            Font font = Font.getInstance();
             List<String> groupNames = font.getGroupNames();
             int totalGroups = groupNames.size();
             for (int gi = 0; gi < totalGroups; gi++) {
@@ -3569,7 +3571,7 @@ public class ClickGUI extends Register {
         private long openTimestamp = 0;
 
         // Reset Confirmation Dialog State
-        private static Register pendingResetModule = null;
+        private static Module pendingResetModule = null;
         private static Runnable pendingResetAction = null;
         private static String pendingResetName = null;
         private static Category pendingResetCategory = null;
@@ -3579,7 +3581,7 @@ public class ClickGUI extends Register {
         private static float resetDialogDragOffsetX = 0;
         private static float resetDialogDragOffsetY = 0;
 
-        public static void openResetConfirm(Register module) {
+        public static void openResetConfirm(Module module) {
             if (module == null) return;
             pendingResetModule = module;
             pendingResetAction = module::resetSettings;
@@ -3665,7 +3667,7 @@ public class ClickGUI extends Register {
                 }
                 ClickGuiConfig.save(windows);
                 CursorUtil.resetCursor();
-                Register clickGui = Register.getModule(ClickGUI.class);
+                ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
                 if (clickGui != null && clickGui.isEnabled()) {
                     clickGui.setEnabled(false);
                 }
@@ -3740,7 +3742,7 @@ public class ClickGUI extends Register {
                 float ghostW = Window.getTabWidth(dragCandidateTab.getTitle());
                 float ghostX = mouseX - dragCandidateOffsetX;
                 float ghostY = mouseY - 20;
-                ClickGUI clickGui = Register.getModule(ClickGUI.class);
+                ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
                 int ghostBg = clickGui != null ? clickGui.titlebarColor.getRGB() : 0xE5202020;
                 int accent = clickGui != null ? clickGui.accentColor.getRGB() : 0xFF76B9ED;
                 int textColor = clickGui != null ? clickGui.tabTextActiveColor.getRGB() : 0xFFFFFFFF;
@@ -4092,7 +4094,7 @@ public class ClickGUI extends Register {
             }
 
             // 4. 按下 RSHIFT 或 ClickGUI 绑定键直接关闭界面
-            Register clickGui = Register.getModule(ClickGUI.class);
+            ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
             int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
             if (keyCode == Keyboard.KEY_RSHIFT || (guiKey != 0 && keyCode == guiKey)) {
                 mc.displayGuiScreen(null);
@@ -4141,7 +4143,7 @@ public class ClickGUI extends Register {
             RenderUtil.drawDropShadow(resetDialogX, resetDialogY, dialogW, dialogH, 8.0f, 24.0f, 0x88000000);
 
             // 3. 窗口背景与标题栏 (Win11 亚克力风格)
-            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+            ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
             int bodyBg = clickGui != null ? clickGui.backgroundColor.getRGB() : 0xF21C1C1C;
             if (((bodyBg >> 24) & 0xFF) < 0xE0) {
                 bodyBg = (0xF2 << 24) | (bodyBg & 0x00FFFFFF);

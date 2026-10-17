@@ -1,7 +1,7 @@
 package client.m1ck3y.rattix.utils.shader;
 
 import client.m1ck3y.rattix.RattixMod;
-import client.m1ck3y.rattix.modules.MenuShader;
+import client.m1ck3y.rattix.module.modules.MenuShader;
 import client.m1ck3y.rattix.utils.FileManager;
 import client.m1ck3y.rattix.utils.RenderUtil;
 import com.google.gson.JsonObject;

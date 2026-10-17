@@ -204,8 +204,21 @@ public class StartupScreen {
      */
     public static void setupSplashProgress() {
         try {
-            File mcDir = Minecraft.getMinecraft().mcDataDir;
-            File configDir = new File(mcDir, "config");
+            File configDir = null;
+            try {
+                configDir = net.minecraftforge.fml.common.Loader.instance().getConfigDir();
+            } catch (Throwable ignored) {}
+            if (configDir == null) {
+                try {
+                    Minecraft mc = Minecraft.getMinecraft();
+                    if (mc != null && mc.mcDataDir != null) {
+                        configDir = new File(mc.mcDataDir, "config");
+                    }
+                } catch (Throwable ignored) {}
+            }
+            if (configDir == null) {
+                configDir = new File("config");
+            }
             if (!configDir.exists()) configDir.mkdirs();
 
             File splashFile = new File(configDir, "splash.properties");

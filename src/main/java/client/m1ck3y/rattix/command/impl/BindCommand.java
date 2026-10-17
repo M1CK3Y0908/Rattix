@@ -2,7 +2,8 @@ package client.m1ck3y.rattix.command.impl;
 
 import client.m1ck3y.rattix.command.Command;
 
-import client.m1ck3y.rattix.modules.manager.Register;
+import client.m1ck3y.rattix.module.Module;
+import client.m1ck3y.rattix.module.ModuleManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import org.lwjgl.input.Keyboard;
@@ -24,7 +25,7 @@ public class BindCommand extends Command {
 
         String modName = args[1];
         String keyName = args[2].toUpperCase();
-        Register module = Register.getModuleByName(modName);
+        Module module = ModuleManager.getModuleByName(modName);
         if (module == null) {
             mc.thePlayer.addChatMessage(new ChatComponentText("§cModule '" + modName + "' not found!"));
             return;

@@ -2,12 +2,13 @@ package client.m1ck3y.rattix.config;
 
 import com.google.gson.*;
 import client.m1ck3y.rattix.utils.FileManager;
-import client.m1ck3y.rattix.modules.ClickGUI;
-import client.m1ck3y.rattix.modules.ClickGUI.ColorSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.Setting;
-import client.m1ck3y.rattix.modules.ClickGUI.Window;
-import client.m1ck3y.rattix.modules.ClickGUI.TabInfo;
-import client.m1ck3y.rattix.modules.manager.Register;
+import client.m1ck3y.rattix.module.Category;
+import client.m1ck3y.rattix.module.ModuleManager;
+import client.m1ck3y.rattix.module.modules.ClickGUI;
+import client.m1ck3y.rattix.module.modules.ClickGUI.ColorSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.Setting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.Window;
+import client.m1ck3y.rattix.module.modules.ClickGUI.TabInfo;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public class ClickGuiConfig {
             root.add("windows", winArray);
 
             JsonObject colorsObj = new JsonObject();
-            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+            ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
             if (clickGui != null) {
                 for (Setting<?> s : clickGui.getSettings()) {
                     if (s instanceof ColorSetting) {
@@ -107,7 +108,7 @@ public class ClickGuiConfig {
 
                             // 兼容旧分类 Tab（如 render, hud 映射为 visual），过滤已移除的分类（如 combat, player 等）
                             if (!"console".equalsIgnoreCase(type) && !"modules".equalsIgnoreCase(type)) {
-                                client.m1ck3y.rattix.modules.manager.Category cat = client.m1ck3y.rattix.modules.manager.Category.fromName(type);
+                                Category cat = Category.fromName(type);
                                 if (cat == null) {
                                     continue;
                                 }
@@ -137,7 +138,7 @@ public class ClickGuiConfig {
 
             if (root != null && root.has("colors")) {
                 JsonObject colorsObj = root.getAsJsonObject("colors");
-                ClickGUI clickGui = Register.getModule(ClickGUI.class);
+                ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
                 if (clickGui != null) {
                     for (Setting<?> s : clickGui.getSettings()) {
                         if (s instanceof ColorSetting && colorsObj.has(s.getName())) {

@@ -1,12 +1,12 @@
-package client.m1ck3y.rattix.modules;
+package client.m1ck3y.rattix.module.modules;
 
-import client.m1ck3y.rattix.modules.ClickGUI.CheckBoxSetting;
-import client.m1ck3y.rattix.modules.ClickGUI.NumberSetting;
-import client.m1ck3y.rattix.modules.manager.Category;
-import client.m1ck3y.rattix.modules.manager.Register;
+import client.m1ck3y.rattix.module.modules.ClickGUI.CheckBoxSetting;
+import client.m1ck3y.rattix.module.modules.ClickGUI.NumberSetting;
+import client.m1ck3y.rattix.module.Category;
+import client.m1ck3y.rattix.module.Module;
 import client.m1ck3y.rattix.utils.shader.ShaderManager;
 
-public class MenuShader extends Register {
+public class MenuShader extends Module {
     public CheckBoxSetting enableShader = new CheckBoxSetting("Enable Shader", "enable_shader", true);
     public CheckBoxSetting allMenus = new CheckBoxSetting("All Menus Background", "all_menus", true);
     public CheckBoxSetting loadingScreens = new CheckBoxSetting("Loading Screens", "loading_screens", true);

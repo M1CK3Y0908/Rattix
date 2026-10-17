@@ -16,10 +16,11 @@ public class MixinMinecraft {
 
     /**
      * @author Rattix Team (reference FPSMaster-Edge)
-     * @reason Custom Loading Screen - Overwrites Minecraft.drawSplashScreen so all vanilla splash / resource reloads render black background + ricon
+     * @reason Custom Loading Screen - Intercepts Minecraft.drawSplashScreen so all vanilla splash / resource reloads render black background + ricon
      */
-    @Overwrite
-    public void drawSplashScreen(TextureManager textureManagerInstance) {
+    @Inject(method = "drawSplashScreen", at = @At("HEAD"), cancellable = true)
+    public void onDrawSplashScreen(TextureManager textureManagerInstance, CallbackInfo ci) {
         StartupScreen.renderSplashScreen();
+        ci.cancel();
     }
 }

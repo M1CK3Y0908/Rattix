@@ -6,8 +6,9 @@ import client.m1ck3y.rattix.event.EventManager;
 import client.m1ck3y.rattix.event.events.KeyEvent;
 import client.m1ck3y.rattix.event.events.Render2DEvent;
 import client.m1ck3y.rattix.event.events.TickEvent;
-import client.m1ck3y.rattix.modules.ClickGUI;
-import client.m1ck3y.rattix.modules.manager.Register;
+import client.m1ck3y.rattix.module.Module;
+import client.m1ck3y.rattix.module.ModuleManager;
+import client.m1ck3y.rattix.module.modules.ClickGUI;
 import client.m1ck3y.rattix.script.ScriptManager;
 import client.m1ck3y.rattix.utils.FileManager;
 import client.m1ck3y.rattix.utils.FontUtil;
@@ -84,7 +85,7 @@ public class RattixMod {
         ScriptManager.getInstance().init();
 
         StartupScreen.draw("Registering Modules & Categories...", 0.90f);
-        Register.registerAll();
+        ModuleManager.registerAll();
 
         clickGuiKey = new KeyBinding("key.rattix.clickgui", Keyboard.KEY_RSHIFT, "key.categories.rattix");
         ClientRegistry.registerKeyBinding(clickGuiKey);
@@ -127,7 +128,7 @@ public class RattixMod {
                 // Drain accumulated pressTime so other keys do not trigger ClickGUI
             }
 
-            Register clickGui = Register.getModule(client.m1ck3y.rattix.modules.ClickGUI.class);
+            Module clickGui = ModuleManager.getModule(ClickGUI.class);
             int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
             int bindKey = (this.clickGuiKey != null) ? this.clickGuiKey.getKeyCode() : 0;
 
@@ -135,7 +136,7 @@ public class RattixMod {
                 this.rshiftPressed = true;
                 openClickGui();
             } else {
-                Register.onKey(key);
+                ModuleManager.onKey(key);
             }
         }
     }
@@ -149,12 +150,12 @@ public class RattixMod {
             if (!NAME.equals(Display.getTitle())) {
                 Display.setTitle(NAME);
             }
-            Register.onClientTick();
+            ModuleManager.onClientTick();
             FontUtil.ensureGlobalFontRenderer();
 
             Minecraft mc = Minecraft.getMinecraft();
             if (mc.theWorld != null && mc.thePlayer != null) {
-                Register clickGui = Register.getModule(client.m1ck3y.rattix.modules.ClickGUI.class);
+                Module clickGui = ModuleManager.getModule(ClickGUI.class);
                 int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
                 boolean isDown = Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)
                         || (guiKey > 0 && guiKey < Keyboard.KEYBOARD_SIZE && Keyboard.isKeyDown(guiKey));
@@ -182,7 +183,7 @@ public class RattixMod {
             }
             Minecraft mc = Minecraft.getMinecraft();
             if (mc.thePlayer != null && !mc.gameSettings.showDebugInfo) {
-                Register.onRenderOverlay();
+                ModuleManager.onRenderOverlay();
             }
         }
     }
@@ -203,7 +204,7 @@ public class RattixMod {
             }
             Minecraft mc = Minecraft.getMinecraft();
             if (mc != null && mc.fontRendererObj != null) {
-                String text = Register.getLoadedModuleCount() + " modules and " + Register.getLoadedOptionCount() + " settings loaded";
+                String text = ModuleManager.getLoadedModuleCount() + " modules and " + ModuleManager.getLoadedOptionCount() + " settings loaded";
                 int textWidth = mc.fontRendererObj.getStringWidth(text);
                 int x = event.gui.width - textWidth - 2;
                 int y = 2;

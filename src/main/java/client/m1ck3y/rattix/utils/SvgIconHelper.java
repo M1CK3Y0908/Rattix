@@ -1,6 +1,6 @@
 package client.m1ck3y.rattix.utils;
 
-import client.m1ck3y.rattix.modules.manager.Category;
+import client.m1ck3y.rattix.module.Category;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -85,15 +85,24 @@ public class SvgIconHelper {
 
     public static String getCategoryKey(Category category) {
         if (category == null) return null;
-        switch (category) {
-            case MOVEMENT:
-                return "movement";
-            case VISUAL:
-                return "visual";
-            case THEME:
-                return "theme";
-            default:
-                return "other";
+        String icon = category.getIconName();
+        return (icon != null && !icon.isEmpty()) ? icon : "other";
+    }
+
+    public static void registerSvg(String name, String pathData) {
+        registerSvg(name, pathData, 850, -1);
+    }
+
+    public static void registerSvg(String name, String pathData, double translateY, double scaleY) {
+        if (name != null && pathData != null && !pathData.trim().isEmpty()) {
+            String key = name.trim().toLowerCase(java.util.Locale.ROOT);
+            BUILTIN_SVGS.put(key, new SvgData(pathData, translateY, scaleY));
+            Integer oldTex = TEXTURE_CACHE.remove(key);
+            if (oldTex != null && oldTex > 0) {
+                try {
+                    org.lwjgl.opengl.GL11.glDeleteTextures(oldTex);
+                } catch (Throwable ignored) {}
+            }
         }
     }
 
