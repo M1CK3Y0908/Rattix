@@ -117,7 +117,9 @@ public class RattixMod {
             if (key == 0) {
                 key = Keyboard.getEventCharacter() + 256;
             }
-            EventManager.getInstance().call(new KeyEvent(key));
+            if (!EventManager.getInstance().isEmpty()) {
+                EventManager.getInstance().call(new KeyEvent(key));
+            }
 
             while (this.clickGuiKey != null && this.clickGuiKey.isPressed()) {
                 // Drain accumulated pressTime so other keys do not trigger ClickGUI
@@ -139,7 +141,9 @@ public class RattixMod {
     @SubscribeEvent
     public void onClientTick(net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent event) {
         if (event.phase == net.minecraftforge.fml.common.gameevent.TickEvent.Phase.END) {
-            EventManager.getInstance().call(new TickEvent());
+            if (!EventManager.getInstance().isEmpty()) {
+                EventManager.getInstance().call(new TickEvent());
+            }
             if (!NAME.equals(Display.getTitle())) {
                 Display.setTitle(NAME);
             }
@@ -171,7 +175,9 @@ public class RattixMod {
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
         if (event.type == RenderGameOverlayEvent.ElementType.TEXT) {
-            EventManager.getInstance().call(new Render2DEvent(event.partialTicks));
+            if (!EventManager.getInstance().isEmpty()) {
+                EventManager.getInstance().call(new Render2DEvent(event.partialTicks));
+            }
             Minecraft mc = Minecraft.getMinecraft();
             if (mc.thePlayer != null && !mc.gameSettings.showDebugInfo) {
                 Register.onRenderOverlay();

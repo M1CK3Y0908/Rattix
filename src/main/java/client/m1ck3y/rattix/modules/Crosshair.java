@@ -24,7 +24,7 @@ public class Crosshair extends Register {
     public void onRender2D() {
         if (!isEnabled()) return;
 
-        ScaledResolution sr = new ScaledResolution(mc);
+        ScaledResolution sr = RenderUtil.getScaledResolution();
         float cx = sr.getScaledWidth() / 2.0f;
         float cy = sr.getScaledHeight() / 2.0f;
 

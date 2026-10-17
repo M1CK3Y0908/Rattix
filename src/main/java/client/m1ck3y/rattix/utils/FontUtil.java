@@ -57,13 +57,14 @@ public class FontUtil {
     }
 
     public static boolean isCustomFont() {
-        String name = getGlobalFontName();
-        return name != null && !"Minecraft".equalsIgnoreCase(name);
+        return Font.getInstance().cachedIsCustom;
     }
 
     // Sentinel to mark fonts that failed to load (avoid repeated disk checks)
     private static final CustomFontRenderer MISSING_FONT_SENTINEL = new CustomFontRenderer(
             new java.awt.Font("Dialog", java.awt.Font.PLAIN, 1), false, false);
+
+    private static CustomFontRenderer cachedConsolasFont = null;
 
     public static CustomFontRenderer getFontRenderer(String fileName) {
         if (fileName == null || "Minecraft".equalsIgnoreCase(fileName)) return null;
@@ -89,14 +90,19 @@ public class FontUtil {
     }
 
     public static CustomFontRenderer getConsolasFont() {
+        if (cachedConsolasFont != null) return cachedConsolasFont;
         CustomFontRenderer cfr = getFontRenderer("consolas.ttf");
-        if (cfr != null) return cfr;
+        if (cfr != null) {
+            cachedConsolasFont = cfr;
+            return cfr;
+        }
         File file = new File(FileManager.FONTS_DIR, "consolas.ttf");
         if (file.exists()) {
             try (FileInputStream fis = new FileInputStream(file)) {
                 java.awt.Font awtFont = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, fis).deriveFont(18f);
                 cfr = new CustomFontRenderer(awtFont, true, true);
                 fontCache.put("consolas.ttf", cfr);
+                cachedConsolasFont = cfr;
                 return cfr;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -105,6 +111,7 @@ public class FontUtil {
         java.awt.Font awtFont = new java.awt.Font("Consolas", java.awt.Font.PLAIN, 18);
         cfr = new CustomFontRenderer(awtFont, true, true);
         fontCache.put("consolas.ttf", cfr);
+        cachedConsolasFont = cfr;
         return cfr;
     }
 
@@ -117,8 +124,7 @@ public class FontUtil {
     }
 
     public static CustomFontRenderer getGlobalFont() {
-        if (!isCustomFont()) return null;
-        return getFontRenderer(getGlobalFontName());
+        return Font.getInstance().cachedCustomFont;
     }
 
     public static String stripColorCodes(String text) {
@@ -173,9 +179,9 @@ public class FontUtil {
         CustomFontRenderer cfr = getConsolasFont();
         if (cfr != null) {
             float width = cfr.getStringWidth(text);
-            if ("consolas.ttf".equalsIgnoreCase(getGlobalFontName())) {
-                float sizeScale = Font.getInstance().size.getValue().floatValue() / 100.0f;
-                return width * sizeScale;
+            Font font = Font.getInstance();
+            if (font.cachedIsConsolas) {
+                return width * font.cachedEffectiveScale;
             }
             return width;
         }
@@ -185,16 +191,16 @@ public class FontUtil {
     public static void drawMinecraftString2x(String text, float x, float y, int color) {
         if (text == null || text.isEmpty()) return;
         Font font = Font.getInstance();
-        float sizeScale = font.size.getValue().floatValue() / 100.0f;
-        float offX = font.offsetX.getValue().floatValue();
-        float offY = font.offsetY.getValue().floatValue();
-        boolean shadowEnabled = font.shadow.getValue();
-        float shadowOffX = font.shadowOffsetX.getValue().floatValue();
-        float shadowOffY = font.shadowOffsetY.getValue().floatValue();
-        boolean customShadow = font.shadowMode.is("Custom");
-        boolean outlineEnabled = font.outline.getValue();
-        float outlineWidth = font.outlineWidth.getValue().floatValue();
-        String outlineMode = font.outlineColor.getValue();
+        float sizeScale = font.cachedEffectiveScale;
+        float offX = font.cachedOffsetX;
+        float offY = font.cachedOffsetY;
+        boolean shadowEnabled = font.cachedShadow;
+        float shadowOffX = font.cachedShadowOffsetX;
+        float shadowOffY = font.cachedShadowOffsetY;
+        boolean customShadow = "Custom".equalsIgnoreCase(font.cachedShadowMode);
+        boolean outlineEnabled = font.cachedOutline;
+        float outlineWidth = font.cachedOutlineWidth;
+        String outlineMode = font.cachedOutlineColor;
 
         int alpha = (color >> 24) & 0xFF;
         if (alpha == 0) alpha = 255;
@@ -236,7 +242,7 @@ public class FontUtil {
             // Shadow & Main text
             if (shadowEnabled) {
                 if (customShadow) {
-                    int shadowColor = font.shadowColor.getRGB();
+                    int shadowColor = font.cachedShadowColor;
                     fr.drawString(clean, shadowOffX, shadowOffY, shadowColor, false);
                     fr.drawString(text, 0, 0, color, false);
                 } else if (shadowOffX == 1.0f && shadowOffY == 1.0f) {
@@ -257,17 +263,19 @@ public class FontUtil {
 
     public static float getStringWidth2x(String text) {
         if (text == null || text.isEmpty()) return 0;
-        CustomFontRenderer cfr = getGlobalFont();
-        if (cfr != null) {
-            float sizeScale = Font.getInstance().size.getValue().floatValue() / 100.0f;
-            return cfr.getStringWidth(text) * sizeScale;
+        Font font = Font.getInstance();
+        if (font.cachedIsCustom) {
+            CustomFontRenderer cfr = font.cachedCustomFont;
+            if (cfr != null) {
+                return cfr.getStringWidth(text) * font.cachedEffectiveScale;
+            }
         }
         return getMinecraftStringWidth2x(text);
     }
 
     public static float getMinecraftStringWidth2x(String text) {
         if (text == null || text.isEmpty()) return 0;
-        float sizeScale = Font.getInstance().size.getValue().floatValue() / 100.0f;
+        float sizeScale = Font.getInstance().cachedEffectiveScale;
         FontRenderer fr = vanillaFontRenderer != null ? vanillaFontRenderer : (Minecraft.getMinecraft() != null ? Minecraft.getMinecraft().fontRendererObj : null);
         if (fr == null) return text.length() * 6.0f * 2.0f * sizeScale;
         return fr.getStringWidth(text) * 2.0f * sizeScale;

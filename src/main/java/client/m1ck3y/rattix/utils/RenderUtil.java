@@ -543,18 +543,30 @@ public class RenderUtil {
         GL11.glScissor(Math.max(0, sx), Math.max(0, sy), Math.max(0, sw), Math.max(0, sh));
     }
 
+    private static net.minecraft.client.gui.ScaledResolution cachedSr = null;
     private static int cachedScaleFactor = 2;
     private static int lastDisplayWidth = -1;
     private static int lastDisplayHeight = -1;
+    private static int lastGuiScale = -1;
+
+    public static net.minecraft.client.gui.ScaledResolution getScaledResolution() {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
+        if (mc == null) return null;
+        int dw = mc.displayWidth;
+        int dh = mc.displayHeight;
+        int gs = mc.gameSettings != null ? mc.gameSettings.guiScale : -1;
+        if (cachedSr == null || dw != lastDisplayWidth || dh != lastDisplayHeight || gs != lastGuiScale) {
+            cachedSr = new net.minecraft.client.gui.ScaledResolution(mc);
+            cachedScaleFactor = cachedSr.getScaleFactor();
+            lastDisplayWidth = dw;
+            lastDisplayHeight = dh;
+            lastGuiScale = gs;
+        }
+        return cachedSr;
+    }
 
     public static void enableScissor(float x, float y, float width, float height) {
-        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
-        if (mc.displayWidth != lastDisplayWidth || mc.displayHeight != lastDisplayHeight) {
-            net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(mc);
-            cachedScaleFactor = sr.getScaleFactor();
-            lastDisplayWidth = mc.displayWidth;
-            lastDisplayHeight = mc.displayHeight;
-        }
+        getScaledResolution();
         enablePixelScissor(x * cachedScaleFactor, y * cachedScaleFactor, width * cachedScaleFactor, height * cachedScaleFactor);
     }
 

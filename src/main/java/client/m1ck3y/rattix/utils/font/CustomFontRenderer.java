@@ -16,13 +16,12 @@ import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class CustomFontRenderer {
     private final java.awt.Font font;
     private final boolean antiAlias;
     private final boolean fractionalMetrics;
+    private final boolean isConsolasFont;
 
     private static final int[] colorCodes = new int[32];
     static {
@@ -59,18 +58,29 @@ public class CustomFontRenderer {
         }
     }
 
-    private final Map<Integer, PageData> pages = new ConcurrentHashMap<>();
+    // Direct zero-allocation array indexing for 256 unicode char pages (c / 256: 0..255)
+    private final PageData[] pages = new PageData[256];
     private int baseFontHeight = 18;
 
     public CustomFontRenderer(java.awt.Font font, boolean antiAlias, boolean fractionalMetrics) {
         this.font = font;
         this.antiAlias = antiAlias;
         this.fractionalMetrics = fractionalMetrics;
+        boolean consolas = false;
+        if (this.font != null) {
+            String name = this.font.getName();
+            String family = this.font.getFamily();
+            if ("Consolas".equalsIgnoreCase(name) || "Consolas".equalsIgnoreCase(family)) {
+                consolas = true;
+            }
+        }
+        this.isConsolasFont = consolas;
         loadPage(0);
     }
 
     public PageData getPage(int pageIndex) {
-        PageData page = pages.get(pageIndex);
+        if (pageIndex < 0 || pageIndex >= 256) return null;
+        PageData page = pages[pageIndex];
         if (page != null) {
             return page;
         }
@@ -78,8 +88,9 @@ public class CustomFontRenderer {
     }
 
     private synchronized PageData loadPage(int pageIndex) {
-        if (pages.containsKey(pageIndex)) {
-            return pages.get(pageIndex);
+        if (pageIndex < 0 || pageIndex >= 256) return null;
+        if (pages[pageIndex] != null) {
+            return pages[pageIndex];
         }
 
         BufferedImage img = new BufferedImage(512, 512, BufferedImage.TYPE_INT_ARGB);
@@ -154,7 +165,7 @@ public class CustomFontRenderer {
         if (pageIndex == 0) {
             baseFontHeight = pageMaxHeight;
         }
-        pages.put(pageIndex, page);
+        pages[pageIndex] = page;
         return page;
     }
 
@@ -169,37 +180,29 @@ public class CustomFontRenderer {
     }
 
     public boolean isConsolas() {
-        if (this == FontUtil.getConsolasFont()) return true;
-        if (this.font != null) {
-            String name = this.font.getName();
-            String family = this.font.getFamily();
-            if ("Consolas".equalsIgnoreCase(name) || "Consolas".equalsIgnoreCase(family)) {
-                return true;
-            }
-        }
-        return false;
+        return this.isConsolasFont || this == FontUtil.getConsolasFont();
     }
 
     public float drawString(String text, float x, float y, int color, boolean dropShadow, float scale) {
         if (text == null || text.isEmpty()) return 0;
 
-        Font font = FontUtil.getFont();
-        boolean isConsolasFont = isConsolas();
-        boolean isConsolasGlobal = isConsolasFont && "consolas.ttf".equalsIgnoreCase(FontUtil.getGlobalFontName());
+        Font font = Font.getInstance();
+        boolean isConsolasFont = this.isConsolasFont || this == FontUtil.getConsolasFont();
+        boolean isConsolasGlobal = isConsolasFont && font.cachedIsConsolas;
         boolean isConsolasInternal = isConsolasFont && !isConsolasGlobal;
 
-        float sizeScale = (!isConsolasInternal && font != null) ? font.size.getValue().floatValue() / 100.0f : 1.0f;
+        float sizeScale = (!isConsolasInternal) ? font.cachedEffectiveScale : 1.0f;
         float effectiveScale = scale * sizeScale;
-        float offX = (!isConsolasInternal && font != null) ? font.offsetX.getValue().floatValue() : 0.0f;
+        float offX = (!isConsolasInternal) ? font.cachedOffsetX : 0.0f;
         float consolasNativeOffsetY = isConsolasFont ? 0.5f : 0.0f;
-        float offY = ((!isConsolasInternal && font != null) ? font.offsetY.getValue().floatValue() : 0.0f) + consolasNativeOffsetY;
-        boolean shadowEnabled = dropShadow && (isConsolasInternal || font == null || font.shadow.getValue());
-        float shadowOffX = (!isConsolasInternal && font != null) ? font.shadowOffsetX.getValue().floatValue() : 1.0f;
-        float shadowOffY = (!isConsolasInternal && font != null) ? font.shadowOffsetY.getValue().floatValue() : 1.0f;
-        String shadowMode = (!isConsolasInternal && font != null) ? font.shadowMode.getValue() : "Vanilla";
-        boolean outlineEnabled = !isConsolasInternal && font != null && font.outline.getValue();
-        float outlineWidth = font != null ? font.outlineWidth.getValue().floatValue() : 1.0f;
-        String outlineMode = font != null ? font.outlineColor.getValue() : "Black";
+        float offY = ((!isConsolasInternal) ? font.cachedOffsetY : 0.0f) + consolasNativeOffsetY;
+        boolean shadowEnabled = dropShadow && (isConsolasInternal || font.cachedShadow);
+        float shadowOffX = (!isConsolasInternal) ? font.cachedShadowOffsetX : 1.0f;
+        float shadowOffY = (!isConsolasInternal) ? font.cachedShadowOffsetY : 1.0f;
+        String shadowMode = (!isConsolasInternal) ? font.cachedShadowMode : "Vanilla";
+        boolean outlineEnabled = !isConsolasInternal && font.cachedOutline;
+        float outlineWidth = font.cachedOutlineWidth;
+        String outlineMode = font.cachedOutlineColor;
 
         int alpha = (color >> 24) & 0xFF;
         if (alpha == 0) alpha = 255;
@@ -207,8 +210,8 @@ public class CustomFontRenderer {
         // 1. Draw Shadow
         if (shadowEnabled) {
             int shadowColor;
-            if (font != null && font.shadowMode.is("Custom")) {
-                shadowColor = font.shadowColor.getRGB();
+            if ("Custom".equalsIgnoreCase(shadowMode)) {
+                shadowColor = font.cachedShadowColor;
             } else {
                 // Vanilla: 25% brightness with full text alpha
                 shadowColor = (alpha << 24) | ((color & 0xFCFCFC) >> 2);
@@ -275,17 +278,18 @@ public class CustomFontRenderer {
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldRenderer = tessellator.getWorldRenderer();
 
-        for (int i = 0; i < text.length(); i++) {
+        int len = text.length();
+        for (int i = 0; i < len; i++) {
             char c = text.charAt(i);
-            if (c == '\u00A7' && i + 1 < text.length()) {
+            if (c == '\u00A7' && i + 1 < len) {
                 if (!"Solid".equals(shadowMode)) {
                     int colorIndex = "0123456789abcdefklmnor".indexOf(Character.toLowerCase(text.charAt(i + 1)));
                     if (colorIndex >= 0 && colorIndex < 16) {
                         int cCode = colorCodes[colorIndex];
                         if (isShadow) {
                             if ("Custom".equalsIgnoreCase(shadowMode)) {
-                                Font fMod = FontUtil.getFont();
-                                cCode = fMod != null ? fMod.shadowColor.getRGB() : 0x80000000;
+                                Font fMod = Font.getInstance();
+                                cCode = fMod.cachedShadowColor;
                             } else {
                                 cCode = ((cCode & 0xFCFCFC) >> 2);
                             }
@@ -308,7 +312,10 @@ public class CustomFontRenderer {
             }
 
             int pageIndex = c / 256;
-            PageData page = getPage(pageIndex);
+            PageData page = (pageIndex >= 0 && pageIndex < 256) ? pages[pageIndex] : null;
+            if (page == null) {
+                page = getPage(pageIndex);
+            }
             if (page == null) continue;
 
             if (page.textureId != lastTextureId) {
@@ -347,7 +354,6 @@ public class CustomFontRenderer {
         }
 
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        // Removed: GlStateManager.bindTexture(0) — avoids forced texture re-binding between consecutive text draws
         GlStateManager.popMatrix();
         return currX * scale;
     }
@@ -355,17 +361,20 @@ public class CustomFontRenderer {
     public float getStringWidth(String text) {
         if (text == null || text.isEmpty()) return 0;
         float width = 0;
-        for (int i = 0; i < text.length(); i++) {
+        int len = text.length();
+        for (int i = 0; i < len; i++) {
             char c = text.charAt(i);
-            if (c == '\u00A7' && i + 1 < text.length()) {
+            if (c == '\u00A7' && i + 1 < len) {
                 i++;
                 continue;
             }
             int pageIndex = c / 256;
-            PageData page = getPage(pageIndex);
+            PageData page = (pageIndex >= 0 && pageIndex < 256) ? pages[pageIndex] : null;
+            if (page == null) {
+                page = getPage(pageIndex);
+            }
             if (page != null) {
-                int charIdx = c % 256;
-                CharData data = page.charData[charIdx];
+                CharData data = page.charData[c % 256];
                 if (data != null) {
                     width += data.width - 2;
                 }
@@ -376,10 +385,12 @@ public class CustomFontRenderer {
 
     public float getCharWidth(char c) {
         int pageIndex = c / 256;
-        PageData page = getPage(pageIndex);
+        PageData page = (pageIndex >= 0 && pageIndex < 256) ? pages[pageIndex] : null;
+        if (page == null) {
+            page = getPage(pageIndex);
+        }
         if (page != null) {
-            int charIdx = c % 256;
-            CharData data = page.charData[charIdx];
+            CharData data = page.charData[c % 256];
             if (data != null) {
                 return data.width - 2;
             }
@@ -392,11 +403,14 @@ public class CustomFontRenderer {
     }
 
     public void destroy() {
-        for (PageData page : pages.values()) {
-            if (page.textureId != -1) {
-                GlStateManager.deleteTexture(page.textureId);
+        for (int i = 0; i < pages.length; i++) {
+            PageData page = pages[i];
+            if (page != null) {
+                if (page.textureId != -1) {
+                    GlStateManager.deleteTexture(page.textureId);
+                }
+                pages[i] = null;
             }
         }
-        pages.clear();
     }
 }

@@ -25,7 +25,7 @@ public class ArmorStatus extends Register {
     public void onRender2D() {
         if (!isEnabled() || mc.thePlayer == null) return;
 
-        ScaledResolution sr = new ScaledResolution(mc);
+        ScaledResolution sr = RenderUtil.getScaledResolution();
         int x = 6;
         int y = sr.getScaledHeight() / 2 + 10;
 

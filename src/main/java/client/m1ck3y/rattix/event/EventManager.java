@@ -49,6 +49,10 @@ public class EventManager {
         }
     }
 
+    public boolean isEmpty() {
+        return registry.isEmpty();
+    }
+
     public void call(Event event) {
         List<ListenerMethod> list = registry.get(event.getClass());
         if (list != null) {

@@ -37,7 +37,7 @@ public class ToggleSprint extends Register {
     @Override
     public void onRender2D() {
         if (!isEnabled() || !showText.getValue() || mc.thePlayer == null) return;
-        ScaledResolution sr = new ScaledResolution(mc);
+        ScaledResolution sr = RenderUtil.getScaledResolution();
         String text = "[Sprinting (Toggled)]";
         int x = 4;
         int y = sr.getScaledHeight() / 2 - 20;

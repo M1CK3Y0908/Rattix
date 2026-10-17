@@ -620,7 +620,9 @@ public abstract class Register {
     // Lifecycle Dispatchers
     // ==========================================
     public static void onClientTick() {
-        for (Register m : registeredModules) {
+        int size = registeredModules.size();
+        for (int i = 0; i < size; i++) {
+            Register m = registeredModules.get(i);
             if (m.isEnabled()) {
                 m.onTick();
             }
@@ -628,7 +630,9 @@ public abstract class Register {
     }
 
     public static void onRenderOverlay() {
-        for (Register m : registeredModules) {
+        int size = registeredModules.size();
+        for (int i = 0; i < size; i++) {
+            Register m = registeredModules.get(i);
             if (m.isEnabled()) {
                 m.onRender2D();
             }
@@ -637,7 +641,9 @@ public abstract class Register {
 
     public static void onKey(int key) {
         if (key == 0) return;
-        for (Register m : registeredModules) {
+        int size = registeredModules.size();
+        for (int i = 0; i < size; i++) {
+            Register m = registeredModules.get(i);
             if (m.getKeyCode() == key) {
                 m.toggle();
             }

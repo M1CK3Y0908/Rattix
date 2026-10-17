@@ -220,6 +220,18 @@ public class ClickGUI extends Register {
             return registryName;
         }
 
+        private Runnable changeListener = null;
+
+        public void setChangeListener(Runnable listener) {
+            this.changeListener = listener;
+        }
+
+        public void notifyChange() {
+            if (changeListener != null) {
+                changeListener.run();
+            }
+        }
+
         public T getDefaultValue() {
             return defaultValue;
         }
@@ -230,10 +242,12 @@ public class ClickGUI extends Register {
 
         public void setValue(T value) {
             this.value = value;
+            notifyChange();
         }
 
         public void reset() {
             this.value = this.defaultValue;
+            notifyChange();
         }
 
         public String getGroup() {
@@ -319,7 +333,7 @@ public class ClickGUI extends Register {
 
         public void setValue(double value) {
             double precision = 1.0 / this.increment;
-            this.value = Math.max(min, Math.min(max, Math.round(value * precision) / precision));
+            super.setValue(Math.max(min, Math.min(max, Math.round(value * precision) / precision)));
             this.cachedDisplayValue = null; // invalidate cache
         }
 
@@ -373,16 +387,25 @@ public class ClickGUI extends Register {
 
         public ColorSetting(String name, int defaultColor) {
             super(name, defaultColor);
+            bindSubSettings();
             setColor(defaultColor);
         }
 
         public ColorSetting(String name, int defaultColor, String group) {
             super(name, defaultColor, group);
+            bindSubSettings();
             setColor(defaultColor);
         }
 
+        private void bindSubSettings() {
+            rainbow.setChangeListener(this::notifyChange);
+            fade.setChangeListener(this::notifyChange);
+            astolfo.setChangeListener(this::notifyChange);
+            clientColor.setChangeListener(this::notifyChange);
+        }
+
         public void setColor(int color) {
-            this.value = color;
+            super.setValue(color);
             this.alpha = (color >> 24) & 0xFF;
             int r = (color >> 16) & 0xFF;
             int g = (color >> 8) & 0xFF;
@@ -502,7 +525,7 @@ public class ClickGUI extends Register {
 
         private void updateValue() {
             this.cachedStaticRgb = Color.HSBtoRGB(hue, saturation, brightness) & 0xFFFFFF;
-            this.value = (alpha << 24) | cachedStaticRgb;
+            super.setValue((alpha << 24) | cachedStaticRgb);
         }
 
         private boolean expanded = false;
@@ -630,7 +653,7 @@ public class ClickGUI extends Register {
         }
 
         public void toggle() {
-            this.value = !Boolean.TRUE.equals(this.value);
+            setValue(!Boolean.TRUE.equals(this.value));
             this.cachedDisplayText = null;
         }
 
@@ -643,7 +666,7 @@ public class ClickGUI extends Register {
         }
 
         public void setState(boolean state) {
-            this.value = state;
+            setValue(state);
             this.cachedDisplayText = null;
         }
 
@@ -3696,22 +3719,8 @@ public class ClickGUI extends Register {
             }
         }
 
-        private ScaledResolution cachedSr = null;
-        private int lastDisplayWidth = -1;
-        private int lastDisplayHeight = -1;
-        private int lastGuiScale = -1;
-
         private ScaledResolution getScaledResolution() {
-            int dw = mc.displayWidth;
-            int dh = mc.displayHeight;
-            int gs = mc.gameSettings.guiScale;
-            if (cachedSr == null || dw != lastDisplayWidth || dh != lastDisplayHeight || gs != lastGuiScale) {
-                cachedSr = new ScaledResolution(mc);
-                lastDisplayWidth = dw;
-                lastDisplayHeight = dh;
-                lastGuiScale = gs;
-            }
-            return cachedSr;
+            return RenderUtil.getScaledResolution();
         }
 
         @Override

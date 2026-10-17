@@ -43,8 +43,12 @@ public class CPSDisplay extends Register {
         }
         lastRightState = rightDown;
 
-        leftClicks.removeIf(clickTime -> time - clickTime > 1000);
-        rightClicks.removeIf(clickTime -> time - clickTime > 1000);
+        while (!leftClicks.isEmpty() && time - leftClicks.get(0) > 1000) {
+            leftClicks.remove(0);
+        }
+        while (!rightClicks.isEmpty() && time - rightClicks.get(0) > 1000) {
+            rightClicks.remove(0);
+        }
     }
 
     @Override

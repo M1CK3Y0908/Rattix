@@ -25,8 +25,7 @@ public class GlobalFontRenderer extends FontRenderer {
     }
 
     private float getEffectiveScale() {
-        Font fs = FontUtil.getFont();
-        return fs != null ? fs.size.getValue().floatValue() / 100.0f : 1.0f;
+        return Font.getInstance().cachedEffectiveScale;
     }
 
     public void renderPlainDirect(String text, float x, float y, int color) {
@@ -63,27 +62,27 @@ public class GlobalFontRenderer extends FontRenderer {
     @Override
     public int drawString(String text, float x, float y, int color, boolean dropShadow) {
         if (text == null) return 0;
-        Font fontSettings = FontUtil.getFont();
-        float sizeScale = getEffectiveScale();
-        this.FONT_HEIGHT = (int) Math.max(1, Math.round(9 * sizeScale));
+        Font fontSettings = Font.getInstance();
+        float sizeScale = fontSettings.cachedEffectiveScale;
+        this.FONT_HEIGHT = fontSettings.cachedFontHeight;
 
-        if (FontUtil.isCustomFont()) {
-            CustomFontRenderer cfr = FontUtil.getGlobalFont();
+        if (fontSettings.cachedIsCustom) {
+            CustomFontRenderer cfr = fontSettings.cachedCustomFont;
             if (cfr != null) {
                 float renderedW = cfr.drawString(text, x, y, color, dropShadow, 0.5f);
                 return (int) Math.ceil(x + renderedW);
             }
         }
 
-        float offX = fontSettings != null ? fontSettings.offsetX.getValue().floatValue() : 0.0f;
-        float offY = fontSettings != null ? fontSettings.offsetY.getValue().floatValue() : 0.0f;
-        boolean shadowEnabled = dropShadow && (fontSettings == null || fontSettings.shadow.getValue());
-        float shadowOffX = fontSettings != null ? fontSettings.shadowOffsetX.getValue().floatValue() : 1.0f;
-        float shadowOffY = fontSettings != null ? fontSettings.shadowOffsetY.getValue().floatValue() : 1.0f;
-        boolean customShadow = fontSettings != null && fontSettings.shadowMode.is("Custom");
-        boolean outlineEnabled = fontSettings != null && fontSettings.outline.getValue();
-        float outlineWidth = fontSettings != null ? fontSettings.outlineWidth.getValue().floatValue() : 1.0f;
-        String outlineMode = fontSettings != null ? fontSettings.outlineColor.getValue() : "Black";
+        float offX = fontSettings.cachedOffsetX;
+        float offY = fontSettings.cachedOffsetY;
+        boolean shadowEnabled = dropShadow && fontSettings.cachedShadow;
+        float shadowOffX = fontSettings.cachedShadowOffsetX;
+        float shadowOffY = fontSettings.cachedShadowOffsetY;
+        boolean customShadow = "Custom".equalsIgnoreCase(fontSettings.cachedShadowMode);
+        boolean outlineEnabled = fontSettings.cachedOutline;
+        float outlineWidth = fontSettings.cachedOutlineWidth;
+        String outlineMode = fontSettings.cachedOutlineColor;
 
         int alpha = (color >> 24) & 0xFF;
         if (alpha == 0) alpha = 255;
@@ -116,21 +115,23 @@ public class GlobalFontRenderer extends FontRenderer {
                 outColor = (alpha << 24) | 0x000000;
             }
             float ow = outlineWidth * 0.5f;
-            renderSolidDirect(text, -ow, 0, outColor);
-            renderSolidDirect(text, ow, 0, outColor);
-            renderSolidDirect(text, 0, -ow, outColor);
-            renderSolidDirect(text, 0, ow, outColor);
-            renderSolidDirect(text, -ow, -ow, outColor);
-            renderSolidDirect(text, ow, -ow, outColor);
-            renderSolidDirect(text, -ow, ow, outColor);
-            renderSolidDirect(text, ow, ow, outColor);
+            String clean = FontUtil.stripColorCodes(text);
+            renderPlainDirect(clean, -ow, 0, outColor);
+            renderPlainDirect(clean, ow, 0, outColor);
+            renderPlainDirect(clean, 0, -ow, outColor);
+            renderPlainDirect(clean, 0, ow, outColor);
+            renderPlainDirect(clean, -ow, -ow, outColor);
+            renderPlainDirect(clean, ow, -ow, outColor);
+            renderPlainDirect(clean, -ow, ow, outColor);
+            renderPlainDirect(clean, ow, ow, outColor);
         }
 
         // Shadow & Main text for vanilla font
         if (shadowEnabled) {
             if (customShadow) {
-                int shadowColor = fontSettings != null ? fontSettings.shadowColor.getRGB() : 0x80000000;
-                renderSolidDirect(text, shadowOffX, shadowOffY, shadowColor);
+                int shadowColor = fontSettings.cachedShadowColor;
+                String clean = FontUtil.stripColorCodes(text);
+                renderPlainDirect(clean, shadowOffX, shadowOffY, shadowColor);
                 renderPlainDirect(text, 0, 0, color);
             } else if (shadowOffX == 1.0f && shadowOffY == 1.0f) {
                 if (fr == this) {
@@ -140,7 +141,8 @@ public class GlobalFontRenderer extends FontRenderer {
                 }
             } else {
                 int shadowColor = (alpha << 24) | ((color & 0xFCFCFC) >> 2);
-                renderSolidDirect(text, shadowOffX, shadowOffY, shadowColor);
+                String clean = FontUtil.stripColorCodes(text);
+                renderPlainDirect(clean, shadowOffX, shadowOffY, shadowColor);
                 renderPlainDirect(text, 0, 0, color);
             }
         } else {
@@ -155,10 +157,11 @@ public class GlobalFontRenderer extends FontRenderer {
     @Override
     public int getStringWidth(String text) {
         if (text == null || text.isEmpty()) return 0;
-        float sizeScale = getEffectiveScale();
+        Font font = Font.getInstance();
+        float sizeScale = font.cachedEffectiveScale;
 
-        if (FontUtil.isCustomFont()) {
-            CustomFontRenderer cfr = FontUtil.getGlobalFont();
+        if (font.cachedIsCustom) {
+            CustomFontRenderer cfr = font.cachedCustomFont;
             if (cfr != null) {
                 return (int) Math.ceil(cfr.getStringWidth(text) * 0.5f * sizeScale);
             }
@@ -171,10 +174,11 @@ public class GlobalFontRenderer extends FontRenderer {
 
     @Override
     public int getCharWidth(char character) {
-        float sizeScale = getEffectiveScale();
+        Font font = Font.getInstance();
+        float sizeScale = font.cachedEffectiveScale;
 
-        if (FontUtil.isCustomFont()) {
-            CustomFontRenderer cfr = FontUtil.getGlobalFont();
+        if (font.cachedIsCustom) {
+            CustomFontRenderer cfr = font.cachedCustomFont;
             if (cfr != null) {
                 return (int) Math.ceil(cfr.getCharWidth(character) * 0.5f * sizeScale);
             }
@@ -193,12 +197,13 @@ public class GlobalFontRenderer extends FontRenderer {
     @Override
     public String trimStringToWidth(String text, int width, boolean reverse) {
         if (text == null) return "";
-        float sizeScale = getEffectiveScale();
+        Font font = Font.getInstance();
+        float sizeScale = font.cachedEffectiveScale;
 
-        if (FontUtil.isCustomFont()) {
-            CustomFontRenderer cfr = FontUtil.getGlobalFont();
+        if (font.cachedIsCustom) {
+            CustomFontRenderer cfr = font.cachedCustomFont;
             if (cfr != null) {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder(text.length());
                 float curW = 0;
                 int start = reverse ? text.length() - 1 : 0;
                 int step = reverse ? -1 : 1;
