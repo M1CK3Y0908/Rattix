@@ -78,6 +78,7 @@ public class RattixMod {
 
         StartupScreen.draw("Loading Configurations...", 0.50f);
         ConfigManager.getInstance().init();
+        client.m1ck3y.rattix.utils.shader.ShaderManager.getInstance();
 
         StartupScreen.draw("Loading Scripts...", 0.70f);
         ScriptManager.getInstance().init();
@@ -202,8 +203,40 @@ public class RattixMod {
             }
             Minecraft mc = Minecraft.getMinecraft();
             if (mc != null && mc.fontRendererObj != null) {
-                String text = "Loaded " + Register.getLoadedModuleCount() + " modules and " + Register.getLoadedOptionCount() + " options";
-                event.gui.drawString(mc.fontRendererObj, text, 2, 2, -1);
+                String text = Register.getLoadedModuleCount() + " modules and " + Register.getLoadedOptionCount() + " settings loaded";
+                int textWidth = mc.fontRendererObj.getStringWidth(text);
+                int x = event.gui.width - textWidth - 2;
+                int y = 2;
+                event.gui.drawString(mc.fontRendererObj, text, x, y, -1);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onMouseInput(GuiScreenEvent.MouseInputEvent.Pre event) {
+        if (event.gui instanceof GuiMainMenu) {
+            int dWheel = org.lwjgl.input.Mouse.getEventDWheel();
+            if (dWheel != 0) {
+                Minecraft mc = Minecraft.getMinecraft();
+                int mouseX = org.lwjgl.input.Mouse.getEventX() * event.gui.width / Math.max(1, mc.displayWidth);
+                int mouseY = event.gui.height - org.lwjgl.input.Mouse.getEventY() * event.gui.height / Math.max(1, mc.displayHeight) - 1;
+                if (client.m1ck3y.rattix.utils.shader.ShaderManager.getInstance().handleMouseWheel(dWheel, mouseX, mouseY)) {
+                    event.setCanceled(true);
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onKeyboardInput(GuiScreenEvent.KeyboardInputEvent.Pre event) {
+        if (event.gui instanceof GuiMainMenu) {
+            if (Keyboard.getEventKeyState()) {
+                char c = Keyboard.getEventCharacter();
+                int k = Keyboard.getEventKey();
+                if (k == 0) k = c + 256;
+                if (client.m1ck3y.rattix.utils.shader.ShaderManager.getInstance().keyTyped(c, k)) {
+                    event.setCanceled(true);
+                }
             }
         }
     }

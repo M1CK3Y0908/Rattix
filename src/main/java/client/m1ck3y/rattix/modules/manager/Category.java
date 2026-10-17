@@ -15,7 +15,8 @@ public enum Category {
             "FPSDisplay",
             "CPSDisplay",
             "Keystrokes",
-            "PingDisplay"
+            "PingDisplay",
+            "MenuShader"
     )),
     THEME("Theme", Collections.emptyList());
 

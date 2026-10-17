@@ -2,17 +2,35 @@
   "mappings": {
     "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
       "drawSplashScreen(Lnet/minecraft/client/renderer/texture/TextureManager;)V": "Lnet/minecraft/client/Minecraft;func_180510_a(Lnet/minecraft/client/renderer/texture/TextureManager;)V"
+    },
+    "client/m1ck3y/rattix/injection/mixin/MixinGuiMainMenu": {
+      "mouseClicked": "Lnet/minecraft/client/gui/GuiMainMenu;func_73864_a(III)V",
+      "renderSkybox": "Lnet/minecraft/client/gui/GuiMainMenu;func_73971_c(IIF)V",
+      "drawScreen": "Lnet/minecraft/client/gui/GuiMainMenu;func_73863_a(IIF)V",
+      "Lnet/minecraft/client/gui/GuiMainMenu;drawGradientRect(IIIIII)V": "Lnet/minecraft/client/gui/GuiMainMenu;func_73733_a(IIIIII)V"
     }
   },
   "data": {
     "searge": {
       "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
         "drawSplashScreen(Lnet/minecraft/client/renderer/texture/TextureManager;)V": "Lnet/minecraft/client/Minecraft;func_180510_a(Lnet/minecraft/client/renderer/texture/TextureManager;)V"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinGuiMainMenu": {
+        "mouseClicked": "Lnet/minecraft/client/gui/GuiMainMenu;func_73864_a(III)V",
+        "renderSkybox": "Lnet/minecraft/client/gui/GuiMainMenu;func_73971_c(IIF)V",
+        "drawScreen": "Lnet/minecraft/client/gui/GuiMainMenu;func_73863_a(IIF)V",
+        "Lnet/minecraft/client/gui/GuiMainMenu;drawGradientRect(IIIIII)V": "Lnet/minecraft/client/gui/GuiMainMenu;func_73733_a(IIIIII)V"
       }
     },
     "notch": {
       "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
         "drawSplashScreen(Lnet/minecraft/client/renderer/texture/TextureManager;)V": "Lave;a(Lbmj;)V"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinGuiMainMenu": {
+        "mouseClicked": "Laya;a(III)V",
+        "renderSkybox": "Laya;c(IIF)V",
+        "drawScreen": "Laya;a(IIF)V",
+        "Lnet/minecraft/client/gui/GuiMainMenu;drawGradientRect(IIIIII)V": "Laya;a(IIIIII)V"
       }
     }
   }
