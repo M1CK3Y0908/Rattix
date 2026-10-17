@@ -8,6 +8,8 @@ import client.m1ck3y.rattix.utils.shader.ShaderManager;
 
 public class MenuShader extends Register {
     public CheckBoxSetting enableShader = new CheckBoxSetting("Enable Shader", "enable_shader", true);
+    public CheckBoxSetting allMenus = new CheckBoxSetting("All Menus Background", "all_menus", true);
+    public CheckBoxSetting loadingScreens = new CheckBoxSetting("Loading Screens", "loading_screens", true);
     public NumberSetting resolution = new NumberSetting("Resolution", 100.0, 0.0, 200.0, 5.0, "Performance");
     public NumberSetting fpsLimit = new NumberSetting("FPS Limit", 0.0, 0.0, 600.0, 10.0, "Performance");
     public NumberSetting speed = new NumberSetting("Speed", 1.0, 0.0, 10.0, 0.1, "Animation");
@@ -19,9 +21,9 @@ public class MenuShader extends Register {
     }
 
     public MenuShader() {
-        super("MenuShader", "Configure main menu dynamic GLSL shader background.", Category.VISUAL);
+        super("MenuShader", "Configure menu and loading screen dynamic GLSL shader background.", Category.VISUAL);
         instance = this;
-        addSettings(enableShader, resolution, fpsLimit, speed);
+        addSettings(enableShader, allMenus, loadingScreens, resolution, fpsLimit, speed);
         setEnabled(true);
     }
 
