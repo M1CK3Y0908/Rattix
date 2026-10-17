@@ -108,4 +108,11 @@ public class Font {
             this.selectedFont = selectedFont.trim();
         }
     }
+
+    public void resetSettings() {
+        for (Setting<?> s : settings) {
+            s.reset();
+        }
+        this.selectedFont = "Minecraft";
+    }
 }

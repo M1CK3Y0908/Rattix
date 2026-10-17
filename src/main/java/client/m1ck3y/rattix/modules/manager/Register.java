@@ -25,6 +25,7 @@ public abstract class Register {
     private final String name;
     private String description;
     private Category category;
+    private final int defaultKeyCode;
     private int keyCode;
     private boolean enabled;
 
@@ -69,6 +70,7 @@ public abstract class Register {
         this.name = (name != null && !name.trim().isEmpty()) ? name : getClass().getSimpleName();
         this.description = (description != null) ? description : "";
         this.category = category;
+        this.defaultKeyCode = keyCode;
         this.keyCode = keyCode;
         this.enabled = false;
         this.showInArrayList.setValue(true);
@@ -134,6 +136,17 @@ public abstract class Register {
             ));
         }
         return cachedMetaOptions;
+    }
+
+    public void resetSettings() {
+        this.keyCode = this.defaultKeyCode;
+        for (Setting<?> s : settings) {
+            s.reset();
+        }
+        loadFromConfig.reset();
+        showInArrayList.reset();
+        toggleSound.reset();
+        keyHoldMode.reset();
     }
 
     public void toggle() {

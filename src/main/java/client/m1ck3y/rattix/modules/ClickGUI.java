@@ -323,6 +323,12 @@ public class ClickGUI extends Register {
             this.cachedDisplayValue = null; // invalidate cache
         }
 
+        @Override
+        public void reset() {
+            super.reset();
+            this.cachedDisplayValue = null;
+        }
+
         /**
          * Returns a pre-cached formatted display value string.
          * Avoids per-frame String.format() allocation.
@@ -513,6 +519,24 @@ public class ClickGUI extends Register {
         public void toggleExpanded() {
             this.expanded = !this.expanded;
         }
+
+        @Override
+        public void setValue(Integer value) {
+            super.setValue(value);
+            if (value != null) {
+                setColor(value);
+            }
+        }
+
+        @Override
+        public void reset() {
+            super.reset();
+            setColor(getDefaultValue());
+            rainbow.reset();
+            fade.reset();
+            astolfo.reset();
+            clientColor.reset();
+        }
     }
 
     // ==========================================
@@ -567,6 +591,17 @@ public class ClickGUI extends Register {
             }
         }
 
+        @Override
+        public void reset() {
+            super.reset();
+            if (modes != null) {
+                int idx = modes.indexOf(getDefaultValue());
+                if (idx != -1) {
+                    this.index = idx;
+                }
+            }
+        }
+
         public boolean is(String mode) {
             return this.value.equalsIgnoreCase(mode);
         }
@@ -609,6 +644,18 @@ public class ClickGUI extends Register {
 
         public void setState(boolean state) {
             this.value = state;
+            this.cachedDisplayText = null;
+        }
+
+        @Override
+        public void setValue(Boolean value) {
+            super.setValue(value);
+            this.cachedDisplayText = null;
+        }
+
+        @Override
+        public void reset() {
+            super.reset();
             this.cachedDisplayText = null;
         }
 
@@ -973,7 +1020,7 @@ public class ClickGUI extends Register {
             RenderUtil.drawLine(x + 9.5f, y + 1.0f, x + 9.5f, y + 7.5f, 1.2f, color);
         }
 
-        private void drawWin11CloseIcon(float x, float y, int color) {
+        public static void drawWin11CloseIcon(float x, float y, int color) {
             RenderUtil.drawLine(x + 1.0f, y + 1.0f, x + 9.0f, y + 9.0f, 1.2f, color);
             RenderUtil.drawLine(x + 9.0f, y + 1.0f, x + 1.0f, y + 9.0f, 1.2f, color);
         }
@@ -1635,6 +1682,17 @@ public class ClickGUI extends Register {
                 float modTitleY = y + 20;
                 drawString2x("\u00A7b" + selectedModule.getName().toUpperCase(), rightX, modTitleY, accentColor);
 
+                float maxRightX = x + w - 20;
+                String resetText = "Reset";
+                float resetTextW = getStringWidth2x(resetText);
+                float resetBtnX = maxRightX - resetTextW;
+                float resetBtnY = modTitleY;
+                boolean isResetHover = RenderUtil.isHovered(mouseX, mouseY, resetBtnX - 6, resetBtnY - 3, resetTextW + 12, 18);
+                if (isResetHover) {
+                    RenderUtil.drawRoundedRect(resetBtnX - 6, resetBtnY - 3, resetTextW + 12, 18, 4.0f, 0x1AFFFFFF);
+                }
+                drawString2x(resetText, resetBtnX, resetBtnY, isResetHover ? 0xFFFFFFFF : 0xFF888888);
+
                 float metaY = modTitleY + 30;
                 RenderUtil.drawRect(rightX, metaY - 6, x + w - 20, metaY - 5, 0xFF252525);
 
@@ -1642,7 +1700,6 @@ public class ClickGUI extends Register {
                 float curMetaX = rightX;
                 float curMetaY = metaY;
                 float featureStartX = rightX;
-                float maxRightX = x + w - 20;
 
                 boolean isBinding = (tab.getBindingModule() == selectedModule);
                 String keyLabel = "Key: ";
@@ -2013,6 +2070,17 @@ public class ClickGUI extends Register {
             float modTitleY = y + 20;
             drawString2x("\u00A7bFONT", rightX, modTitleY, 0xFF76B9ED);
 
+            float maxRightX = x + w - 20;
+            String resetText = "Reset";
+            float resetTextW = getStringWidth2x(resetText);
+            float resetBtnX = maxRightX - resetTextW;
+            float resetBtnY = modTitleY;
+            boolean isResetHover = RenderUtil.isHovered(mouseX, mouseY, resetBtnX - 6, resetBtnY - 3, resetTextW + 12, 18);
+            if (isResetHover) {
+                RenderUtil.drawRoundedRect(resetBtnX - 6, resetBtnY - 3, resetTextW + 12, 18, 4.0f, 0x1AFFFFFF);
+            }
+            drawString2x(resetText, resetBtnX, resetBtnY, isResetHover ? 0xFFFFFFFF : 0xFF888888);
+
             float metaY = modTitleY + 30;
             RenderUtil.drawRect(rightX, metaY - 6, x + w - 20, metaY - 5, 0xFF252525);
 
@@ -2020,7 +2088,6 @@ public class ClickGUI extends Register {
             float lineGap = 10.0f;
             float lineStep = rowH + lineGap;
             float indentStep = getStringWidth2x("    ");
-            float maxRightX = x + w - 20;
             float sW = 200.0f;
             float sH = 22.0f;
 
@@ -2746,13 +2813,21 @@ public class ClickGUI extends Register {
                 Register selectedModule = activeTab.getSelectedModule();
                 if (selectedModule != null && RenderUtil.isHovered(mouseX, mouseY, rightX, bodyY, curW - sidebarW - 24, bodyH)) {
                     float modTitleY = bodyY + 20;
+                    float maxRightX = curX + curW - 20;
+                    String resetText = "Reset";
+                    float resetTextW = getStringWidth2x(resetText);
+                    float resetBtnX = maxRightX - resetTextW;
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, resetBtnX - 8, modTitleY - 4, resetTextW + 16, 22)) {
+                        Screen.openResetConfirm(selectedModule);
+                        return WindowClickResult.CONSUMED;
+                    }
+
                     float metaY = modTitleY + 30;
 
                     float metaGap = getStringWidth2x("    ");
                     float curMetaX = rightX;
                     float curMetaY = metaY;
                     float featureStartX = rightX;
-                    float maxRightX = curX + curW - 20;
 
                     boolean isBinding = (activeTab.getBindingModule() == selectedModule);
                     String keyLabel = "Key: ";
@@ -3187,6 +3262,14 @@ public class ClickGUI extends Register {
             float metaY = modTitleY + 30;
             float maxRightX = curX + curW - 20;
 
+            String resetText = "Reset";
+            float resetTextW = getStringWidth2x(resetText);
+            float resetBtnX = maxRightX - resetTextW;
+            if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, resetBtnX - 8, modTitleY - 4, resetTextW + 16, 22)) {
+                Screen.openResetConfirm("Font", Category.THEME, () -> client.m1ck3y.rattix.modules.Font.getInstance().resetSettings());
+                return WindowClickResult.CONSUMED;
+            }
+
             float baseSettingY = metaY + 16;
             if (mouseY < baseSettingY - 4) {
                 return WindowClickResult.CONSUMED;
@@ -3480,6 +3563,50 @@ public class ClickGUI extends Register {
         private int hoverInsertIndex = -1;
         private long openTimestamp = 0;
 
+        // Reset Confirmation Dialog State
+        private static Register pendingResetModule = null;
+        private static Runnable pendingResetAction = null;
+        private static String pendingResetName = null;
+        private static Category pendingResetCategory = null;
+        private static float resetDialogX = -1;
+        private static float resetDialogY = -1;
+        private static boolean isDraggingResetDialog = false;
+        private static float resetDialogDragOffsetX = 0;
+        private static float resetDialogDragOffsetY = 0;
+
+        public static void openResetConfirm(Register module) {
+            if (module == null) return;
+            pendingResetModule = module;
+            pendingResetAction = module::resetSettings;
+            pendingResetName = module.getName();
+            pendingResetCategory = module.getCategory();
+            resetDialogX = -1;
+            resetDialogY = -1;
+            isDraggingResetDialog = false;
+        }
+
+        public static void openResetConfirm(String name, Category category, Runnable resetAction) {
+            pendingResetModule = null;
+            pendingResetAction = resetAction;
+            pendingResetName = name;
+            pendingResetCategory = category;
+            resetDialogX = -1;
+            resetDialogY = -1;
+            isDraggingResetDialog = false;
+        }
+
+        public static void closeResetDialog() {
+            pendingResetModule = null;
+            pendingResetAction = null;
+            pendingResetName = null;
+            pendingResetCategory = null;
+            isDraggingResetDialog = false;
+        }
+
+        public static boolean isResetDialogOpen() {
+            return pendingResetName != null;
+        }
+
         public Screen() {
         }
 
@@ -3515,6 +3642,7 @@ public class ClickGUI extends Register {
             if (inGuiClosed) return;
             inGuiClosed = true;
             try {
+                closeResetDialog();
                 ClickGUI.markClosed();
                 Keyboard.enableRepeatEvents(false);
                 dragCandidateTab = null;
@@ -3598,15 +3726,20 @@ public class ClickGUI extends Register {
             GlStateManager.scale(1.0f / scale, 1.0f / scale, 1.0f / scale);
 
             // 1. 处理 Tab 拖拽、脱出 (Tear-off) 与合并逻辑
-            updateTabDragState(mouseX, mouseY);
+            if (pendingResetName == null) {
+                updateTabDragState(mouseX, mouseY);
+            }
 
             // 2. 绘制所有窗口 (按 Z-Order 从底到顶)
+            int effectiveMouseX = (pendingResetName == null) ? mouseX : -1;
+            int effectiveMouseY = (pendingResetName == null) ? mouseY : -1;
+
             int minIndexCounter = 0;
             for (int i = 0; i < windows.size(); i++) {
                 Window win = windows.get(i);
                 boolean isTop = (i == windows.size() - 1);
                 int mIdx = win.isMinimized() ? minIndexCounter++ : -1;
-                win.drawWindow(mouseX, mouseY, isTop, dragCandidateTab, hoverTargetWindow, hoverInsertIndex, mIdx);
+                win.drawWindow(effectiveMouseX, effectiveMouseY, isTop, dragCandidateTab, hoverTargetWindow, hoverInsertIndex, mIdx);
             }
 
             // 3. 绘制正在脱出/拖拽的浮动 Tab 预览
@@ -3637,6 +3770,14 @@ public class ClickGUI extends Register {
 
             // 4. 更新系统双箭头光标
             updateCursorState(mouseX, mouseY);
+
+            // 5. 绘制重置确认弹窗 (Windows 11 风格模态对话框)
+            if (pendingResetName != null) {
+                GlStateManager.pushMatrix();
+                GlStateManager.translate(0, 0, 500.0f);
+                drawResetConfirmDialog(mouseX, mouseY);
+                GlStateManager.popMatrix();
+            }
 
             GlStateManager.popMatrix();
             super.drawScreen(scaledMouseX, scaledMouseY, partialTicks);
@@ -3739,6 +3880,11 @@ public class ClickGUI extends Register {
         }
 
         private void updateCursorState(int mouseX, int mouseY) {
+            if (pendingResetName != null) {
+                CursorUtil.resetCursor();
+                return;
+            }
+
             if (windows.isEmpty()) {
                 CursorUtil.resetCursor();
                 return;
@@ -3807,6 +3953,9 @@ public class ClickGUI extends Register {
         @Override
         public void handleMouseInput() throws IOException {
             super.handleMouseInput();
+            if (pendingResetName != null) {
+                return;
+            }
             int dWheel = Mouse.getEventDWheel();
             if (dWheel != 0 && !windows.isEmpty()) {
                 int mouseX = getRawMouseX();
@@ -3829,6 +3978,11 @@ public class ClickGUI extends Register {
         protected void mouseClicked(int scaledMouseX, int scaledMouseY, int mouseButton) throws IOException {
             int mouseX = getRawMouseX();
             int mouseY = getRawMouseY();
+
+            if (pendingResetName != null) {
+                handleResetDialogClick(mouseX, mouseY, mouseButton);
+                return;
+            }
 
             // 优先检查是否有悬浮菜单打开
             for (int i = windows.size() - 1; i >= 0; i--) {
@@ -3894,6 +4048,11 @@ public class ClickGUI extends Register {
             int rawX = getRawMouseX();
             int rawY = getRawMouseY();
 
+            if (pendingResetName != null) {
+                isDraggingResetDialog = false;
+                return;
+            }
+
             handleTabDrop(rawX, rawY);
 
             for (Window win : windows) {
@@ -3904,6 +4063,18 @@ public class ClickGUI extends Register {
 
         @Override
         protected void keyTyped(char typedChar, int keyCode) throws IOException {
+            if (pendingResetName != null) {
+                if (keyCode == Keyboard.KEY_ESCAPE) {
+                    closeResetDialog();
+                    return;
+                }
+                if (keyCode == Keyboard.KEY_RETURN || keyCode == Keyboard.KEY_NUMPADENTER) {
+                    executeResetConfirm();
+                    return;
+                }
+                return;
+            }
+
             // 1. 若顶层窗口正在绑定按键，优先分发（允许用 ESC / DELETE 清除绑定）
             if (!windows.isEmpty()) {
                 Window topWindow = windows.get(windows.size() - 1);
@@ -3941,6 +4112,198 @@ public class ClickGUI extends Register {
             }
 
             super.keyTyped(typedChar, keyCode);
+        }
+
+        private void drawResetConfirmDialog(int mouseX, int mouseY) {
+            if (pendingResetName == null) return;
+
+            String promptText = "是否确认重置该功能（" + pendingResetName + "）？";
+            String subPromptText = "所有参数将恢复为初始默认值，当前修改将丢失。";
+
+            float promptW = FontUtil.getStringWidth2x(promptText);
+            float subPromptW = FontUtil.getStringWidth2x(subPromptText);
+            float contentW = Math.max(promptW, subPromptW);
+            float dialogW = Math.max(400.0f, contentW + 60.0f);
+            float dialogH = 150.0f;
+
+            if (resetDialogX < 0 || resetDialogY < 0) {
+                resetDialogX = (mc.displayWidth - dialogW) / 2.0f;
+                resetDialogY = (mc.displayHeight - dialogH) / 2.0f;
+            }
+
+            if (isDraggingResetDialog) {
+                if (!Mouse.isButtonDown(0)) {
+                    isDraggingResetDialog = false;
+                } else {
+                    resetDialogX = mouseX - resetDialogDragOffsetX;
+                    resetDialogY = mouseY - resetDialogDragOffsetY;
+                }
+            }
+
+            resetDialogX = Math.max(0, Math.min(mc.displayWidth - dialogW, resetDialogX));
+            resetDialogY = Math.max(0, Math.min(mc.displayHeight - dialogH, resetDialogY));
+
+            // 1. 半透明暗色遮罩 (Acrylic scrim backdrop)
+            RenderUtil.drawRect(0, 0, mc.displayWidth, mc.displayHeight, 0x7A000000);
+
+            // 2. 窗口柔和阴影
+            RenderUtil.drawDropShadow(resetDialogX, resetDialogY, dialogW, dialogH, 8.0f, 24.0f, 0x88000000);
+
+            // 3. 窗口背景与标题栏 (Win11 亚克力风格)
+            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+            int bodyBg = clickGui != null ? clickGui.backgroundColor.getRGB() : 0xF21C1C1C;
+            if (((bodyBg >> 24) & 0xFF) < 0xE0) {
+                bodyBg = (0xF2 << 24) | (bodyBg & 0x00FFFFFF);
+            }
+            int titleBg = clickGui != null ? clickGui.titlebarColor.getRGB() : 0xF8242424;
+            if (((titleBg >> 24) & 0xFF) < 0xE0) {
+                titleBg = (0xF8 << 24) | (titleBg & 0x00FFFFFF);
+            }
+            int borderCol = clickGui != null ? clickGui.outlineColor.getRGB() : 0xFF353535;
+            int accentCol = clickGui != null ? clickGui.accentColor.getRGB() : 0xFF76B9ED;
+
+            RenderUtil.drawRoundedRect(resetDialogX, resetDialogY, dialogW, dialogH, 8.0f, bodyBg);
+            RenderUtil.drawRoundedRect(resetDialogX, resetDialogY, dialogW, 36.0f, 8.0f, 8.0f, 0.0f, 0.0f, titleBg);
+            RenderUtil.drawRect(resetDialogX, resetDialogY + 35.0f, resetDialogX + dialogW, resetDialogY + 36.0f, 0xFF2F2F2F);
+            RenderUtil.drawRoundedOutline(resetDialogX, resetDialogY, dialogW, dialogH, 8.0f, 1.2f, borderCol);
+
+            // 4. 标题栏：模块图标 + 标题
+            Category cat = pendingResetCategory;
+            float iconX = resetDialogX + 14.0f;
+            float iconY = resetDialogY + 9.0f;
+            if (cat != null) {
+                RenderUtil.drawCategoryIcon(cat, iconX, iconY, 18.0f, accentCol);
+            } else {
+                RenderUtil.drawTerminalIcon(iconX, iconY, 18.0f, accentCol);
+            }
+            FontUtil.drawString2x("重置设置", iconX + 26.0f, resetDialogY + 10.0f, 0xFFFFFFFF);
+
+            // 5. 标题栏右侧关闭按钮
+            float closeBtnW = 42.0f;
+            float closeBtnH = 35.0f;
+            float closeBtnX = resetDialogX + dialogW - closeBtnW;
+            float closeBtnY = resetDialogY;
+            boolean isCloseHover = RenderUtil.isHovered(mouseX, mouseY, closeBtnX, closeBtnY, closeBtnW, closeBtnH);
+            if (isCloseHover) {
+                RenderUtil.drawRoundedRect(closeBtnX, closeBtnY, closeBtnW, closeBtnH, 0.0f, 8.0f, 0.0f, 0.0f, 0xFFE81123);
+            }
+            float iconSize = 10.0f;
+            float iconDrawX = closeBtnX + (closeBtnW - iconSize) / 2.0f;
+            float iconDrawY = closeBtnY + (closeBtnH - iconSize) / 2.0f;
+            Window.drawWin11CloseIcon(iconDrawX, iconDrawY, isCloseHover ? 0xFFFFFFFF : 0xFFB0B0B0);
+
+            // 6. 提示文本
+            float textX = resetDialogX + 22.0f;
+            float textY = resetDialogY + 54.0f;
+            FontUtil.drawString2x(promptText, textX, textY, 0xFFFFFFFF);
+            FontUtil.drawString2x(subPromptText, textX, textY + 22.0f, 0xFFA0A0A0);
+
+            // 7. 确认 / 取消按钮
+            float btnW = 86.0f;
+            float btnH = 28.0f;
+            float btnGap = 12.0f;
+            float btnY = resetDialogY + dialogH - btnH - 16.0f;
+            float cancelBtnX = resetDialogX + dialogW - 20.0f - btnW;
+            float confirmBtnX = cancelBtnX - btnGap - btnW;
+
+            boolean isConfirmHover = RenderUtil.isHovered(mouseX, mouseY, confirmBtnX, btnY, btnW, btnH);
+            boolean isCancelHover = RenderUtil.isHovered(mouseX, mouseY, cancelBtnX, btnY, btnW, btnH);
+
+            // 确认按钮 (Win11 主题主按钮)
+            int confirmBg = isConfirmHover ? 0xFF005FB8 : 0xFF0067C0;
+            int confirmOutline = 0xFF0078D4;
+            RenderUtil.drawRoundedRect(confirmBtnX, btnY, btnW, btnH, 4.0f, confirmBg);
+            RenderUtil.drawRoundedOutline(confirmBtnX, btnY, btnW, btnH, 4.0f, 1.0f, confirmOutline);
+            float confirmTextW = FontUtil.getStringWidth2x("确认");
+            FontUtil.drawString2x("确认", confirmBtnX + (btnW - confirmTextW) / 2.0f, btnY + (btnH - 14.0f) / 2.0f, 0xFFFFFFFF);
+
+            // 取消按钮 (Win11 次级按钮)
+            int cancelBg = isCancelHover ? 0xFF353535 : 0xFF2A2A2A;
+            int cancelOutline = isCancelHover ? 0xFF4D4D4D : 0xFF3C3C3C;
+            RenderUtil.drawRoundedRect(cancelBtnX, btnY, btnW, btnH, 4.0f, cancelBg);
+            RenderUtil.drawRoundedOutline(cancelBtnX, btnY, btnW, btnH, 4.0f, 1.0f, cancelOutline);
+            float cancelTextW = FontUtil.getStringWidth2x("取消");
+            FontUtil.drawString2x("取消", cancelBtnX + (btnW - cancelTextW) / 2.0f, btnY + (btnH - 14.0f) / 2.0f, 0xFFD0D0D0);
+        }
+
+        private void executeResetConfirm() {
+            if (pendingResetAction != null) {
+                pendingResetAction.run();
+            }
+            try {
+                mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new net.minecraft.util.ResourceLocation("gui.button.press"), 1.0F));
+            } catch (Throwable ignored) {}
+            ClickGuiConfig.save(windows);
+            closeResetDialog();
+        }
+
+        private boolean handleResetDialogClick(int mouseX, int mouseY, int mouseButton) {
+            if (pendingResetName == null) return false;
+
+            String promptText = "是否确认重置该功能（" + pendingResetName + "）？";
+            String subPromptText = "所有参数将恢复为初始默认值，当前修改将丢失。";
+
+            float promptW = FontUtil.getStringWidth2x(promptText);
+            float subPromptW = FontUtil.getStringWidth2x(subPromptText);
+            float contentW = Math.max(promptW, subPromptW);
+            float dialogW = Math.max(400.0f, contentW + 60.0f);
+            float dialogH = 150.0f;
+
+            if (resetDialogX < 0 || resetDialogY < 0) {
+                resetDialogX = (mc.displayWidth - dialogW) / 2.0f;
+                resetDialogY = (mc.displayHeight - dialogH) / 2.0f;
+            }
+
+            float btnW = 86.0f;
+            float btnH = 28.0f;
+            float btnGap = 12.0f;
+            float btnY = resetDialogY + dialogH - btnH - 16.0f;
+            float cancelBtnX = resetDialogX + dialogW - 20.0f - btnW;
+            float confirmBtnX = cancelBtnX - btnGap - btnW;
+
+            float closeBtnW = 42.0f;
+            float closeBtnH = 35.0f;
+            float closeBtnX = resetDialogX + dialogW - closeBtnW;
+            float closeBtnY = resetDialogY;
+
+            if (mouseButton == 0) {
+                // 点击确认
+                if (RenderUtil.isHovered(mouseX, mouseY, confirmBtnX, btnY, btnW, btnH)) {
+                    executeResetConfirm();
+                    return true;
+                }
+
+                // 点击取消
+                if (RenderUtil.isHovered(mouseX, mouseY, cancelBtnX, btnY, btnW, btnH)) {
+                    closeResetDialog();
+                    return true;
+                }
+
+                // 点击右上角关闭
+                if (RenderUtil.isHovered(mouseX, mouseY, closeBtnX, closeBtnY, closeBtnW, closeBtnH)) {
+                    closeResetDialog();
+                    return true;
+                }
+
+                // 点击标题栏开始拖拽
+                if (RenderUtil.isHovered(mouseX, mouseY, resetDialogX, resetDialogY, dialogW - closeBtnW, 36.0f)) {
+                    isDraggingResetDialog = true;
+                    resetDialogDragOffsetX = mouseX - resetDialogX;
+                    resetDialogDragOffsetY = mouseY - resetDialogY;
+                    return true;
+                }
+
+                // 点击弹窗内部区域（阻拦穿透）
+                if (RenderUtil.isHovered(mouseX, mouseY, resetDialogX, resetDialogY, dialogW, dialogH)) {
+                    return true;
+                }
+
+                // 点击弹窗外部阴影/遮罩区域 -> 关闭弹窗
+                closeResetDialog();
+                return true;
+            }
+
+            return true;
         }
 
         @Override
