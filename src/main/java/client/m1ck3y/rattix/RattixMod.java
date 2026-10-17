@@ -12,6 +12,7 @@ import client.m1ck3y.rattix.script.ScriptManager;
 import client.m1ck3y.rattix.utils.FileManager;
 import client.m1ck3y.rattix.utils.FontUtil;
 import client.m1ck3y.rattix.utils.IconUtils;
+import client.m1ck3y.rattix.utils.SoundUtil;
 import client.m1ck3y.rattix.utils.StartupScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiMainMenu;
@@ -188,11 +189,17 @@ public class RattixMod {
     @SubscribeEvent
     public void onGuiOpen(net.minecraftforge.client.event.GuiOpenEvent event) {
         StartupScreen.onStartupComplete();
+        if (event.gui instanceof GuiMainMenu) {
+            SoundUtil.playStartupSound();
+        }
     }
 
     @SubscribeEvent
     public void onDrawScreenPost(GuiScreenEvent.DrawScreenEvent.Post event) {
         if (event.gui instanceof GuiMainMenu) {
+            if (!SoundUtil.hasPlayedStartupSound()) {
+                SoundUtil.playStartupSound();
+            }
             Minecraft mc = Minecraft.getMinecraft();
             if (mc != null && mc.fontRendererObj != null) {
                 String text = "Loaded " + Register.getLoadedModuleCount() + " modules and " + Register.getLoadedOptionCount() + " options";

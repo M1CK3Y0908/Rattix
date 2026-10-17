@@ -29,6 +29,33 @@ public class FileManager {
         if (!AUDIO_DIR.exists()) AUDIO_DIR.mkdirs();
 
         extractDefaultFont();
+        extractDefaultAudio();
+    }
+
+    private static void extractDefaultAudio() {
+        File audioFile = new File(AUDIO_DIR, "welcome_to_rattix.wav");
+        if (!audioFile.exists()) {
+            File localSource = new File("welcome_to_rattix.wav");
+            if (localSource.exists()) {
+                try {
+                    org.apache.commons.io.FileUtils.copyFile(localSource, audioFile);
+                    return;
+                } catch (Exception ignored) {}
+            }
+            try (InputStream in = FileManager.class.getResourceAsStream("/assets/rattix/sounds/welcome_to_rattix.wav")) {
+                if (in != null) {
+                    try (OutputStream out = new FileOutputStream(audioFile)) {
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+                        while ((bytesRead = in.read(buffer)) != -1) {
+                            out.write(buffer, 0, bytesRead);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void extractDefaultFont() {
