@@ -2,8 +2,12 @@ package client.m1ck3y.rattix.config;
 
 import com.google.gson.*;
 import client.m1ck3y.rattix.utils.FileManager;
+import client.m1ck3y.rattix.modules.ClickGUI;
+import client.m1ck3y.rattix.modules.ClickGUI.ColorSetting;
+import client.m1ck3y.rattix.modules.ClickGUI.Setting;
 import client.m1ck3y.rattix.modules.ClickGUI.Window;
 import client.m1ck3y.rattix.modules.ClickGUI.TabInfo;
+import client.m1ck3y.rattix.modules.manager.Register;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -43,6 +47,24 @@ public class ClickGuiConfig {
                 winArray.add(winObj);
             }
             root.add("windows", winArray);
+
+            JsonObject colorsObj = new JsonObject();
+            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+            if (clickGui != null) {
+                for (Setting<?> s : clickGui.getSettings()) {
+                    if (s instanceof ColorSetting) {
+                        ColorSetting cs = (ColorSetting) s;
+                        JsonObject cObj = new JsonObject();
+                        cObj.addProperty("color", cs.getRGB());
+                        cObj.addProperty("rainbow", cs.isRainbow());
+                        cObj.addProperty("fade", cs.isFade());
+                        cObj.addProperty("astolfo", cs.isAstolfo());
+                        cObj.addProperty("clientColor", cs.isClientColor());
+                        colorsObj.add(cs.getName(), cObj);
+                    }
+                }
+            }
+            root.add("colors", colorsObj);
 
             try (Writer writer = new OutputStreamWriter(new FileOutputStream(CONFIG_FILE), "UTF-8")) {
                 GSON.toJson(root, writer);
@@ -110,6 +132,24 @@ public class ClickGuiConfig {
 
                     Window window = new Window(id, posX, posY, w, h, isMax, isMin, tabs, activeTab);
                     windows.add(window);
+                }
+            }
+
+            if (root != null && root.has("colors")) {
+                JsonObject colorsObj = root.getAsJsonObject("colors");
+                ClickGUI clickGui = Register.getModule(ClickGUI.class);
+                if (clickGui != null) {
+                    for (Setting<?> s : clickGui.getSettings()) {
+                        if (s instanceof ColorSetting && colorsObj.has(s.getName())) {
+                            ColorSetting cs = (ColorSetting) s;
+                            JsonObject cObj = colorsObj.getAsJsonObject(s.getName());
+                            if (cObj.has("color")) cs.setColor(cObj.get("color").getAsInt());
+                            if (cObj.has("rainbow")) cs.setRainbow(cObj.get("rainbow").getAsBoolean());
+                            if (cObj.has("fade")) cs.setFade(cObj.get("fade").getAsBoolean());
+                            if (cObj.has("astolfo")) cs.setAstolfo(cObj.get("astolfo").getAsBoolean());
+                            if (cObj.has("clientColor")) cs.setClientColor(cObj.get("clientColor").getAsBoolean());
+                        }
+                    }
                 }
             }
         } catch (Exception e) {

@@ -28,9 +28,87 @@ public class ClickGUI extends Register {
     private static Screen screenInstance = null;
     private static long lastCloseTime = 0;
 
+    public final BooleanSetting color = new BooleanSetting("Color", true, "Visuals");
+
+    // All UI element colors
+    public final ColorSetting backgroundColor = new ColorSetting("Background Color", 0xFF0C0C0C, "Visuals").withParent(color);
+    public final ColorSetting dropShadowColor = new ColorSetting("Drop Shadow Color", 0x65000000, "Visuals").withParent(color);
+    public final ColorSetting outlineColor = new ColorSetting("Window Outline Color", 0xFF454545, "Visuals").withParent(color);
+    public final ColorSetting outlineUnfocusedColor = new ColorSetting("Outline Unfocused Color", 0xFF282828, "Visuals").withParent(color);
+    public final ColorSetting titlebarColor = new ColorSetting("Titlebar Color", 0xFF202020, "Visuals").withParent(color);
+    public final ColorSetting titlebarSeparatorColor = new ColorSetting("Titlebar Separator Color", 0xFF303030, "Visuals").withParent(color);
+    public final ColorSetting activeTabColor = new ColorSetting("Active Tab Color", 0xFF0C0C0C, "Visuals").withParent(color);
+    public final ColorSetting inactiveTabColor = new ColorSetting("Inactive Tab Color", 0xFF181818, "Visuals").withParent(color);
+    public final ColorSetting tabHoverColor = new ColorSetting("Tab Hover Color", 0xFF282828, "Visuals").withParent(color);
+    public final ColorSetting activeTabBarColor = new ColorSetting("Active Tab Bar Color", 0xFF76B9ED, "Visuals").withParent(color);
+    public final ColorSetting tabSeparatorColor = new ColorSetting("Tab Separator Color", 0xFF2C2C2C, "Visuals").withParent(color);
+    public final ColorSetting tabTextColor = new ColorSetting("Tab Text Color", 0xFFD7D7D7, "Visuals").withParent(color);
+    public final ColorSetting tabTextActiveColor = new ColorSetting("Tab Text Active Color", 0xFFFFFFFF, "Visuals").withParent(color);
+    public final ColorSetting tabIconColor = new ColorSetting("Tab Icon Color", 0xFFB0B0B0, "Visuals").withParent(color);
+    public final ColorSetting tabIconActiveColor = new ColorSetting("Tab Icon Active Color", 0xFF76B9ED, "Visuals").withParent(color);
+    public final ColorSetting tabCloseColor = new ColorSetting("Tab Close Button Color", 0xFF888888, "Visuals").withParent(color);
+    public final ColorSetting tabCloseHoverColor = new ColorSetting("Tab Close Hover Color", 0xFFFF4444, "Visuals").withParent(color);
+    public final ColorSetting newTabButtonHoverColor = new ColorSetting("New Tab Button Hover Color", 0xFF2A2A2A, "Visuals").withParent(color);
+    public final ColorSetting sidebarColor = new ColorSetting("Sidebar Color", 0xFF101010, "Visuals").withParent(color);
+    public final ColorSetting sidebarDividerColor = new ColorSetting("Sidebar Divider Color", 0xFF2A2A2A, "Visuals").withParent(color);
+    public final ColorSetting moduleTextColor = new ColorSetting("Module Text Color", 0xFFD7D7D7, "Visuals").withParent(color);
+    public final ColorSetting moduleEnabledColor = new ColorSetting("Module Enabled Color", 0xFF76B9ED, "Visuals").withParent(color);
+    public final ColorSetting windowControlsColor = new ColorSetting("Window Controls Color", 0xFF202020, "Visuals").withParent(color);
+    public final ColorSetting controlHoverColor = new ColorSetting("Control Button Hover Color", 0xFF333333, "Visuals").withParent(color);
+    public final ColorSetting controlIconColor = new ColorSetting("Control Icon Color", 0xFFDDDDDD, "Visuals").withParent(color);
+    public final ColorSetting closeButtonHoverColor = new ColorSetting("Close Button Hover Color", 0xFFC42B1C, "Visuals").withParent(color);
+    public final ColorSetting statusBarColor = new ColorSetting("Status Bar Color", 0xFF141414, "Visuals").withParent(color);
+    public final ColorSetting statusBarDividerColor = new ColorSetting("Status Bar Divider Color", 0xFF252525, "Visuals").withParent(color);
+    public final ColorSetting statusBarTextColor = new ColorSetting("Status Bar Text Color", 0xFF777777, "Visuals").withParent(color);
+    public final ColorSetting menuBackgroundColor = new ColorSetting("Menu Background Color", 0xF5202020, "Visuals").withParent(color);
+    public final ColorSetting menuHoverColor = new ColorSetting("Menu Hover Color", 0xFF303030, "Visuals").withParent(color);
+    public final ColorSetting menuTextColor = new ColorSetting("Menu Text Color", 0xFFCCCCCC, "Visuals").withParent(color);
+    public final ColorSetting terminalTextColor = new ColorSetting("Terminal Text Color", 0xFFF2F2F2, "Visuals").withParent(color);
+    public final ColorSetting terminalScrollbarColor = new ColorSetting("Terminal Scrollbar Color", 0xFF424242, "Visuals").withParent(color);
+    public final ColorSetting accentColor = new ColorSetting("Accent Color", 0xFF76B9ED, "Visuals").withParent(color);
+
     public ClickGUI() {
         super("Opens the Graphical User Interface.", Category.VISUAL, Keyboard.KEY_RSHIFT);
         this.showInArrayList.setValue(false);
+        backgroundColor.setExpanded(true);
+        addSettings(
+                color,
+                backgroundColor,
+                dropShadowColor,
+                outlineColor,
+                outlineUnfocusedColor,
+                titlebarColor,
+                titlebarSeparatorColor,
+                activeTabColor,
+                inactiveTabColor,
+                tabHoverColor,
+                activeTabBarColor,
+                tabSeparatorColor,
+                tabTextColor,
+                tabTextActiveColor,
+                tabIconColor,
+                tabIconActiveColor,
+                tabCloseColor,
+                tabCloseHoverColor,
+                newTabButtonHoverColor,
+                sidebarColor,
+                sidebarDividerColor,
+                moduleTextColor,
+                moduleEnabledColor,
+                windowControlsColor,
+                controlHoverColor,
+                controlIconColor,
+                closeButtonHoverColor,
+                statusBarColor,
+                statusBarDividerColor,
+                statusBarTextColor,
+                menuBackgroundColor,
+                menuHoverColor,
+                menuTextColor,
+                terminalTextColor,
+                terminalScrollbarColor,
+                accentColor
+        );
     }
 
     public static Screen getScreenInstance() {
@@ -419,6 +497,21 @@ public class ClickGUI extends Register {
         private void updateValue() {
             this.cachedStaticRgb = Color.HSBtoRGB(hue, saturation, brightness) & 0xFFFFFF;
             this.value = (alpha << 24) | cachedStaticRgb;
+        }
+
+        private boolean expanded = false;
+
+        public boolean isExpanded() {
+            return expanded;
+        }
+
+        public ColorSetting setExpanded(boolean expanded) {
+            this.expanded = expanded;
+            return this;
+        }
+
+        public void toggleExpanded() {
+            this.expanded = !this.expanded;
         }
     }
 
@@ -1018,35 +1111,41 @@ public class ClickGUI extends Register {
             float curH = MINIMIZED_HEIGHT;
             float winRadius = 6.0f;
 
-            // 1. 柔和阴影
-            RenderUtil.drawDropShadow(curX, curY, curW, curH, winRadius, 10.0f, isTopFocus ? 0x65000000 : 0x40000000);
+            ClickGUI clickGui = Register.getModule(ClickGUI.class);
 
-            // 2. 导航栏底栏背景 (#202020)
-            RenderUtil.drawRoundedRect(curX, curY, curW, curH, winRadius, 0xF2202020);
+            // 1. 柔和阴影
+            int shadowColor = clickGui != null ? clickGui.dropShadowColor.getRGB() : (isTopFocus ? 0x65000000 : 0x40000000);
+            RenderUtil.drawDropShadow(curX, curY, curW, curH, winRadius, 10.0f, shadowColor);
+
+            // 2. 导航栏底栏背景
+            int minBg = clickGui != null ? clickGui.windowControlsColor.getRGB() : 0xF2202020;
+            RenderUtil.drawRoundedRect(curX, curY, curW, curH, winRadius, minBg);
 
             // 3. 边框
-            int outlineColor = isTopFocus ? 0xFF4C4C4C : 0xFF303030;
+            int outlineColor = isTopFocus ? (clickGui != null ? clickGui.outlineColor.getRGB() : 0xFF4C4C4C) : (clickGui != null ? clickGui.outlineUnfocusedColor.getRGB() : 0xFF303030);
             RenderUtil.drawRoundedOutline(curX, curY, curW, curH, winRadius, 1.0f, outlineColor);
 
             // 4. 左侧图标与窗口/激活标签名称
+            int accent = clickGui != null ? clickGui.accentColor.getRGB() : 0xFF76B9ED;
             TabInfo activeTab = getActiveTab();
             float textOffset = curX + 12;
             if (activeTab != null && activeTab.isModulesTab()) {
-                RenderUtil.drawModulesIcon(textOffset, curY + 8.0f, 20.0f, 0xFF76B9ED);
+                RenderUtil.drawModulesIcon(textOffset, curY + 8.0f, 20.0f, accent);
                 textOffset += 27;
             } else if (activeTab != null && activeTab.getCategory() == null) {
-                RenderUtil.drawTerminalIcon(textOffset, curY + 8.0f, 20.0f, 0xFF76B9ED);
+                RenderUtil.drawTerminalIcon(textOffset, curY + 8.0f, 20.0f, accent);
                 textOffset += 27;
             } else if (activeTab != null) {
-                RenderUtil.drawCategoryIcon(activeTab.getCategory(), textOffset, curY + 8.0f, 20.0f, 0xFF76B9ED);
+                RenderUtil.drawCategoryIcon(activeTab.getCategory(), textOffset, curY + 8.0f, 20.0f, accent);
                 textOffset += 27;
             } else {
-                RenderUtil.drawTerminalIcon(textOffset, curY + 8.0f, 20.0f, 0xFF76B9ED);
+                RenderUtil.drawTerminalIcon(textOffset, curY + 8.0f, 20.0f, accent);
                 textOffset += 27;
             }
 
             String title = (activeTab != null) ? activeTab.getTitle() : "Window";
-            drawString2x(title, textOffset, curY + 11, 0xFFFFFFFF);
+            int titleColor = clickGui != null ? clickGui.tabTextActiveColor.getRGB() : 0xFFFFFFFF;
+            drawString2x(title, textOffset, curY + 11, titleColor);
 
             // 5. 右侧控制按钮: 还原、最大化、关闭 (以默认窗口 46px 为基准，无边距全填充)
             float btnW = 46.0f;
@@ -1054,28 +1153,32 @@ public class ClickGUI extends Register {
             float maxX = closeX - btnW;
             float restoreX = maxX - btnW;
 
+            int ctrlHoverBg = clickGui != null ? clickGui.controlHoverColor.getRGB() : 0xFF333333;
+            int ctrlIcon = clickGui != null ? clickGui.controlIconColor.getRGB() : 0xFFDDDDDD;
+
             // 还原按钮 (Restore)
             boolean restoreHover = RenderUtil.isHovered(mouseX, mouseY, restoreX, curY, btnW, curH);
             if (restoreHover) {
-                RenderUtil.drawRect(restoreX, curY, restoreX + btnW, curY + curH, 0xFF333333);
+                RenderUtil.drawRect(restoreX, curY, restoreX + btnW, curY + curH, ctrlHoverBg);
             }
-            int restoreColor = restoreHover ? 0xFFFFFFFF : 0xFFDDDDDD;
+            int restoreColor = restoreHover ? 0xFFFFFFFF : ctrlIcon;
             drawWin11RestoreIcon(restoreX + 18.0f, curY + 15.0f, restoreColor);
 
             // 最大化按钮 (Maximize)
             boolean maxHover = RenderUtil.isHovered(mouseX, mouseY, maxX, curY, btnW, curH);
             if (maxHover) {
-                RenderUtil.drawRect(maxX, curY, maxX + btnW, curY + curH, 0xFF333333);
+                RenderUtil.drawRect(maxX, curY, maxX + btnW, curY + curH, ctrlHoverBg);
             }
-            int maxColor = maxHover ? 0xFFFFFFFF : 0xFFDDDDDD;
+            int maxColor = maxHover ? 0xFFFFFFFF : ctrlIcon;
             drawWin11MaximizeIcon(maxX + 18.0f, curY + 15.0f, maxColor);
 
             // 关闭按钮 (Close) - 右上和右下角圆角延伸至边缘
             boolean closeHover = RenderUtil.isHovered(mouseX, mouseY, closeX, curY, btnW, curH);
             if (closeHover) {
-                RenderUtil.drawRoundedRect(closeX, curY, btnW, curH, 0, winRadius, winRadius, 0, 0xFFC42B1C);
+                int closeHoverBg = clickGui != null ? clickGui.closeButtonHoverColor.getRGB() : 0xFFC42B1C;
+                RenderUtil.drawRoundedRect(closeX, curY, btnW, curH, 0, winRadius, winRadius, 0, closeHoverBg);
             }
-            int closeColor = closeHover ? 0xFFFFFFFF : 0xFFDDDDDD;
+            int closeColor = closeHover ? 0xFFFFFFFF : ctrlIcon;
             drawWin11CloseIcon(closeX + 18.0f, curY + 15.0f, closeColor);
         }
 
@@ -1173,16 +1276,22 @@ public class ClickGUI extends Register {
             float curH = isMaximized ? mc.displayHeight : windowHeight;
             float winRadius = isMaximized ? 0 : 8.0f;
 
-            // 3. 柔和阴影与主体背景 (#0C0C0C)
-            if (!isMaximized) {
-                RenderUtil.drawDropShadow(curX, curY, curW, curH, winRadius, 14.0f, isTopFocus ? 0x65000000 : 0x40000000);
-            }
-            RenderUtil.drawRoundedRect(curX, curY, curW, curH, winRadius, 0xFF0C0C0C);
+            ClickGUI clickGui = Register.getModule(ClickGUI.class);
 
-            // 4. Titlebar 顶部栏 (#202020)
+            // 3. 柔和阴影与主体背景
+            if (!isMaximized) {
+                int shadowCol = clickGui != null ? clickGui.dropShadowColor.getRGB() : (isTopFocus ? 0x65000000 : 0x40000000);
+                RenderUtil.drawDropShadow(curX, curY, curW, curH, winRadius, 14.0f, shadowCol);
+            }
+            int winBg = clickGui != null ? clickGui.backgroundColor.getRGB() : 0xFF0C0C0C;
+            RenderUtil.drawRoundedRect(curX, curY, curW, curH, winRadius, winBg);
+
+            // 4. Titlebar 顶部栏
             float titlebarH = 40;
-            RenderUtil.drawRoundedRect(curX, curY, curW, titlebarH, winRadius, winRadius, 0, 0, 0xFF202020);
-            RenderUtil.drawRect(curX, curY + titlebarH - 1, curX + curW, curY + titlebarH, 0xFF303030);
+            int tbBg = clickGui != null ? clickGui.titlebarColor.getRGB() : 0xFF202020;
+            int tbSep = clickGui != null ? clickGui.titlebarSeparatorColor.getRGB() : 0xFF303030;
+            RenderUtil.drawRoundedRect(curX, curY, curW, titlebarH, winRadius, winRadius, 0, 0, tbBg);
+            RenderUtil.drawRect(curX, curY + titlebarH - 1, curX + curW, curY + titlebarH, tbSep);
 
             float controlW = 46;
             float controlsTotalW = controlW * 3;
@@ -1209,27 +1318,34 @@ public class ClickGUI extends Register {
                 boolean isActive = (activeTabIndex == i);
                 boolean isHover = !isMenuHovered(mouseX, mouseY) && isTopFocus && RenderUtil.isHovered(mouseX, mouseY, tabX, curY, tabW, titlebarH) && mouseX < curX + tabsViewportW;
 
-                int tabBg = isActive ? 0xFF0C0C0C : (isHover ? 0xFF282828 : 0xFF181818);
+                int activeTabBg = clickGui != null ? clickGui.activeTabColor.getRGB() : 0xFF0C0C0C;
+                int tabHoverBg = clickGui != null ? clickGui.tabHoverColor.getRGB() : 0xFF282828;
+                int inactTabBg = clickGui != null ? clickGui.inactiveTabColor.getRGB() : 0xFF181818;
+                int tabBg = isActive ? activeTabBg : (isHover ? tabHoverBg : inactTabBg);
                 RenderUtil.drawRoundedRect(tabX + 1, curY + 3, tabW - 2, titlebarH - 4, 5, 5, 0, 0, tabBg);
-                RenderUtil.drawRect(tabX + tabW - 1, curY + 6, tabX + tabW, curY + titlebarH - 6, 0xFF2C2C2C);
+
+                int tabSep = clickGui != null ? clickGui.tabSeparatorColor.getRGB() : 0xFF2C2C2C;
+                RenderUtil.drawRect(tabX + tabW - 1, curY + 6, tabX + tabW, curY + titlebarH - 6, tabSep);
 
                 if (isActive) {
-                    RenderUtil.drawRoundedRect(tabX + 4, curY + titlebarH - 3, tabW - 8, 2, 1, 0xFF76B9ED);
+                    int activeTabBar = clickGui != null ? clickGui.activeTabBarColor.getRGB() : 0xFF76B9ED;
+                    RenderUtil.drawRoundedRect(tabX + 4, curY + titlebarH - 3, tabW - 8, 2, 1, activeTabBar);
                 }
 
                 float textOffset = tabX + 11;
-                int iconColor = isActive ? 0xFF76B9ED : (isHover ? 0xFFFFFFFF : 0xFFB0B0B0);
+                int iconColor = isActive ? (clickGui != null ? clickGui.tabIconActiveColor.getRGB() : 0xFF76B9ED) : (isHover ? 0xFFFFFFFF : (clickGui != null ? clickGui.tabIconColor.getRGB() : 0xFFB0B0B0));
                 if (tab.isModulesTab()) {
                     RenderUtil.drawModulesIcon(textOffset, curY + 8.0f, 20.0f, iconColor);
                     textOffset += 27;
                 } else if (tab.getCategory() == null) {
-                    RenderUtil.drawTerminalIcon(textOffset, curY + 8.0f, 20.0f, 0xFF76B9ED);
+                    int terminalIconColor = clickGui != null ? clickGui.accentColor.getRGB() : 0xFF76B9ED;
+                    RenderUtil.drawTerminalIcon(textOffset, curY + 8.0f, 20.0f, terminalIconColor);
                     textOffset += 27;
                 } else {
                     RenderUtil.drawCategoryIcon(tab.getCategory(), textOffset, curY + 8.0f, 20.0f, iconColor);
                     textOffset += 27;
                 }
-                int textColor = isActive ? 0xFFFFFFFF : (isHover ? 0xFFE0E0E0 : 0xFFD7D7D7);
+                int textColor = isActive ? (clickGui != null ? clickGui.tabTextActiveColor.getRGB() : 0xFFFFFFFF) : (isHover ? 0xFFE0E0E0 : (clickGui != null ? clickGui.tabTextColor.getRGB() : 0xFFD7D7D7));
                 drawString2x(name, textOffset, curY + 11, textColor);
 
                 // Tab 关闭图标 (X)
@@ -1238,7 +1354,7 @@ public class ClickGUI extends Register {
                 if (closeHover) {
                     RenderUtil.drawRoundedRect(closeX - 2, curY + 12, 14, 14, 3, 0x33FFFFFF);
                 }
-                int tabCloseColor = closeHover ? 0xFFFF4444 : 0xFF888888;
+                int tabCloseColor = closeHover ? (clickGui != null ? clickGui.tabCloseHoverColor.getRGB() : 0xFFFF4444) : (clickGui != null ? clickGui.tabCloseColor.getRGB() : 0xFF888888);
                 drawWin11CloseIcon(closeX, curY + 15, tabCloseColor);
 
                 tabX += tabW;
@@ -1259,35 +1375,41 @@ public class ClickGUI extends Register {
 
             boolean newTabHover = isHoverPlusBtn || showNewTabMenu;
             if (newTabHover) {
-                RenderUtil.drawRoundedRect(tabX + 4, curY + 6, newTabW - 8, titlebarH - 12, 4, 0xFF2A2A2A);
+                int newTabHoverBg = clickGui != null ? clickGui.newTabButtonHoverColor.getRGB() : 0xFF2A2A2A;
+                RenderUtil.drawRoundedRect(tabX + 4, curY + 6, newTabW - 8, titlebarH - 12, 4, newTabHoverBg);
             }
             drawString2x("+", tabX + 14, curY + 10, newTabHover ? 0xFFFFFFFF : 0xFFCCCCCC);
 
             // 如果是跨窗口拖拽合并目标，绘制高亮插入指示线
             if (hoverTargetWindow == this && hoverInsertIndex >= 0) {
                 float insX = getTabInsertionX(hoverInsertIndex);
-                RenderUtil.drawRoundedRect(insX - 1.5f, curY + 4, 3.0f, titlebarH - 8, 1.5f, 0xFF76B9ED);
+                int accentColor = clickGui != null ? clickGui.accentColor.getRGB() : 0xFF76B9ED;
+                RenderUtil.drawRoundedRect(insX - 1.5f, curY + 4, 3.0f, titlebarH - 8, 1.5f, accentColor);
             }
 
             RenderUtil.disableScissor();
 
             // 6. 右侧控制按钮区域（最小化、最大化、关闭）
             float controlsStartX = curX + curW - controlsTotalW;
-            RenderUtil.drawRoundedRect(controlsStartX, curY, controlsTotalW, titlebarH, 0, winRadius, 0, 0, 0xFF202020);
-            RenderUtil.drawRect(controlsStartX, curY + titlebarH - 1, curX + curW, curY + titlebarH, 0xFF303030);
+            int controlsBg = clickGui != null ? clickGui.windowControlsColor.getRGB() : 0xFF202020;
+            RenderUtil.drawRoundedRect(controlsStartX, curY, controlsTotalW, titlebarH, 0, winRadius, 0, 0, controlsBg);
+            RenderUtil.drawRect(controlsStartX, curY + titlebarH - 1, curX + curW, curY + titlebarH, tbSep);
 
             float closeBtnX = curX + curW - controlW;
             float maxBtnX = closeBtnX - controlW;
             float minBtnX = maxBtnX - controlW;
 
+            int ctrlHoverBg = clickGui != null ? clickGui.controlHoverColor.getRGB() : 0xFF333333;
+            int ctrlIcon = clickGui != null ? clickGui.controlIconColor.getRGB() : 0xFFDDDDDD;
+
             boolean minHover = isTopFocus && !isMenuHovered(mouseX, mouseY) && RenderUtil.isHovered(mouseX, mouseY, minBtnX, curY, controlW, titlebarH);
-            if (minHover) RenderUtil.drawRect(minBtnX, curY, minBtnX + controlW, curY + titlebarH, 0xFF333333);
-            int minColor = minHover ? 0xFFFFFFFF : 0xFFDDDDDD;
+            if (minHover) RenderUtil.drawRect(minBtnX, curY, minBtnX + controlW, curY + titlebarH, ctrlHoverBg);
+            int minColor = minHover ? 0xFFFFFFFF : ctrlIcon;
             drawWin11MinimizeIcon(minBtnX + 18.0f, curY + 15.0f, minColor);
 
             boolean maxHover = isTopFocus && !isMenuHovered(mouseX, mouseY) && RenderUtil.isHovered(mouseX, mouseY, maxBtnX, curY, controlW, titlebarH);
-            if (maxHover) RenderUtil.drawRect(maxBtnX, curY, maxBtnX + controlW, curY + titlebarH, 0xFF333333);
-            int maxColor = maxHover ? 0xFFFFFFFF : 0xFFDDDDDD;
+            if (maxHover) RenderUtil.drawRect(maxBtnX, curY, maxBtnX + controlW, curY + titlebarH, ctrlHoverBg);
+            int maxColor = maxHover ? 0xFFFFFFFF : ctrlIcon;
             if (isMaximized) {
                 drawWin11RestoreIcon(maxBtnX + 18.0f, curY + 15.0f, maxColor);
             } else {
@@ -1296,13 +1418,14 @@ public class ClickGUI extends Register {
 
             boolean closeHover = isTopFocus && !isMenuHovered(mouseX, mouseY) && RenderUtil.isHovered(mouseX, mouseY, closeBtnX, curY, controlW, titlebarH);
             if (closeHover) {
+                int closeHoverBg = clickGui != null ? clickGui.closeButtonHoverColor.getRGB() : 0xFFC42B1C;
                 if (!isMaximized) {
-                    RenderUtil.drawRoundedRect(closeBtnX, curY, controlW, titlebarH, 0, winRadius, 0, 0, 0xFFC42B1C);
+                    RenderUtil.drawRoundedRect(closeBtnX, curY, controlW, titlebarH, 0, winRadius, 0, 0, closeHoverBg);
                 } else {
-                    RenderUtil.drawRect(closeBtnX, curY, closeBtnX + controlW, curY + titlebarH, 0xFFC42B1C);
+                    RenderUtil.drawRect(closeBtnX, curY, closeBtnX + controlW, curY + titlebarH, closeHoverBg);
                 }
             }
-            int closeColor = closeHover ? 0xFFFFFFFF : 0xFFDDDDDD;
+            int closeColor = closeHover ? 0xFFFFFFFF : ctrlIcon;
             drawWin11CloseIcon(closeBtnX + 18.0f, curY + 15.0f, closeColor);
 
             // 7. 终端或分类页面主体
@@ -1320,16 +1443,19 @@ public class ClickGUI extends Register {
 
             // 8. 底部状态栏
             float statusY = curY + curH - 24;
-            RenderUtil.drawRoundedRect(curX, statusY, curW, 24, 0, 0, winRadius, winRadius, 0xFF141414);
-            RenderUtil.drawRect(curX, statusY, curX + curW, statusY + 1, 0xFF252525);
+            int statBg = clickGui != null ? clickGui.statusBarColor.getRGB() : 0xFF141414;
+            int statDiv = clickGui != null ? clickGui.statusBarDividerColor.getRGB() : 0xFF252525;
+            int statTxt = clickGui != null ? clickGui.statusBarTextColor.getRGB() : 0xFF777777;
+            RenderUtil.drawRoundedRect(curX, statusY, curW, 24, 0, 0, winRadius, winRadius, statBg);
+            RenderUtil.drawRect(curX, statusY, curX + curW, statusY + 1, statDiv);
             String tabName = (currentTab != null) ? currentTab.getTitle() : "Console";
-            drawString2x("\u00A78UTF-8   |   " + tabName + "   |   Rattix 1.8.9", curX + 16, statusY + 3, 0xFF777777);
+            drawString2x("\u00A78UTF-8   |   " + tabName + "   |   Rattix 1.8.9", curX + 16, statusY + 3, statTxt);
 
             String statusText = tabName + " | Rattix";
-            drawString2x("\u00A78" + statusText, curX + curW - getStringWidth2x(statusText) - 16, statusY + 3, 0xFF777777);
+            drawString2x("\u00A78" + statusText, curX + curW - getStringWidth2x(statusText) - 16, statusY + 3, statTxt);
 
             // 9. 外轮廓圆角边框
-            int outlineColor = isTopFocus ? 0xFF454545 : 0xFF282828;
+            int outlineColor = isTopFocus ? (clickGui != null ? clickGui.outlineColor.getRGB() : 0xFF454545) : (clickGui != null ? clickGui.outlineUnfocusedColor.getRGB() : 0xFF282828);
             RenderUtil.drawRoundedOutline(curX, curY, curW, curH, winRadius, 1.0f, outlineColor);
 
             // 10. 新建标签下拉浮层菜单
@@ -1344,13 +1470,21 @@ public class ClickGUI extends Register {
             GlStateManager.disableDepth();
             RenderUtil.disableScissor();
 
+            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+
             float menuRadius = 6.0f;
             float menuH = getNewTabMenuH();
             RenderUtil.drawDropShadow(mx, my, newTabMenuW, menuH, menuRadius, 10.0f, 0x55000000);
-            RenderUtil.drawRoundedRect(mx, my, newTabMenuW, menuH, menuRadius, 0xF5202020);
+            int menuBg = clickGui != null ? clickGui.menuBackgroundColor.getRGB() : 0xF5202020;
+            RenderUtil.drawRoundedRect(mx, my, newTabMenuW, menuH, menuRadius, menuBg);
 
             float itemH = 32.0f;
             float itemY = my;
+            int menuHoverBg = clickGui != null ? clickGui.menuHoverColor.getRGB() : 0xFF303030;
+            int menuTextColor = clickGui != null ? clickGui.menuTextColor.getRGB() : 0xFFCCCCCC;
+            int accentColor = clickGui != null ? clickGui.accentColor.getRGB() : 0xFF76B9ED;
+            int tabIconColor = clickGui != null ? clickGui.tabIconColor.getRGB() : 0xFFB0B0B0;
+
             for (int i = 0; i < AVAILABLE_PRESETS.size(); i++) {
                 TabPreset preset = AVAILABLE_PRESETS.get(i);
                 boolean isHover = RenderUtil.isHovered(mouseX, mouseY, mx, itemY, newTabMenuW, itemH);
@@ -1360,25 +1494,26 @@ public class ClickGUI extends Register {
                     float tr = (i == 0) ? menuRadius : 0;
                     float br = (i == AVAILABLE_PRESETS.size() - 1) ? menuRadius : 0;
                     float bl = (i == AVAILABLE_PRESETS.size() - 1) ? menuRadius : 0;
-                    RenderUtil.drawRoundedRect(mx, itemY, newTabMenuW, itemH, tl, tr, br, bl, 0xFF303030);
+                    RenderUtil.drawRoundedRect(mx, itemY, newTabMenuW, itemH, tl, tr, br, bl, menuHoverBg);
                 }
 
-                int iconColor = isHover ? 0xFF76B9ED : 0xFFB0B0B0;
+                int iconColor = isHover ? accentColor : tabIconColor;
                 if ("modules".equalsIgnoreCase(preset.type)) {
                     RenderUtil.drawModulesIcon(mx + 12, itemY + 4.0f, 20.0f, iconColor);
                 } else if (preset.category == null) {
-                    RenderUtil.drawTerminalIcon(mx + 12, itemY + 4.0f, 20.0f, 0xFF76B9ED);
+                    RenderUtil.drawTerminalIcon(mx + 12, itemY + 4.0f, 20.0f, accentColor);
                 } else {
                     RenderUtil.drawCategoryIcon(preset.category, mx + 12, itemY + 4.0f, 20.0f, iconColor);
                 }
 
-                int textColor = isHover ? 0xFFFFFFFF : 0xFFCCCCCC;
+                int textColor = isHover ? 0xFFFFFFFF : menuTextColor;
                 drawString2x(preset.title, mx + 40, itemY + 6, textColor);
 
                 itemY += itemH;
             }
 
-            RenderUtil.drawRoundedOutline(mx, my, newTabMenuW, menuH, menuRadius, 1.0f, 0xFF3C3C3C);
+            int outlineCol = clickGui != null ? clickGui.outlineColor.getRGB() : 0xFF3C3C3C;
+            RenderUtil.drawRoundedOutline(mx, my, newTabMenuW, menuH, menuRadius, 1.0f, outlineCol);
 
             GlStateManager.enableDepth();
             GlStateManager.popMatrix();
@@ -1392,6 +1527,9 @@ public class ClickGUI extends Register {
 
             RenderUtil.enablePixelScissor(x, y, w, h);
 
+            ClickGUI clickGui = Register.getModule(ClickGUI.class);
+            int termText = clickGui != null ? clickGui.terminalTextColor.getRGB() : 0xFFF2F2F2;
+
             float lineHeight = 22;
             List<String> outputLines = tab.getTerminalOutput();
             int lineCount = outputLines.size();
@@ -1402,7 +1540,7 @@ public class ClickGUI extends Register {
 
             float lineY = paddingY + tab.getTerminalScrollY() + firstVisibleLine * lineHeight;
             for (int li = firstVisibleLine; li < lastVisibleLine; li++) {
-                drawString2x(outputLines.get(li), paddingX, lineY, 0xFFF2F2F2);
+                drawString2x(outputLines.get(li), paddingX, lineY, termText);
                 lineY += lineHeight;
             }
 
@@ -1410,7 +1548,7 @@ public class ClickGUI extends Register {
             if (promptY + lineHeight >= y && promptY <= y + h) {
                 String prompt = getPrompt();
                 String cursor = (System.currentTimeMillis() / 500 % 2 == 0) ? "_" : "";
-                drawString2x(prompt + "\u00A7f" + tab.getCurrentInput() + cursor, paddingX, promptY, 0xFFF2F2F2);
+                drawString2x(prompt + "\u00A7f" + tab.getCurrentInput() + cursor, paddingX, promptY, termText);
             }
 
             RenderUtil.disableScissor();
@@ -1422,7 +1560,8 @@ public class ClickGUI extends Register {
                 float barH = Math.max(30, contentH * (contentH / totalHeight));
                 float progress = -tab.getTerminalScrollY() / tab.getMaxTerminalScroll();
                 float barY = paddingY + progress * (contentH - barH);
-                RenderUtil.drawRoundedRect(x + w - 12, barY, 6, barH, 3, 0xFF424242);
+                int termScroll = clickGui != null ? clickGui.terminalScrollbarColor.getRGB() : 0xFF424242;
+                RenderUtil.drawRoundedRect(x + w - 12, barY, 6, barH, 3, termScroll);
             }
         }
 
@@ -1442,9 +1581,16 @@ public class ClickGUI extends Register {
                 tab.setModuleListScrollY(0);
             }
 
+            ClickGUI clickGui = Register.getModule(ClickGUI.class);
             float sidebarW = 240;
-            RenderUtil.drawRect(x, y, x + sidebarW, y + h, 0xFF101010);
-            RenderUtil.drawRect(x + sidebarW, y, x + sidebarW + 1, y + h, 0xFF2A2A2A);
+            int sideBg = clickGui != null ? clickGui.sidebarColor.getRGB() : 0xFF101010;
+            int sideDiv = clickGui != null ? clickGui.sidebarDividerColor.getRGB() : 0xFF2A2A2A;
+            int modText = clickGui != null ? clickGui.moduleTextColor.getRGB() : 0xFFD7D7D7;
+            int modEnabled = clickGui != null ? clickGui.moduleEnabledColor.getRGB() : 0xFF76B9ED;
+            int accentColor = clickGui != null ? clickGui.accentColor.getRGB() : 0xFF76B9ED;
+
+            RenderUtil.drawRect(x, y, x + sidebarW, y + h, sideBg);
+            RenderUtil.drawRect(x + sidebarW, y, x + sidebarW + 1, y + h, sideDiv);
 
             RenderUtil.enablePixelScissor(x, y, sidebarW, h);
             float itemY = y + 14 + tab.getModuleListScrollY();
@@ -1453,7 +1599,7 @@ public class ClickGUI extends Register {
                 String selectedItem = tab.getSelectedThemeItem();
                 boolean isSelected = "Font".equalsIgnoreCase(selectedItem);
                 String displayName = isSelected ? "> Font" : "Font";
-                int color = isSelected ? 0xFF76B9ED : 0xFFD7D7D7;
+                int color = isSelected ? accentColor : modText;
                 drawString2x(displayName, x + 32, itemY + 2, color);
             } else {
                 int modCount = mods.size();
@@ -1463,7 +1609,7 @@ public class ClickGUI extends Register {
                         boolean isSelected = (tab.getSelectedModule() == m);
 
                         String displayName = isSelected ? ("> " + m.getName()) : m.getName();
-                        int color = m.isEnabled() ? 0xFF76B9ED : 0xFFD7D7D7;
+                        int color = m.isEnabled() ? modEnabled : modText;
                         drawString2x(displayName, x + 32, itemY + 2, color);
                     }
 
@@ -1487,7 +1633,7 @@ public class ClickGUI extends Register {
             }
             if (selectedModule != null) {
                 float modTitleY = y + 20;
-                drawString2x("\u00A7b" + selectedModule.getName().toUpperCase(), rightX, modTitleY, 0xFF76B9ED);
+                drawString2x("\u00A7b" + selectedModule.getName().toUpperCase(), rightX, modTitleY, accentColor);
 
                 float metaY = modTitleY + 30;
                 RenderUtil.drawRect(rightX, metaY - 6, x + w - 20, metaY - 5, 0xFF252525);
@@ -1712,96 +1858,129 @@ public class ClickGUI extends Register {
                 } else if (s instanceof ColorSetting) {
                     ColorSetting cs = (ColorSetting) s;
 
+                    float headerCenterY = settingY + rowH / 2.0f;
+                    if (settingY >= clipTop && settingY <= clipBottom) {
+                        drawTreeBranch(trunkX, itemX, prevBranchY, headerCenterY);
+                        for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
+                            drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, headerCenterY);
+                        }
+
+                        drawString2x(cs.getName(), itemX, settingY + 2, 0xFFD7D7D7);
+                        float nameW = getStringWidth2x(cs.getName());
+
+                        float swatchX = itemX + nameW + 10.0f;
+                        float swatchW = 26.0f;
+                        float swatchH = 14.0f;
+                        float swatchY = settingY + (rowH - swatchH) / 2.0f;
+                        RenderUtil.drawDropShadow(swatchX, swatchY, swatchW, swatchH, 3.0f, 4.0f, 0x40000000);
+                        RenderUtil.drawRoundedRect(swatchX, swatchY, swatchW, swatchH, 3.0f, cs.getRGB());
+                        RenderUtil.drawRectOutline(swatchX, swatchY, swatchW, swatchH, 1.0f, 0xFF404040);
+                    }
+                    lastRowCenterY = headerCenterY;
+                    prevBranchY = headerCenterY;
+                    prevAncestorY = headerCenterY;
+                    settingY += lineStep;
+
+                    float sX = itemX;
+                    float curH = cs.getHue();
+                    float curS = cs.getSaturation();
+                    float curB = cs.getBrightness();
+                    int curA = cs.getAlpha();
+
+                    // Row 1: Hue
                     float subCenterY1 = settingY + rowH / 2.0f;
-                    float sX1 = itemX;
                     float sY1 = settingY;
                     if (settingY >= clipTop && settingY <= clipBottom) {
-                        drawTreeBranch(trunkX, itemX, prevBranchY, subCenterY1);
+                        if (!isLast) drawTreeTrunk(trunkX, prevAncestorY, subCenterY1);
                         for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
                             drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, subCenterY1);
                         }
-                        RenderUtil.drawHorizontalRainbow(sX1, sY1, sW, sH);
-                        RenderUtil.drawRectOutline(sX1, sY1, sW, sH, 1.0f, 0xFF000000);
-                        float thumbX1 = sX1 + cs.getHue() * sW;
-                        RenderUtil.drawRect(thumbX1 - 1.0f, sY1, thumbX1 + 1.0f, sY1 + sH, 0xFF000000);
-                        float togX1 = sX1 + sW + 14.0f;
+                        RenderUtil.drawHorizontalRainbow(sX, sY1, sW, sH, curS, curB, curA);
+                        RenderUtil.drawRectOutline(sX, sY1, sW, sH, 1.0f, 0xFF000000);
+                        float thumbX1 = sX + curH * sW;
+                        RenderUtil.drawRect(thumbX1 - 1.0f, sY1, thumbX1 + 1.0f, sY1 + sH, 0xFFFFFFFF);
+                        RenderUtil.drawRectOutline(thumbX1 - 1.5f, sY1, 3.0f, sH, 1.0f, 0xFF000000);
+                        float togX1 = sX + sW + 14.0f;
                         drawString2x(cs.rainbow.getDisplayText(), togX1, settingY + 2, 0xFFD7D7D7);
                     }
                     if (draggingColorSetting == cs && draggingColorType == ColorDragType.HUE) {
-                        cs.setHue((mouseX - sX1) / sW);
+                        cs.setHue((mouseX - sX) / sW);
                     }
                     prevBranchY = subCenterY1;
                     prevAncestorY = subCenterY1;
                     settingY += lineStep;
 
+                    // Row 2: Saturation
                     float subCenterY2 = settingY + rowH / 2.0f;
-                    float sX2 = itemX;
                     float sY2 = settingY;
                     if (settingY >= clipTop && settingY <= clipBottom) {
-                        drawTreeBranch(trunkX, itemX, prevBranchY, subCenterY2);
+                        if (!isLast) drawTreeTrunk(trunkX, prevAncestorY, subCenterY2);
                         for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
                             drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, subCenterY2);
                         }
-                        int satLeft = 0xFFFFFFFF;
-                        int satRight = 0xFF000000 | java.awt.Color.HSBtoRGB(cs.getHue(), 1.0f, 1.0f);
-                        RenderUtil.drawHorizontalGradient(sX2, sY2, sW, sH, satLeft, satRight);
-                        RenderUtil.drawRectOutline(sX2, sY2, sW, sH, 1.0f, 0xFF000000);
-                        float thumbX2 = sX2 + cs.getSaturation() * sW;
-                        RenderUtil.drawRect(thumbX2 - 1.0f, sY2, thumbX2 + 1.0f, sY2 + sH, 0xFF000000);
-                        float togX2 = sX2 + sW + 14.0f;
+                        int satLeft = (curA << 24) | (java.awt.Color.HSBtoRGB(curH, 0.0f, curB) & 0x00FFFFFF);
+                        int satRight = (curA << 24) | (java.awt.Color.HSBtoRGB(curH, 1.0f, curB) & 0x00FFFFFF);
+                        RenderUtil.drawHorizontalGradient(sX, sY2, sW, sH, satLeft, satRight);
+                        RenderUtil.drawRectOutline(sX, sY2, sW, sH, 1.0f, 0xFF000000);
+                        float thumbX2 = sX + curS * sW;
+                        RenderUtil.drawRect(thumbX2 - 1.0f, sY2, thumbX2 + 1.0f, sY2 + sH, 0xFFFFFFFF);
+                        RenderUtil.drawRectOutline(thumbX2 - 1.5f, sY2, 3.0f, sH, 1.0f, 0xFF000000);
+                        float togX2 = sX + sW + 14.0f;
                         drawString2x(cs.fade.getDisplayText(), togX2, settingY + 2, 0xFFD7D7D7);
                     }
                     if (draggingColorSetting == cs && draggingColorType == ColorDragType.SATURATION) {
-                        cs.setSaturation((mouseX - sX2) / sW);
+                        cs.setSaturation((mouseX - sX) / sW);
                     }
                     prevBranchY = subCenterY2;
                     prevAncestorY = subCenterY2;
                     settingY += lineStep;
 
+                    // Row 3: Brightness
                     float subCenterY3 = settingY + rowH / 2.0f;
-                    float sX3 = itemX;
                     float sY3 = settingY;
                     if (settingY >= clipTop && settingY <= clipBottom) {
-                        drawTreeBranch(trunkX, itemX, prevBranchY, subCenterY3);
+                        if (!isLast) drawTreeTrunk(trunkX, prevAncestorY, subCenterY3);
                         for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
                             drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, subCenterY3);
                         }
-                        int briLeft = 0xFF000000;
-                        int briRight = 0xFF000000 | java.awt.Color.HSBtoRGB(cs.getHue(), cs.getSaturation(), 1.0f);
-                        RenderUtil.drawHorizontalGradient(sX3, sY3, sW, sH, briLeft, briRight);
-                        RenderUtil.drawRectOutline(sX3, sY3, sW, sH, 1.0f, 0xFF000000);
-                        float thumbX3 = sX3 + cs.getBrightness() * sW;
-                        RenderUtil.drawRect(thumbX3 - 1.0f, sY3, thumbX3 + 1.0f, sY3 + sH, 0xFF000000);
-                        float togX3 = sX3 + sW + 14.0f;
+                        int briLeft = (curA << 24) | 0x000000;
+                        int briRight = (curA << 24) | (java.awt.Color.HSBtoRGB(curH, curS, 1.0f) & 0x00FFFFFF);
+                        RenderUtil.drawHorizontalGradient(sX, sY3, sW, sH, briLeft, briRight);
+                        RenderUtil.drawRectOutline(sX, sY3, sW, sH, 1.0f, 0xFF000000);
+                        float thumbX3 = sX + curB * sW;
+                        RenderUtil.drawRect(thumbX3 - 1.0f, sY3, thumbX3 + 1.0f, sY3 + sH, 0xFFFFFFFF);
+                        RenderUtil.drawRectOutline(thumbX3 - 1.5f, sY3, 3.0f, sH, 1.0f, 0xFF000000);
+                        float togX3 = sX + sW + 14.0f;
                         drawString2x(cs.astolfo.getDisplayText(), togX3, settingY + 2, 0xFFD7D7D7);
                     }
                     if (draggingColorSetting == cs && draggingColorType == ColorDragType.BRIGHTNESS) {
-                        cs.setBrightness((mouseX - sX3) / sW);
+                        cs.setBrightness((mouseX - sX) / sW);
                     }
                     prevBranchY = subCenterY3;
                     prevAncestorY = subCenterY3;
                     settingY += lineStep;
 
+                    // Row 4: Alpha
                     float subCenterY4 = settingY + rowH / 2.0f;
-                    float sX4 = itemX;
                     float sY4 = settingY;
                     if (settingY >= clipTop && settingY <= clipBottom) {
-                        drawTreeBranch(trunkX, itemX, prevBranchY, subCenterY4);
+                        if (!isLast) drawTreeTrunk(trunkX, prevAncestorY, subCenterY4);
                         for (int ti = 0; ti < activeTrunkXs.size(); ti++) {
                             drawTreeTrunk(activeTrunkXs.get(ti), prevAncestorY, subCenterY4);
                         }
-                        int rgbBase = java.awt.Color.HSBtoRGB(cs.getHue(), cs.getSaturation(), cs.getBrightness()) & 0x00FFFFFF;
-                        int alpLeft = 0x00000000 | rgbBase;
-                        int alpRight = 0xFF000000 | rgbBase;
-                        RenderUtil.drawHorizontalGradient(sX4, sY4, sW, sH, alpLeft, alpRight);
-                        RenderUtil.drawRectOutline(sX4, sY4, sW, sH, 1.0f, 0xFF000000);
-                        float thumbX4 = sX4 + (cs.getAlpha() / 255.0f) * sW;
-                        RenderUtil.drawRect(thumbX4 - 1.0f, sY4, thumbX4 + 1.0f, sY4 + sH, 0xFF000000);
-                        float togX4 = sX4 + sW + 14.0f;
+                        int rgbBase = java.awt.Color.HSBtoRGB(curH, curS, curB) & 0x00FFFFFF;
+                        int alpLeft = (0x00 << 24) | rgbBase;
+                        int alpRight = (0xFF << 24) | rgbBase;
+                        RenderUtil.drawHorizontalGradient(sX, sY4, sW, sH, alpLeft, alpRight);
+                        RenderUtil.drawRectOutline(sX, sY4, sW, sH, 1.0f, 0xFF000000);
+                        float thumbX4 = sX + (curA / 255.0f) * sW;
+                        RenderUtil.drawRect(thumbX4 - 1.0f, sY4, thumbX4 + 1.0f, sY4 + sH, 0xFFFFFFFF);
+                        RenderUtil.drawRectOutline(thumbX4 - 1.5f, sY4, 3.0f, sH, 1.0f, 0xFF000000);
+                        float togX4 = sX + sW + 14.0f;
                         drawString2x(cs.clientColor.getDisplayText(), togX4, settingY + 2, 0xFFD7D7D7);
                     }
                     if (draggingColorSetting == cs && draggingColorType == ColorDragType.ALPHA) {
-                        cs.setAlpha((int) (((mouseX - sX4) / sW) * 255));
+                        cs.setAlpha((int) (((mouseX - sX) / sW) * 255));
                     }
                     lastRowCenterY = subCenterY4;
                     prevBranchY = subCenterY4;
@@ -2196,98 +2375,121 @@ public class ClickGUI extends Register {
                                                 settingY = mCurY + lineStep;
                                             } else if (sub instanceof ColorSetting) {
                                                 ColorSetting cs = (ColorSetting) sub;
+                                                boolean isLastSub = (subI == subCount - 1);
 
+                                                float headerCenterY = settingY + rowH / 2.0f;
+                                                if (settingY >= clipTop && settingY <= clipBottom) {
+                                                    drawTreeBranch(trunkX2, subItemX, prevSubY, headerCenterY);
+                                                    if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, headerCenterY);
+
+                                                    drawString2x(cs.getName(), subItemX, settingY + 2, 0xFFD7D7D7);
+                                                    float nameW = getStringWidth2x(cs.getName());
+
+                                                    float swatchX = subItemX + nameW + 10.0f;
+                                                    float swatchW = 26.0f;
+                                                    float swatchH = 14.0f;
+                                                    float swatchY = settingY + (rowH - swatchH) / 2.0f;
+                                                    RenderUtil.drawDropShadow(swatchX, swatchY, swatchW, swatchH, 3.0f, 4.0f, 0x40000000);
+                                                    RenderUtil.drawRoundedRect(swatchX, swatchY, swatchW, swatchH, 3.0f, cs.getRGB());
+                                                    RenderUtil.drawRectOutline(swatchX, swatchY, swatchW, swatchH, 1.0f, 0xFF404040);
+                                                }
+                                                prevSubY = headerCenterY;
+                                                prevL1Y = headerCenterY;
+                                                settingY += lineStep;
+
+                                                float sX = subItemX;
+                                                float curH = cs.getHue();
+                                                float curS = cs.getSaturation();
+                                                float curB = cs.getBrightness();
+                                                int curA = cs.getAlpha();
+
+                                                // Row 1: Hue
                                                 float subCenterY1 = settingY + rowH / 2.0f;
-                                                float sX1 = subItemX;
                                                 float sY1 = settingY;
                                                 if (settingY >= clipTop && settingY <= clipBottom) {
-                                                    drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY1);
+                                                    if (!isLastSub) drawTreeTrunk(trunkX2, prevSubY, subCenterY1);
                                                     if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY1);
-                                                    RenderUtil.drawHorizontalRainbow(sX1, sY1, sW, sH);
-                                                    RenderUtil.drawRectOutline(sX1, sY1, sW, sH, 1.0f, 0xFF000000);
-                                                    float thumbX1 = sX1 + cs.getHue() * sW;
-                                                    RenderUtil.drawRect(thumbX1 - 1.0f, sY1, thumbX1 + 1.0f, sY1 + sH, 0xFF000000);
-                                                    float togX1 = sX1 + sW + 14.0f;
+                                                    RenderUtil.drawHorizontalRainbow(sX, sY1, sW, sH, curS, curB, curA);
+                                                    RenderUtil.drawRectOutline(sX, sY1, sW, sH, 1.0f, 0xFF000000);
+                                                    float thumbX1 = sX + curH * sW;
+                                                    RenderUtil.drawRect(thumbX1 - 1.0f, sY1, thumbX1 + 1.0f, sY1 + sH, 0xFFFFFFFF);
+                                                    RenderUtil.drawRectOutline(thumbX1 - 1.5f, sY1, 3.0f, sH, 1.0f, 0xFF000000);
+                                                    float togX1 = sX + sW + 14.0f;
                                                     drawString2x(cs.rainbow.getDisplayText(), togX1, settingY + 2, 0xFFD7D7D7);
                                                 }
-
                                                 if (draggingColorSetting == cs && draggingColorType == ColorDragType.HUE) {
-                                                    cs.setHue((mouseX - sX1) / sW);
+                                                    cs.setHue((mouseX - sX) / sW);
                                                 }
-
                                                 prevSubY = subCenterY1;
                                                 prevL1Y = subCenterY1;
                                                 settingY += lineStep;
 
+                                                // Row 2: Saturation
                                                 float subCenterY2 = settingY + rowH / 2.0f;
-                                                float sX2 = subItemX;
                                                 float sY2 = settingY;
                                                 if (settingY >= clipTop && settingY <= clipBottom) {
-                                                    drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY2);
+                                                    if (!isLastSub) drawTreeTrunk(trunkX2, prevSubY, subCenterY2);
                                                     if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY2);
-                                                    int satLeft = 0xFFFFFFFF;
-                                                    int satRight = 0xFF000000 | java.awt.Color.HSBtoRGB(cs.getHue(), 1.0f, 1.0f);
-                                                    RenderUtil.drawHorizontalGradient(sX2, sY2, sW, sH, satLeft, satRight);
-                                                    RenderUtil.drawRectOutline(sX2, sY2, sW, sH, 1.0f, 0xFF000000);
-                                                    float thumbX2 = sX2 + cs.getSaturation() * sW;
-                                                    RenderUtil.drawRect(thumbX2 - 1.0f, sY2, thumbX2 + 1.0f, sY2 + sH, 0xFF000000);
-                                                    float togX2 = sX2 + sW + 14.0f;
+                                                    int satLeft = (curA << 24) | (java.awt.Color.HSBtoRGB(curH, 0.0f, curB) & 0x00FFFFFF);
+                                                    int satRight = (curA << 24) | (java.awt.Color.HSBtoRGB(curH, 1.0f, curB) & 0x00FFFFFF);
+                                                    RenderUtil.drawHorizontalGradient(sX, sY2, sW, sH, satLeft, satRight);
+                                                    RenderUtil.drawRectOutline(sX, sY2, sW, sH, 1.0f, 0xFF000000);
+                                                    float thumbX2 = sX + curS * sW;
+                                                    RenderUtil.drawRect(thumbX2 - 1.0f, sY2, thumbX2 + 1.0f, sY2 + sH, 0xFFFFFFFF);
+                                                    RenderUtil.drawRectOutline(thumbX2 - 1.5f, sY2, 3.0f, sH, 1.0f, 0xFF000000);
+                                                    float togX2 = sX + sW + 14.0f;
                                                     drawString2x(cs.fade.getDisplayText(), togX2, settingY + 2, 0xFFD7D7D7);
                                                 }
-
                                                 if (draggingColorSetting == cs && draggingColorType == ColorDragType.SATURATION) {
-                                                    cs.setSaturation((mouseX - sX2) / sW);
+                                                    cs.setSaturation((mouseX - sX) / sW);
                                                 }
-
                                                 prevSubY = subCenterY2;
                                                 prevL1Y = subCenterY2;
                                                 settingY += lineStep;
 
+                                                // Row 3: Brightness
                                                 float subCenterY3 = settingY + rowH / 2.0f;
-                                                float sX3 = subItemX;
                                                 float sY3 = settingY;
                                                 if (settingY >= clipTop && settingY <= clipBottom) {
-                                                    drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY3);
+                                                    if (!isLastSub) drawTreeTrunk(trunkX2, prevSubY, subCenterY3);
                                                     if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY3);
-                                                    int briLeft = 0xFF000000;
-                                                    int briRight = 0xFF000000 | java.awt.Color.HSBtoRGB(cs.getHue(), cs.getSaturation(), 1.0f);
-                                                    RenderUtil.drawHorizontalGradient(sX3, sY3, sW, sH, briLeft, briRight);
-                                                    RenderUtil.drawRectOutline(sX3, sY3, sW, sH, 1.0f, 0xFF000000);
-                                                    float thumbX3 = sX3 + cs.getBrightness() * sW;
-                                                    RenderUtil.drawRect(thumbX3 - 1.0f, sY3, thumbX3 + 1.0f, sY3 + sH, 0xFF000000);
-                                                    float togX3 = sX3 + sW + 14.0f;
+                                                    int briLeft = (curA << 24) | 0x000000;
+                                                    int briRight = (curA << 24) | (java.awt.Color.HSBtoRGB(curH, curS, 1.0f) & 0x00FFFFFF);
+                                                    RenderUtil.drawHorizontalGradient(sX, sY3, sW, sH, briLeft, briRight);
+                                                    RenderUtil.drawRectOutline(sX, sY3, sW, sH, 1.0f, 0xFF000000);
+                                                    float thumbX3 = sX + curB * sW;
+                                                    RenderUtil.drawRect(thumbX3 - 1.0f, sY3, thumbX3 + 1.0f, sY3 + sH, 0xFFFFFFFF);
+                                                    RenderUtil.drawRectOutline(thumbX3 - 1.5f, sY3, 3.0f, sH, 1.0f, 0xFF000000);
+                                                    float togX3 = sX + sW + 14.0f;
                                                     drawString2x(cs.astolfo.getDisplayText(), togX3, settingY + 2, 0xFFD7D7D7);
                                                 }
-
                                                 if (draggingColorSetting == cs && draggingColorType == ColorDragType.BRIGHTNESS) {
-                                                    cs.setBrightness((mouseX - sX3) / sW);
+                                                    cs.setBrightness((mouseX - sX) / sW);
                                                 }
-
                                                 prevSubY = subCenterY3;
                                                 prevL1Y = subCenterY3;
                                                 settingY += lineStep;
 
+                                                // Row 4: Alpha
                                                 float subCenterY4 = settingY + rowH / 2.0f;
-                                                float sX4 = subItemX;
                                                 float sY4 = settingY;
                                                 if (settingY >= clipTop && settingY <= clipBottom) {
-                                                    drawTreeBranch(trunkX2, subItemX, prevSubY, subCenterY4);
+                                                    if (!isLastSub) drawTreeTrunk(trunkX2, prevSubY, subCenterY4);
                                                     if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, subCenterY4);
-                                                    int rgbBase = java.awt.Color.HSBtoRGB(cs.getHue(), cs.getSaturation(), cs.getBrightness()) & 0x00FFFFFF;
-                                                    int alpLeft = 0x00000000 | rgbBase;
-                                                    int alpRight = 0xFF000000 | rgbBase;
-                                                    RenderUtil.drawHorizontalGradient(sX4, sY4, sW, sH, alpLeft, alpRight);
-                                                    RenderUtil.drawRectOutline(sX4, sY4, sW, sH, 1.0f, 0xFF000000);
-                                                    float thumbX4 = sX4 + (cs.getAlpha() / 255.0f) * sW;
-                                                    RenderUtil.drawRect(thumbX4 - 1.0f, sY4, thumbX4 + 1.0f, sY4 + sH, 0xFF000000);
-                                                    float togX4 = sX4 + sW + 14.0f;
+                                                    int rgbBase = java.awt.Color.HSBtoRGB(curH, curS, curB) & 0x00FFFFFF;
+                                                    int alpLeft = (0x00 << 24) | rgbBase;
+                                                    int alpRight = (0xFF << 24) | rgbBase;
+                                                    RenderUtil.drawHorizontalGradient(sX, sY4, sW, sH, alpLeft, alpRight);
+                                                    RenderUtil.drawRectOutline(sX, sY4, sW, sH, 1.0f, 0xFF000000);
+                                                    float thumbX4 = sX + (curA / 255.0f) * sW;
+                                                    RenderUtil.drawRect(thumbX4 - 1.0f, sY4, thumbX4 + 1.0f, sY4 + sH, 0xFFFFFFFF);
+                                                    RenderUtil.drawRectOutline(thumbX4 - 1.5f, sY4, 3.0f, sH, 1.0f, 0xFF000000);
+                                                    float togX4 = sX + sW + 14.0f;
                                                     drawString2x(cs.clientColor.getDisplayText(), togX4, settingY + 2, 0xFFD7D7D7);
                                                 }
-
                                                 if (draggingColorSetting == cs && draggingColorType == ColorDragType.ALPHA) {
-                                                    cs.setAlpha((int) (((mouseX - sX4) / sW) * 255));
+                                                    cs.setAlpha((int) (((mouseX - sX) / sW) * 255));
                                                 }
-
                                                 prevSubY = subCenterY4;
                                                 prevL1Y = subCenterY4;
                                                 settingY += lineStep;
@@ -2688,57 +2890,59 @@ public class ClickGUI extends Register {
                 } else if (s instanceof ColorSetting) {
                     ColorSetting cs = (ColorSetting) s;
 
-                    float sX1 = itemX;
-                    float togX1 = sX1 + sW + 14.0f;
-                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX1, settingY, sW, (int) rowH)) {
+                    // Header row: no click action (always expanded, no collapse/expand)
+                    settingY += lineStep;
+
+                    float sX = itemX;
+                    float togX = sX + sW + 14.0f;
+
+                    // Row 1: Hue
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX, settingY, sW, (int) rowH)) {
                         draggingColorSetting = cs;
                         draggingColorType = ColorDragType.HUE;
-                        cs.setHue((mouseX - sX1) / sW);
+                        cs.setHue((mouseX - sX) / sW);
                         return new float[]{settingY, 1.0f};
                     }
-                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX1 - 2, settingY, 140, (int) rowH)) {
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX - 2, settingY, 140, (int) rowH)) {
                         cs.rainbow.toggle();
                         return new float[]{settingY, 1.0f};
                     }
                     settingY += lineStep;
 
-                    float sX2 = itemX;
-                    float togX2 = sX2 + sW + 14.0f;
-                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX2, settingY, sW, (int) rowH)) {
+                    // Row 2: Saturation
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX, settingY, sW, (int) rowH)) {
                         draggingColorSetting = cs;
                         draggingColorType = ColorDragType.SATURATION;
-                        cs.setSaturation((mouseX - sX2) / sW);
+                        cs.setSaturation((mouseX - sX) / sW);
                         return new float[]{settingY, 1.0f};
                     }
-                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX2 - 2, settingY, 140, (int) rowH)) {
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX - 2, settingY, 140, (int) rowH)) {
                         cs.fade.toggle();
                         return new float[]{settingY, 1.0f};
                     }
                     settingY += lineStep;
 
-                    float sX3 = itemX;
-                    float togX3 = sX3 + sW + 14.0f;
-                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX3, settingY, sW, (int) rowH)) {
+                    // Row 3: Brightness
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX, settingY, sW, (int) rowH)) {
                         draggingColorSetting = cs;
                         draggingColorType = ColorDragType.BRIGHTNESS;
-                        cs.setBrightness((mouseX - sX3) / sW);
+                        cs.setBrightness((mouseX - sX) / sW);
                         return new float[]{settingY, 1.0f};
                     }
-                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX3 - 2, settingY, 140, (int) rowH)) {
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX - 2, settingY, 140, (int) rowH)) {
                         cs.astolfo.toggle();
                         return new float[]{settingY, 1.0f};
                     }
                     settingY += lineStep;
 
-                    float sX4 = itemX;
-                    float togX4 = sX4 + sW + 14.0f;
-                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX4, settingY, sW, (int) rowH)) {
+                    // Row 4: Alpha
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX, settingY, sW, (int) rowH)) {
                         draggingColorSetting = cs;
                         draggingColorType = ColorDragType.ALPHA;
-                        cs.setAlpha((int) (((mouseX - sX4) / sW) * 255));
+                        cs.setAlpha((int) (((mouseX - sX) / sW) * 255));
                         return new float[]{settingY, 1.0f};
                     }
-                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX4 - 2, settingY, 140, (int) rowH)) {
+                    if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, togX - 2, settingY, 140, (int) rowH)) {
                         cs.clientColor.toggle();
                         return new float[]{settingY, 1.0f};
                     }
@@ -3186,6 +3390,9 @@ public class ClickGUI extends Register {
                                             } else if (sub instanceof ColorSetting) {
                                                 ColorSetting cs = (ColorSetting) sub;
 
+                                                // Header row: no click action
+                                                settingY += lineStep;
+
                                                 float sX1 = subItemX;
                                                 float togX1 = sX1 + sW + 14.0f;
                                                 if (mouseButton == 0 && RenderUtil.isHovered(mouseX, mouseY, sX1, settingY, sW, (int) rowH)) {
@@ -3409,18 +3616,22 @@ public class ClickGUI extends Register {
                 float ghostW = Window.getTabWidth(dragCandidateTab.getTitle());
                 float ghostX = mouseX - dragCandidateOffsetX;
                 float ghostY = mouseY - 20;
+                ClickGUI clickGui = Register.getModule(ClickGUI.class);
+                int ghostBg = clickGui != null ? clickGui.titlebarColor.getRGB() : 0xE5202020;
+                int accent = clickGui != null ? clickGui.accentColor.getRGB() : 0xFF76B9ED;
+                int textColor = clickGui != null ? clickGui.tabTextActiveColor.getRGB() : 0xFFFFFFFF;
                 RenderUtil.drawDropShadow(ghostX, ghostY, ghostW, 40, 5, 12, 0x75000000);
-                RenderUtil.drawRoundedRect(ghostX, ghostY, ghostW, 40, 5, 0xE5202020);
-                RenderUtil.drawRoundedOutline(ghostX, ghostY, ghostW, 40, 5, 1.2f, 0xFF76B9ED);
+                RenderUtil.drawRoundedRect(ghostX, ghostY, ghostW, 40, 5, ghostBg);
+                RenderUtil.drawRoundedOutline(ghostX, ghostY, ghostW, 40, 5, 1.2f, accent);
                 float textOff = ghostX + 11;
                 if (dragCandidateTab.getCategory() == null) {
-                    RenderUtil.drawTerminalIcon(textOff, ghostY + 8.0f, 20.0f, 0xFF76B9ED);
+                    RenderUtil.drawTerminalIcon(textOff, ghostY + 8.0f, 20.0f, accent);
                     textOff += 27;
                 } else {
-                    RenderUtil.drawCategoryIcon(dragCandidateTab.getCategory(), textOff, ghostY + 8.0f, 20.0f, 0xFF76B9ED);
+                    RenderUtil.drawCategoryIcon(dragCandidateTab.getCategory(), textOff, ghostY + 8.0f, 20.0f, accent);
                     textOff += 27;
                 }
-                FontUtil.drawString2x(dragCandidateTab.getTitle(), textOff, ghostY + 11, 0xFFFFFFFF);
+                FontUtil.drawString2x(dragCandidateTab.getTitle(), textOff, ghostY + 11, textColor);
                 GlStateManager.popMatrix();
             }
 

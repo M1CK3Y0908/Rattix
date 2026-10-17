@@ -563,8 +563,13 @@ public class RenderUtil {
     }
 
     public static void drawHorizontalRainbow(float x, float y, float width, float height) {
+        drawHorizontalRainbow(x, y, width, height, 1.0f, 1.0f, 255);
+    }
+
+    public static void drawHorizontalRainbow(float x, float y, float width, float height, float saturation, float brightness, int alpha) {
         int segments = RAINBOW_SEGMENTS;
         float segW = width / segments;
+        float a = (float) (alpha & 255) / 255.0f;
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer wr = tessellator.getWorldRenderer();
         GlStateManager.enableBlend();
@@ -574,21 +579,29 @@ public class RenderUtil {
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
         GlStateManager.shadeModel(GL11.GL_SMOOTH);
         wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+
+        int prevColor = java.awt.Color.HSBtoRGB(0.0f, saturation, brightness);
+        float r1 = ((prevColor >> 16) & 255) / 255.0f;
+        float g1 = ((prevColor >> 8) & 255) / 255.0f;
+        float b1 = (prevColor & 255) / 255.0f;
+
         for (int i = 0; i < segments; i++) {
             float x1 = x + i * segW;
             float x2 = (i == segments - 1) ? x + width : x + (i + 1) * segW;
-            int c1 = RAINBOW_COLORS[i];
-            int c2 = RAINBOW_COLORS[i + 1];
-            float r1 = ((c1 >> 16) & 255) / 255.0f;
-            float g1 = ((c1 >> 8) & 255) / 255.0f;
-            float b1 = (c1 & 255) / 255.0f;
-            float r2 = ((c2 >> 16) & 255) / 255.0f;
-            float g2 = ((c2 >> 8) & 255) / 255.0f;
-            float b2 = (c2 & 255) / 255.0f;
-            wr.pos(x1, y + height, 0).color(r1, g1, b1, 1.0f).endVertex();
-            wr.pos(x2, y + height, 0).color(r2, g2, b2, 1.0f).endVertex();
-            wr.pos(x2, y, 0).color(r2, g2, b2, 1.0f).endVertex();
-            wr.pos(x1, y, 0).color(r1, g1, b1, 1.0f).endVertex();
+            float h2 = (float) (i + 1) / segments;
+            int nextColor = java.awt.Color.HSBtoRGB(h2, saturation, brightness);
+            float r2 = ((nextColor >> 16) & 255) / 255.0f;
+            float g2 = ((nextColor >> 8) & 255) / 255.0f;
+            float b2 = (nextColor & 255) / 255.0f;
+
+            wr.pos(x1, y + height, 0).color(r1, g1, b1, a).endVertex();
+            wr.pos(x2, y + height, 0).color(r2, g2, b2, a).endVertex();
+            wr.pos(x2, y, 0).color(r2, g2, b2, a).endVertex();
+            wr.pos(x1, y, 0).color(r1, g1, b1, a).endVertex();
+
+            r1 = r2;
+            g1 = g2;
+            b1 = b2;
         }
         tessellator.draw();
         GlStateManager.shadeModel(GL11.GL_FLAT);
