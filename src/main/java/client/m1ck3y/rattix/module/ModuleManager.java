@@ -208,7 +208,7 @@ public class ModuleManager {
                 Fullbright.class,
                 Keystrokes.class,
                 PingDisplay.class,
-                TimeChanger.class,
+                Ambiance.class,
                 ToggleSprint.class
         };
         for (Class<?> c : fallbacks) {

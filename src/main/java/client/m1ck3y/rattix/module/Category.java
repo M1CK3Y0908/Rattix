@@ -21,7 +21,7 @@ public class Category {
             "ClickGUI",
             "ArmorStatus",
             "Fullbright",
-            "TimeChanger",
+            "Ambiance",
             "Crosshair",
             "FPSDisplay",
             "CPSDisplay",
