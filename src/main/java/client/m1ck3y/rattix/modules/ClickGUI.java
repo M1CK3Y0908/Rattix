@@ -1946,15 +1946,6 @@ public class ClickGUI extends Register {
                         }
 
                         drawString2x(cs.getName(), itemX, settingY + 2, 0xFFD7D7D7);
-                        float nameW = getStringWidth2x(cs.getName());
-
-                        float swatchX = itemX + nameW + 10.0f;
-                        float swatchW = 26.0f;
-                        float swatchH = 14.0f;
-                        float swatchY = settingY + (rowH - swatchH) / 2.0f;
-                        RenderUtil.drawDropShadow(swatchX, swatchY, swatchW, swatchH, 3.0f, 4.0f, 0x40000000);
-                        RenderUtil.drawRoundedRect(swatchX, swatchY, swatchW, swatchH, 3.0f, cs.getRGB());
-                        RenderUtil.drawRectOutline(swatchX, swatchY, swatchW, swatchH, 1.0f, 0xFF404040);
                     }
                     lastRowCenterY = headerCenterY;
                     prevBranchY = headerCenterY;
@@ -2473,15 +2464,6 @@ public class ClickGUI extends Register {
                                                     if (!isLastTop) drawTreeTrunk(trunkX1, prevL1Y, headerCenterY);
 
                                                     drawString2x(cs.getName(), subItemX, settingY + 2, 0xFFD7D7D7);
-                                                    float nameW = getStringWidth2x(cs.getName());
-
-                                                    float swatchX = subItemX + nameW + 10.0f;
-                                                    float swatchW = 26.0f;
-                                                    float swatchH = 14.0f;
-                                                    float swatchY = settingY + (rowH - swatchH) / 2.0f;
-                                                    RenderUtil.drawDropShadow(swatchX, swatchY, swatchW, swatchH, 3.0f, 4.0f, 0x40000000);
-                                                    RenderUtil.drawRoundedRect(swatchX, swatchY, swatchW, swatchH, 3.0f, cs.getRGB());
-                                                    RenderUtil.drawRectOutline(swatchX, swatchY, swatchW, swatchH, 1.0f, 0xFF404040);
                                                 }
                                                 prevSubY = headerCenterY;
                                                 prevL1Y = headerCenterY;
