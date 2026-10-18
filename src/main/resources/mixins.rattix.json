@@ -13,6 +13,11 @@
     "MixinGuiMainMenu",
     "MixinGuiScreen",
     "MixinLoadingScreenRenderer",
-    "MixinEntityRenderer"
+    "MixinEntityRenderer",
+    "MixinWorld",
+    "MixinBiomeGenBase",
+    "MixinBiomeColorHelper",
+    "MixinColorizerFoliage",
+    "MixinColorizerGrass"
   ]
 }
