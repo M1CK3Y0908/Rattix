@@ -11,7 +11,7 @@ import net.minecraft.client.gui.ScaledResolution;
 public class Crosshair extends Module {
     public NumberSetting length = new NumberSetting("Length", 4, 1, 10, 1);
     public NumberSetting gap = new NumberSetting("Gap", 2, 0, 8, 1);
-    public BooleanSetting dot = new BooleanSetting("Center Dot", true);
+    public BooleanSetting dot = new BooleanSetting("CenterDot", true);
 
     public Crosshair() {
         super("Customizable screen crosshair.", Category.VISUAL);

@@ -29,7 +29,7 @@ public abstract class MixinWorld {
     }
 
     /**
-     * 阻止服务器时间数据包覆盖客户端时间
+     * 阻止服务器时间数据包覆盖客户端时间，并同步备份最新服务端时间
      */
     @Inject(method = "setWorldTime", at = @At("HEAD"), cancellable = true)
     private void onSetWorldTime(long time, CallbackInfo ci) {
@@ -56,14 +56,18 @@ public abstract class MixinWorld {
     }
 
     /**
-     * 自定义降雨/降雪强度，确保下雨或下雪时天气渲染强度恒定为 1.0F
+     * 自定义降雨/降雪强度：根据 Weather 单选模式设定（Rain/Snow 恒定 1.0F，Clear 恒定 0.0F）
      */
     @Inject(method = "getRainStrength", at = @At("HEAD"), cancellable = true)
     private void onGetRainStrength(float partialTicks, CallbackInfoReturnable<Float> cir) {
         if (this.isRemote) {
             Ambiance ambiance = Ambiance.getInstance();
-            if (ambiance != null && ambiance.isEnabled() && (ambiance.rain.getValue() || ambiance.snow.getValue())) {
-                cir.setReturnValue(1.0F);
+            if (ambiance != null && ambiance.isEnabled()) {
+                if (ambiance.isWeatherRain() || ambiance.isWeatherSnow()) {
+                    cir.setReturnValue(1.0F);
+                } else if (ambiance.isWeatherClear()) {
+                    cir.setReturnValue(0.0F);
+                }
             }
         }
     }
@@ -75,8 +79,12 @@ public abstract class MixinWorld {
     private void onGetThunderStrength(float partialTicks, CallbackInfoReturnable<Float> cir) {
         if (this.isRemote) {
             Ambiance ambiance = Ambiance.getInstance();
-            if (ambiance != null && ambiance.isEnabled() && ambiance.thunder.getValue()) {
-                cir.setReturnValue(1.0F);
+            if (ambiance != null && ambiance.isEnabled()) {
+                if (ambiance.thunder.getValue()) {
+                    cir.setReturnValue(1.0F);
+                } else if (ambiance.isWeatherClear()) {
+                    cir.setReturnValue(0.0F);
+                }
             }
         }
     }

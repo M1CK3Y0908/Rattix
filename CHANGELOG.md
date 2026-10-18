@@ -1,3 +1,15 @@
+### **UPDATE LOG 101826(6)**
+
+[*]Standardize **Setting Naming Convention** Unified all setting display names across the client to PascalCase (`MinDamage` format) with strictly no whitespace
+[*]Refactor **Weather Mode Setting** Migrated weather controls to a single-choice mode selector (`Weather: Vanilla, Clear, Rain, Snow`)
+[+]Add **Rain Customizer** Added full rain rendering customization engine in `Ambiance` module
+[+]Add **RainSize Setting** Customizable raindrop streak width and vertical scale multiplier (`0.1x - 5.0x`)
+[+]Add **RainColor Setting** Full RGB custom raindrop coloration with color picker and palette support
+[+]Add **RainOpacity Setting** Real-time raindrop transparency and alpha adjustment (`0.0% - 100.0%`)
+[+]Add **RainDensity Setting** Particle density control supporting light sparse drizzles (`0.1x`) up to torrential multi-streak downpours (`5.0x`)
+[+]Add **Custom Rain Pipeline** Injected custom rain vertex generator into `MixinEntityRenderer.renderRainSnow` with GL state protection and lightmap coordination
+[*]Refactor **Config Backward Compatibility** Added space-insensitive key matching in `ClickGuiConfig` ensuring existing configs migrate smoothly without losing color preferences
+
 ### **UPDATE LOG 101826(5)**
 
 [*]Fix **Sky Flickering** Intercepted `World.getWorldTime` and `World.getCelestialAngle` to eliminate rapid sky flashing caused by server `S03PacketTimeUpdate` packets
@@ -9,6 +21,7 @@
 [+]Add **Lightning Modes** Added 6 selectable strike frequencies (`Vanilla`, `Uncommon`, `Common`, `Frequent`, `Intense`, `Chaotic`)
 [+]Add **Positional Thunder Audio** Added 3D positional `ambient.weather.thunder` sound effects with pitch randomization (`0.8x - 1.0x`) and anti-clipping cooldown control
 [+]Add **Weather State Backup** Seamlessly backs up server world time, rain state, and thunder state, restoring them smoothly upon module disable
+[*]Refactor **Weather Setting** Consolidated weather controls into a single-choice mode selector: `Weather: Vanilla, Clear, Rain, Snow`
 [+]Add **Plant Color Mixins** Added `MixinBiomeColorHelper`, `MixinColorizerFoliage`, `MixinColorizerGrass`, and `MixinBiomeGenBase` for full foliage color coverage
 
 ### **UPDATE LOG 101826(4)**

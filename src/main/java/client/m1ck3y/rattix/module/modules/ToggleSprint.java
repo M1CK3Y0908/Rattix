@@ -10,7 +10,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
 
 public class ToggleSprint extends Module {
-    public BooleanSetting showText = new BooleanSetting("Show HUD Status", true);
+    public BooleanSetting showText = new BooleanSetting("ShowHudStatus", true);
     public BooleanSetting showBackground = new BooleanSetting("Background", true);
 
     public ToggleSprint() {

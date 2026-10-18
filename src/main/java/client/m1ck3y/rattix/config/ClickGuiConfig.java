@@ -141,14 +141,27 @@ public class ClickGuiConfig {
                 ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
                 if (clickGui != null) {
                     for (Setting<?> s : clickGui.getSettings()) {
-                        if (s instanceof ColorSetting && colorsObj.has(s.getName())) {
+                        if (s instanceof ColorSetting) {
                             ColorSetting cs = (ColorSetting) s;
-                            JsonObject cObj = colorsObj.getAsJsonObject(s.getName());
-                            if (cObj.has("color")) cs.setColor(cObj.get("color").getAsInt());
-                            if (cObj.has("rainbow")) cs.setRainbow(cObj.get("rainbow").getAsBoolean());
-                            if (cObj.has("fade")) cs.setFade(cObj.get("fade").getAsBoolean());
-                            if (cObj.has("astolfo")) cs.setAstolfo(cObj.get("astolfo").getAsBoolean());
-                            if (cObj.has("clientColor")) cs.setClientColor(cObj.get("clientColor").getAsBoolean());
+                            String name = s.getName();
+                            JsonObject cObj = null;
+                            if (colorsObj.has(name)) {
+                                cObj = colorsObj.getAsJsonObject(name);
+                            } else {
+                                for (java.util.Map.Entry<String, JsonElement> entry : colorsObj.entrySet()) {
+                                    if (entry.getKey().replace(" ", "").equalsIgnoreCase(name.replace(" ", "")) && entry.getValue().isJsonObject()) {
+                                        cObj = entry.getValue().getAsJsonObject();
+                                        break;
+                                    }
+                                }
+                            }
+                            if (cObj != null) {
+                                if (cObj.has("color")) cs.setColor(cObj.get("color").getAsInt());
+                                if (cObj.has("rainbow")) cs.setRainbow(cObj.get("rainbow").getAsBoolean());
+                                if (cObj.has("fade")) cs.setFade(cObj.get("fade").getAsBoolean());
+                                if (cObj.has("astolfo")) cs.setAstolfo(cObj.get("astolfo").getAsBoolean());
+                                if (cObj.has("clientColor")) cs.setClientColor(cObj.get("clientColor").getAsBoolean());
+                            }
                         }
                     }
                 }

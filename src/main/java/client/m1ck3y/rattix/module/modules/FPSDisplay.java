@@ -9,7 +9,7 @@ import client.m1ck3y.rattix.utils.RenderUtil;
 import net.minecraft.client.Minecraft;
 
 public class FPSDisplay extends Module {
-    public BooleanSetting showLabel = new BooleanSetting("Show 'FPS' text", true);
+    public BooleanSetting showLabel = new BooleanSetting("ShowFPSText", true);
 
     public FPSDisplay() {
         super("Shows current Frames Per Second.", Category.VISUAL);

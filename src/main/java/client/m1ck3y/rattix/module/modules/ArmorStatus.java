@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
 
 public class ArmorStatus extends Module {
-    public BooleanSetting showDamage = new BooleanSetting("Show Durability", true);
+    public BooleanSetting showDamage = new BooleanSetting("ShowDurability", true);
 
     public ArmorStatus() {
         super("Displays equipped armor and held items with durability.", Category.VISUAL);

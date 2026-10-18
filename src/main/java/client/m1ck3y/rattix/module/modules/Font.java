@@ -23,16 +23,16 @@ public class Font {
     private String selectedFont = "Minecraft";
 
     public final NumberSetting size = new NumberSetting("Size", 100.0, 50.0, 150.0, 1.0, "Global Settings");
-    public final NumberSetting offsetX = new NumberSetting("Offset X", 0.0, -10.0, 10.0, 0.5, "Global Settings");
-    public final NumberSetting offsetY = new NumberSetting("Offset Y", 0.0, -10.0, 10.0, 0.5, "Global Settings");
+    public final NumberSetting offsetX = new NumberSetting("OffsetX", 0.0, -10.0, 10.0, 0.5, "Global Settings");
+    public final NumberSetting offsetY = new NumberSetting("OffsetY", 0.0, -10.0, 10.0, 0.5, "Global Settings");
     public final BooleanSetting shadow = new BooleanSetting("Shadow", true, "Global Settings");
     public final ModeSetting shadowMode = new ModeSetting("Mode", "Vanilla", "Global Settings", new String[]{"Vanilla", "Custom"}).withParent(shadow);
     public final ColorSetting shadowColor = new ColorSetting("Color", 0x80000000, "Global Settings").withParent(shadow);
-    public final NumberSetting shadowOffsetX = new NumberSetting("Position X Offset", 1.0, -10.0, 10.0, 0.5, "Global Settings").withParent(shadow);
-    public final NumberSetting shadowOffsetY = new NumberSetting("Position Y Offset", 1.0, -10.0, 10.0, 0.5, "Global Settings").withParent(shadow);
+    public final NumberSetting shadowOffsetX = new NumberSetting("PositionXOffset", 1.0, -10.0, 10.0, 0.5, "Global Settings").withParent(shadow);
+    public final NumberSetting shadowOffsetY = new NumberSetting("PositionYOffset", 1.0, -10.0, 10.0, 0.5, "Global Settings").withParent(shadow);
     public final BooleanSetting outline = new BooleanSetting("Outline", false, "Global Settings");
-    public final NumberSetting outlineWidth = new NumberSetting("Outline Width", 1.0, 0.5, 2.0, 0.1, "Global Settings");
-    public final ModeSetting outlineColor = new ModeSetting("Outline Color", "Black", "Global Settings", new String[]{"Black", "Dark", "50% Alpha"});
+    public final NumberSetting outlineWidth = new NumberSetting("OutlineWidth", 1.0, 0.5, 2.0, 0.1, "Global Settings");
+    public final ModeSetting outlineColor = new ModeSetting("OutlineColor", "Black", "Global Settings", new String[]{"Black", "Dark", "50% Alpha"});
 
     // Pre-cached fast access primitive fields for zero-allocation rendering loop
     public volatile float cachedEffectiveScale = 1.0f;

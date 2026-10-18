@@ -7,11 +7,11 @@ import client.m1ck3y.rattix.module.Module;
 import client.m1ck3y.rattix.utils.shader.ShaderManager;
 
 public class MenuShader extends Module {
-    public CheckBoxSetting enableShader = new CheckBoxSetting("Enable Shader", "enable_shader", true);
-    public CheckBoxSetting allMenus = new CheckBoxSetting("All Menus Background", "all_menus", true);
-    public CheckBoxSetting loadingScreens = new CheckBoxSetting("Loading Screens", "loading_screens", true);
+    public CheckBoxSetting enableShader = new CheckBoxSetting("EnableShader", "enable_shader", true);
+    public CheckBoxSetting allMenus = new CheckBoxSetting("AllMenusBackground", "all_menus", true);
+    public CheckBoxSetting loadingScreens = new CheckBoxSetting("LoadingScreens", "loading_screens", true);
     public NumberSetting resolution = new NumberSetting("Resolution", 100.0, 0.0, 200.0, 5.0, "Performance");
-    public NumberSetting fpsLimit = new NumberSetting("FPS Limit", 0.0, 0.0, 600.0, 10.0, "Performance");
+    public NumberSetting fpsLimit = new NumberSetting("FpsLimit", 0.0, 0.0, 600.0, 10.0, "Performance");
     public NumberSetting speed = new NumberSetting("Speed", 1.0, 0.0, 10.0, 0.1, "Animation");
 
     private static MenuShader instance;

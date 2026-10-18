@@ -20,9 +20,9 @@ public abstract class MixinBiomeGenBase {
     private void onGetFloatTemperature(BlockPos pos, CallbackInfoReturnable<Float> cir) {
         Ambiance ambiance = Ambiance.getInstance();
         if (ambiance != null && ambiance.isEnabled()) {
-            if (ambiance.snow.getValue()) {
+            if (ambiance.isWeatherSnow()) {
                 cir.setReturnValue(-1.0F);
-            } else if (ambiance.rain.getValue()) {
+            } else if (ambiance.isWeatherRain()) {
                 cir.setReturnValue(1.0F);
             }
         }
@@ -34,7 +34,7 @@ public abstract class MixinBiomeGenBase {
     @Inject(method = "getEnableSnow", at = @At("HEAD"), cancellable = true)
     private void onGetEnableSnow(CallbackInfoReturnable<Boolean> cir) {
         Ambiance ambiance = Ambiance.getInstance();
-        if (ambiance != null && ambiance.isEnabled() && ambiance.snow.getValue()) {
+        if (ambiance != null && ambiance.isEnabled() && ambiance.isWeatherSnow()) {
             cir.setReturnValue(true);
         }
     }
@@ -45,7 +45,7 @@ public abstract class MixinBiomeGenBase {
     @Inject(method = "isSnowyBiome", at = @At("HEAD"), cancellable = true)
     private void onIsSnowyBiome(CallbackInfoReturnable<Boolean> cir) {
         Ambiance ambiance = Ambiance.getInstance();
-        if (ambiance != null && ambiance.isEnabled() && ambiance.snow.getValue()) {
+        if (ambiance != null && ambiance.isEnabled() && ambiance.isWeatherSnow()) {
             cir.setReturnValue(true);
         }
     }
@@ -57,9 +57,9 @@ public abstract class MixinBiomeGenBase {
     private void onCanRain(CallbackInfoReturnable<Boolean> cir) {
         Ambiance ambiance = Ambiance.getInstance();
         if (ambiance != null && ambiance.isEnabled()) {
-            if (ambiance.rain.getValue()) {
+            if (ambiance.isWeatherRain()) {
                 cir.setReturnValue(true);
-            } else if (ambiance.snow.getValue()) {
+            } else if (ambiance.isWeatherSnow() || ambiance.isWeatherClear()) {
                 cir.setReturnValue(false);
             }
         }

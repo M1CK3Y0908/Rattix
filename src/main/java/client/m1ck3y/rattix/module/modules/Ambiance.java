@@ -25,7 +25,7 @@ import java.util.Set;
 
 /**
  * Augustus 与 RavenXD 风格融合优化的 Ambiance (环境与氛围) 模块。
- * 允许玩家自由定制世界时间、时间流速、天气（雨/雪/雷暴与动态雷击引擎）、植被颜色（草地/树叶等）、迷雾颜色与迷雾可视距离。
+ * 允许玩家自由定制世界时间、时间流速、天气（单选：Vanilla / Clear / Rain / Snow 与动态雷击引擎）、植被颜色（草地/树叶等）、迷雾颜色与迷雾可视距离。
  */
 public class Ambiance extends Module {
     private static Ambiance instance;
@@ -41,24 +41,30 @@ public class Ambiance extends Module {
 
     // Time & Speed
     public final NumberSetting time = new NumberSetting("Time", 18000.0, 0.0, 24000.0, 100.0, "Time");
-    public final NumberSetting timeSpeed = new NumberSetting("Time Speed", 0.0, 0.0, 20.0, 0.5, "Time");
+    public final NumberSetting timeSpeed = new NumberSetting("TimeSpeed", 0.0, 0.0, 20.0, 0.5, "Time");
 
-    // Weather
-    public final CheckBoxSetting rain = new CheckBoxSetting("Rain", false, "Weather");
-    public final CheckBoxSetting snow = new CheckBoxSetting("Snow", false, "Weather");
+    // Weather (单选：Vanilla / Clear / Rain / Snow)
+    public final ModeSetting weather = new ModeSetting("Weather", "Clear", "Weather", new String[]{"Vanilla", "Clear", "Rain", "Snow"});
     public final CheckBoxSetting thunder = new CheckBoxSetting("Thunder", false, "Weather");
     public final ModeSetting lightningMode = new ModeSetting("Lightning", "Frequent", "Weather", new String[]{"Vanilla", "Uncommon", "Common", "Frequent", "Intense", "Chaotic"}).withParent(thunder);
-    public final CheckBoxSetting thunderSound = new CheckBoxSetting("Thunder Sound", true, "Weather").withParent(thunder);
+    public final CheckBoxSetting thunderSound = new CheckBoxSetting("ThunderSound", true, "Weather").withParent(thunder);
+
+    // Rain Customization (雨滴大小、颜色、不透明度、密度)
+    public final CheckBoxSetting customRain = new CheckBoxSetting("CustomRain", false, "Rain");
+    public final NumberSetting rainSize = new NumberSetting("RainSize", 1.0, 0.1, 5.0, 0.1, "Rain").withParent(customRain);
+    public final ColorSetting rainColor = new ColorSetting("RainColor", 0xFF80A0FF, "Rain").withParent(customRain);
+    public final NumberSetting rainOpacity = new NumberSetting("RainOpacity", 100.0, 0.0, 100.0, 1.0, "Rain").withParent(customRain);
+    public final NumberSetting rainDensity = new NumberSetting("RainDensity", 1.0, 0.1, 5.0, 0.1, "Rain").withParent(customRain);
 
     // World Color (植物与植被颜色：草地、树叶、藤蔓等)
-    public final CheckBoxSetting customWorldColor = new CheckBoxSetting("Custom World Color", false, "World");
-    public final ColorSetting worldColor = new ColorSetting("World Color", 0xFF38B6FF, "World").withParent(customWorldColor);
+    public final CheckBoxSetting customWorldColor = new CheckBoxSetting("CustomWorldColor", false, "World");
+    public final ColorSetting worldColor = new ColorSetting("WorldColor", 0xFF38B6FF, "World").withParent(customWorldColor);
 
     // Fog
-    public final CheckBoxSetting customFogColor = new CheckBoxSetting("Custom Fog Color", false, "Fog");
-    public final ColorSetting fogColor = new ColorSetting("Fog Color", 0xFF808080, "Fog").withParent(customFogColor);
-    public final CheckBoxSetting customFogDistance = new CheckBoxSetting("Custom Fog Distance", false, "Fog");
-    public final NumberSetting fogDistance = new NumberSetting("Fog Distance", 100.0, 10.0, 500.0, 5.0, "Fog").withParent(customFogDistance);
+    public final CheckBoxSetting customFogColor = new CheckBoxSetting("CustomFogColor", false, "Fog");
+    public final ColorSetting fogColor = new ColorSetting("FogColor", 0xFF808080, "Fog").withParent(customFogColor);
+    public final CheckBoxSetting customFogDistance = new CheckBoxSetting("CustomFogDistance", false, "Fog");
+    public final NumberSetting fogDistance = new NumberSetting("FogDistance", 100.0, 10.0, 500.0, 5.0, "Fog").withParent(customFogDistance);
 
     private double currentTime = 18000.0;
     private long savedTime = -1L;
@@ -102,7 +108,8 @@ public class Ambiance extends Module {
         instance = this;
         addSettings(
                 time, timeSpeed,
-                rain, snow, thunder, lightningMode, thunderSound,
+                weather, thunder, lightningMode, thunderSound,
+                customRain, rainSize, rainColor, rainOpacity, rainDensity,
                 customWorldColor, worldColor,
                 customFogColor, fogColor,
                 customFogDistance, fogDistance
@@ -111,6 +118,22 @@ public class Ambiance extends Module {
 
     public static Ambiance getInstance() {
         return instance;
+    }
+
+    public boolean isWeatherVanilla() {
+        return isEnabled() && "Vanilla".equalsIgnoreCase(weather.getValue());
+    }
+
+    public boolean isWeatherClear() {
+        return isEnabled() && "Clear".equalsIgnoreCase(weather.getValue());
+    }
+
+    public boolean isWeatherRain() {
+        return isEnabled() && "Rain".equalsIgnoreCase(weather.getValue());
+    }
+
+    public boolean isWeatherSnow() {
+        return isEnabled() && "Snow".equalsIgnoreCase(weather.getValue());
     }
 
     @Override
@@ -173,15 +196,22 @@ public class Ambiance extends Module {
             currentTime = time.getValue();
         }
 
-        // 2. 天气状态同步
+        // 2. 天气状态同步（根据 Weather: Vanilla, Clear, Rain, Snow）
         if (mc.theWorld.getWorldInfo() != null) {
-            if (rain.getValue() || snow.getValue()) {
+            if (isWeatherRain() || isWeatherSnow()) {
                 mc.theWorld.getWorldInfo().setRaining(true);
                 mc.theWorld.setRainStrength(1.0F);
+            } else if (isWeatherClear()) {
+                mc.theWorld.getWorldInfo().setRaining(false);
+                mc.theWorld.setRainStrength(0.0F);
             }
+
             if (thunder.getValue()) {
                 mc.theWorld.getWorldInfo().setThundering(true);
                 mc.theWorld.setThunderStrength(1.0F);
+            } else if (isWeatherClear()) {
+                mc.theWorld.getWorldInfo().setThundering(false);
+                mc.theWorld.setThunderStrength(0.0F);
             }
         }
 

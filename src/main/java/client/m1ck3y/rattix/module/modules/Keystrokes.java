@@ -9,7 +9,7 @@ import client.m1ck3y.rattix.utils.RenderUtil;
 import org.lwjgl.input.Mouse;
 
 public class Keystrokes extends Module {
-    public BooleanSetting showMouse = new BooleanSetting("Show Mouse Buttons", true);
+    public BooleanSetting showMouse = new BooleanSetting("ShowMouseButtons", true);
 
     public Keystrokes() {
         super("Displays movement keys and mouse presses on screen.", Category.VISUAL);

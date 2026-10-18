@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CPSDisplay extends Module {
-    public BooleanSetting showRMB = new BooleanSetting("Show Right Click", true);
+    public BooleanSetting showRMB = new BooleanSetting("ShowRightClick", true);
 
     private final List<Long> leftClicks = new ArrayList<>();
     private final List<Long> rightClicks = new ArrayList<>();

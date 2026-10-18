@@ -266,27 +266,27 @@ public abstract class Module {
 
     protected void initVisualSettings() {
         visualSize = new NumberSetting("Size", 100.0, -200.0, 200.0, 1.0, "Visual");
-        visualOffsetX = new NumberSetting("Offset X", 0.0, -10.0, 10.0, 0.5, "Visual");
-        visualOffsetY = new NumberSetting("Offset Y", 0.0, -10.0, 10.0, 0.5, "Visual");
+        visualOffsetX = new NumberSetting("OffsetX", 0.0, -10.0, 10.0, 0.5, "Visual");
+        visualOffsetY = new NumberSetting("OffsetY", 0.0, -10.0, 10.0, 0.5, "Visual");
 
         visualText = new BooleanSetting("Text", true, "Visual");
-        visualTextSize = new NumberSetting("Text Size", 100.0, -200.0, 200.0, 1.0, "Visual").withParent(visualText);
+        visualTextSize = new NumberSetting("TextSize", 100.0, -200.0, 200.0, 1.0, "Visual").withParent(visualText);
         visualTextColor = new ColorSetting("Color", 0xFF38B6FF, "Visual").withParent(visualText);
         visualShadow = new BooleanSetting("Shadow", true, "Visual").withParent(visualText);
-        visualShadowColor = new ColorSetting("Shadow Color", 0x80000000, "Visual").withParent(visualShadow);
-        visualShadowOffsetX = new NumberSetting("Shadow Offset X", 1.0, -10.0, 10.0, 0.5, "Visual").withParent(visualShadow);
-        visualShadowOffsetY = new NumberSetting("Shadow Offset Y", 1.0, -10.0, 10.0, 0.5, "Visual").withParent(visualShadow);
+        visualShadowColor = new ColorSetting("ShadowColor", 0x80000000, "Visual").withParent(visualShadow);
+        visualShadowOffsetX = new NumberSetting("ShadowOffsetX", 1.0, -10.0, 10.0, 0.5, "Visual").withParent(visualShadow);
+        visualShadowOffsetY = new NumberSetting("ShadowOffsetY", 1.0, -10.0, 10.0, 0.5, "Visual").withParent(visualShadow);
 
         visualBackground = new BooleanSetting("Background", true, "Visual");
-        visualBgSize = new NumberSetting("Background Size", 100.0, -200.0, 200.0, 1.0, "Visual").withParent(visualBackground);
-        visualBgOffsetX = new NumberSetting("Background Offset X", 0.0, -10.0, 10.0, 0.5, "Visual").withParent(visualBackground);
-        visualBgOffsetY = new NumberSetting("Background Offset Y", 0.0, -10.0, 10.0, 0.5, "Visual").withParent(visualBackground);
-        visualBgColor = new ColorSetting("Background Color", 0x90000000, "Visual").withParent(visualBackground);
-        visualBgRadius = new NumberSetting("Background Radius", 4.0, 0.0, 20.0, 0.5, "Visual").withParent(visualBackground);
-        visualBgOutline = new BooleanSetting("Background Outline", true, "Visual").withParent(visualBackground);
-        visualOutlineColor = new ColorSetting("Outline Color", 0x25FFFFFF, "Visual").withParent(visualBgOutline);
-        visualOutlineWidth = new NumberSetting("Outline Width", 1.0, 0.5, 5.0, 0.5, "Visual").withParent(visualBgOutline);
-        visualOutlinePosition = new ModeSetting("Outline Position", "Center", "Visual", "Inside", "Center", "Outside").withParent(visualBgOutline);
+        visualBgSize = new NumberSetting("BackgroundSize", 100.0, -200.0, 200.0, 1.0, "Visual").withParent(visualBackground);
+        visualBgOffsetX = new NumberSetting("BackgroundOffsetX", 0.0, -10.0, 10.0, 0.5, "Visual").withParent(visualBackground);
+        visualBgOffsetY = new NumberSetting("BackgroundOffsetY", 0.0, -10.0, 10.0, 0.5, "Visual").withParent(visualBackground);
+        visualBgColor = new ColorSetting("BackgroundColor", 0x90000000, "Visual").withParent(visualBackground);
+        visualBgRadius = new NumberSetting("BackgroundRadius", 4.0, 0.0, 20.0, 0.5, "Visual").withParent(visualBackground);
+        visualBgOutline = new BooleanSetting("BackgroundOutline", true, "Visual").withParent(visualBackground);
+        visualOutlineColor = new ColorSetting("OutlineColor", 0x25FFFFFF, "Visual").withParent(visualBgOutline);
+        visualOutlineWidth = new NumberSetting("OutlineWidth", 1.0, 0.5, 5.0, 0.5, "Visual").withParent(visualBgOutline);
+        visualOutlinePosition = new ModeSetting("OutlinePosition", "Center", "Visual", "Inside", "Center", "Outside").withParent(visualBgOutline);
 
         addSettings(
                 visualSize, visualOffsetX, visualOffsetY,
