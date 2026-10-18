@@ -56,17 +56,32 @@ public abstract class MixinWorld {
     }
 
     /**
-     * 自定义降雨/降雪强度：根据 Weather 单选模式设定（Rain/Snow 恒定 1.0F，Clear 恒定 0.0F）
+     * 自定义降雨/降雪强度：根据 Weather 单选模式与 CustomRain 设定（参考 Augustus 实现）
      */
     @Inject(method = "getRainStrength", at = @At("HEAD"), cancellable = true)
     private void onGetRainStrength(float partialTicks, CallbackInfoReturnable<Float> cir) {
         if (this.isRemote) {
             Ambiance ambiance = Ambiance.getInstance();
             if (ambiance != null && ambiance.isEnabled()) {
-                if (ambiance.isWeatherRain() || ambiance.isWeatherSnow()) {
-                    cir.setReturnValue(1.0F);
-                } else if (ambiance.isWeatherClear()) {
+                if (ambiance.isWeatherClear()) {
                     cir.setReturnValue(0.0F);
+                } else if (ambiance.isRainingActive()) {
+                    cir.setReturnValue(1.0F);
+                }
+            }
+        }
+    }
+
+    /**
+     * 阻止服务器天气数据包在 Ambiance 生效时重置客户端降雨强度（参考 Augustus 实现）
+     */
+    @Inject(method = "setRainStrength", at = @At("HEAD"), cancellable = true)
+    private void onSetRainStrength(float strength, CallbackInfo ci) {
+        if (this.isRemote) {
+            Ambiance ambiance = Ambiance.getInstance();
+            if (ambiance != null && ambiance.isEnabled()) {
+                if (ambiance.isWeatherClear() || ambiance.isRainingActive()) {
+                    ci.cancel();
                 }
             }
         }
@@ -80,10 +95,10 @@ public abstract class MixinWorld {
         if (this.isRemote) {
             Ambiance ambiance = Ambiance.getInstance();
             if (ambiance != null && ambiance.isEnabled()) {
-                if (ambiance.thunder.getValue()) {
-                    cir.setReturnValue(1.0F);
-                } else if (ambiance.isWeatherClear()) {
+                if (ambiance.isWeatherClear()) {
                     cir.setReturnValue(0.0F);
+                } else if (ambiance.thunder.getValue()) {
+                    cir.setReturnValue(1.0F);
                 }
             }
         }

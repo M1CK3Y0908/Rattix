@@ -136,6 +136,12 @@ public class Ambiance extends Module {
         return isEnabled() && "Snow".equalsIgnoreCase(weather.getValue());
     }
 
+    public boolean isRainingActive() {
+        if (!isEnabled()) return false;
+        if (isWeatherClear()) return false;
+        return isWeatherRain() || isWeatherSnow() || customRain.getValue();
+    }
+
     @Override
     public void onEnable() {
         MinecraftForge.EVENT_BUS.register(this);
@@ -196,9 +202,9 @@ public class Ambiance extends Module {
             currentTime = time.getValue();
         }
 
-        // 2. 天气状态同步（根据 Weather: Vanilla, Clear, Rain, Snow）
+        // 2. 天气状态同步（参考 Augustus 与 RavenXD 实现）
         if (mc.theWorld.getWorldInfo() != null) {
-            if (isWeatherRain() || isWeatherSnow()) {
+            if (isRainingActive()) {
                 mc.theWorld.getWorldInfo().setRaining(true);
                 mc.theWorld.setRainStrength(1.0F);
             } else if (isWeatherClear()) {
@@ -206,7 +212,7 @@ public class Ambiance extends Module {
                 mc.theWorld.setRainStrength(0.0F);
             }
 
-            if (thunder.getValue()) {
+            if (thunder.getValue() && !isWeatherClear()) {
                 mc.theWorld.getWorldInfo().setThundering(true);
                 mc.theWorld.setThunderStrength(1.0F);
             } else if (isWeatherClear()) {

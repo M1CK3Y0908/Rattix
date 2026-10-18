@@ -1,3 +1,14 @@
+### **UPDATE LOG 101826(7)**
+
+[*]Refactor **Augustus Weather Architecture** Realigned Ambiance weather handling with Augustus's proven architectural pipeline, driving precipitation state via `World.getRainStrength`, `World.setRainStrength`, and biome environmental parameters
+[*]Fix **Custom Rain Activation** Fixed an issue where custom rain would not trigger under Vanilla/Clear server weather; `isRainingActive` now reliably engages client-side rainfall when `CustomRain` is enabled or `Weather` is set to `Rain`/`Snow`
+[*]Fix **Server Weather Overwrite** Injected `World.setRainStrength` in `MixinWorld` to prevent incoming server packets from resetting client-side weather states while Ambiance is active
+[*]Fix **Rain Drop Jitter & Particle Glitches** Completely eliminated frame-to-frame particle vibrating/jittering by replacing unseeded per-frame random calls with deterministic coordinate-based hash offsets
+[*]Refactor **Custom Rain Rendering Pipeline** Enhanced `renderCustomRainSnow` with stable UV texture coordinate mapping, proportional `RainSize` quad scaling, ARGB color tinting (`RainColor`), alpha opacity blending (`RainOpacity`), and smooth density distribution (`RainDensity`)
+[*]Fix **OptiFine & Shader Compatibility** Seamlessly falls back to Augustus-style native weather rendering when `CustomRain` is unchecked, preserving 100% compatibility with OptiFine, shaders, and custom sky packs
+[*]Fix **Obfuscation Refmap Packaging** Generated complete 8,930-byte `mixins.rattix.refmap.json` mapping all Searge and Notch obfuscated targets (`bfk.class`, `adm.class`, `ady.class`) in the packaged release jar
+[*]Deploy **Client Mod Build** Recompiled and deployed reobfuscated jar to `D:\Minecraft\.minecraft\versions\Raven b4\mods\Rattix-1.0.0.jar`
+
 ### **UPDATE LOG 101826(6)**
 
 [*]Standardize **Setting Naming Convention** Unified all setting display names across the client to PascalCase (`MinDamage` format) with strictly no whitespace

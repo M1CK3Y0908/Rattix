@@ -1,8 +1,37 @@
 {
   "mappings": {
+    "client/m1ck3y/rattix/injection/mixin/MixinEntityRenderer": {
+      "setupFog": "Lnet/minecraft/client/renderer/EntityRenderer;func_78468_a(IF)V",
+      "Lnet/minecraft/world/biome/WorldChunkManager;getTemperatureAtHeight(FI)F": "Lnet/minecraft/world/biome/WorldChunkManager;func_76939_a(FI)F",
+      "renderRainSnow": "Lnet/minecraft/client/renderer/EntityRenderer;func_78474_d(F)V"
+    },
     "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
-      "drawSplashScreen": "Lnet/minecraft/client/Minecraft;func_180510_a(Lnet/minecraft/client/renderer/texture/TextureManager;)V",
-      "drawSplashScreen(Lnet/minecraft/client/renderer/texture/TextureManager;)V": "Lnet/minecraft/client/Minecraft;func_180510_a(Lnet/minecraft/client/renderer/texture/TextureManager;)V"
+      "drawSplashScreen": "Lnet/minecraft/client/Minecraft;func_180510_a(Lnet/minecraft/client/renderer/texture/TextureManager;)V"
+    },
+    "client/m1ck3y/rattix/injection/mixin/MixinBiomeGenBase": {
+      "getFloatTemperature": "Lnet/minecraft/world/biome/BiomeGenBase;func_180626_a(Lnet/minecraft/util/BlockPos;)F",
+      "isSnowyBiome": "Lnet/minecraft/world/biome/BiomeGenBase;func_150559_j()Z",
+      "getEnableSnow": "Lnet/minecraft/world/biome/BiomeGenBase;func_76746_c()Z",
+      "canRain": "Lnet/minecraft/world/biome/BiomeGenBase;func_76738_d()Z",
+      "getGrassColorAtPos": "Lnet/minecraft/world/biome/BiomeGenBase;func_180627_b(Lnet/minecraft/util/BlockPos;)I",
+      "getFoliageColorAtPos": "Lnet/minecraft/world/biome/BiomeGenBase;func_180625_c(Lnet/minecraft/util/BlockPos;)I"
+    },
+    "client/m1ck3y/rattix/injection/mixin/MixinColorizerFoliage": {
+      "getFoliageColor": "Lnet/minecraft/world/ColorizerFoliage;func_77470_a(DD)I",
+      "getFoliageColorBirch": "Lnet/minecraft/world/ColorizerFoliage;func_77469_b()I",
+      "getFoliageColorPine": "Lnet/minecraft/world/ColorizerFoliage;func_77466_a()I",
+      "getFoliageColorBasic": "Lnet/minecraft/world/ColorizerFoliage;func_77468_c()I"
+    },
+    "client/m1ck3y/rattix/injection/mixin/MixinWorld": {
+      "setWorldTime": "Lnet/minecraft/world/World;func_72877_b(J)V",
+      "setRainStrength": "Lnet/minecraft/world/World;func_72894_k(F)V",
+      "getWorldTime": "Lnet/minecraft/world/World;func_72820_D()J",
+      "getCelestialAngle": "Lnet/minecraft/world/World;func_72826_c(F)F",
+      "getRainStrength": "Lnet/minecraft/world/World;func_72867_j(F)F",
+      "getThunderStrength": "Lnet/minecraft/world/World;func_72819_i(F)F"
+    },
+    "client/m1ck3y/rattix/injection/mixin/MixinColorizerGrass": {
+      "getGrassColor": "Lnet/minecraft/world/ColorizerGrass;func_77480_a(DD)I"
     },
     "client/m1ck3y/rattix/injection/mixin/MixinGuiMainMenu": {
       "mouseClicked": "Lnet/minecraft/client/gui/GuiMainMenu;func_73864_a(III)V",
@@ -12,26 +41,47 @@
     },
     "client/m1ck3y/rattix/injection/mixin/MixinGuiScreen": {
       "drawBackground": "Lnet/minecraft/client/gui/GuiScreen;func_146278_c(I)V",
-      "drawScreen": "Lnet/minecraft/client/gui/GuiScreen;func_73863_a(IIF)V",
-      "width": "field_146294_l",
-      "height": "field_146295_m",
-      "mc": "field_146297_k"
+      "drawScreen": "Lnet/minecraft/client/gui/GuiScreen;func_73863_a(IIF)V"
     },
-    "client/m1ck3y/rattix/injection/mixin/MixinLoadingScreenRenderer": {
-      "setLoadingProgress": "Lnet/minecraft/client/LoadingScreenRenderer;func_73718_a(I)V",
-      "mc": "field_73725_b",
-      "message": "field_73727_a",
-      "currentlyDisplayedText": "field_73726_c",
-      "systemTime": "field_73723_d",
-      "framebuffer": "field_146588_g",
-      "scaledResolution": "field_146587_f"
+    "client/m1ck3y/rattix/injection/mixin/MixinBiomeColorHelper": {
+      "getGrassColorAtPos": "Lnet/minecraft/world/biome/BiomeColorHelper;func_180286_a(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/BlockPos;)I",
+      "getFoliageColorAtPos": "Lnet/minecraft/world/biome/BiomeColorHelper;func_180287_b(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/BlockPos;)I"
     }
   },
   "data": {
     "notch": {
+      "client/m1ck3y/rattix/injection/mixin/MixinEntityRenderer": {
+        "setupFog": "Lbfk;a(IF)V",
+        "Lnet/minecraft/world/biome/WorldChunkManager;getTemperatureAtHeight(FI)F": "Laec;a(FI)F",
+        "renderRainSnow": "Lbfk;c(F)V"
+      },
       "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
-        "drawSplashScreen": "Lave;a(Lbmj;)V",
-        "drawSplashScreen(Lnet/minecraft/client/renderer/texture/TextureManager;)V": "Lave;a(Lbmj;)V"
+        "drawSplashScreen": "Lave;a(Lbmj;)V"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinBiomeGenBase": {
+        "getFloatTemperature": "Lady;a(Lcj;)F",
+        "isSnowyBiome": "Lady;j()Z",
+        "getEnableSnow": "Lady;d()Z",
+        "canRain": "Lady;e()Z",
+        "getGrassColorAtPos": "Lady;b(Lcj;)I",
+        "getFoliageColorAtPos": "Lady;c(Lcj;)I"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinColorizerFoliage": {
+        "getFoliageColor": "Ladj;a(DD)I",
+        "getFoliageColorBirch": "Ladj;b()I",
+        "getFoliageColorPine": "Ladj;a()I",
+        "getFoliageColorBasic": "Ladj;c()I"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinWorld": {
+        "setWorldTime": "Ladm;b(J)V",
+        "setRainStrength": "Ladm;k(F)V",
+        "getWorldTime": "Ladm;L()J",
+        "getCelestialAngle": "Ladm;c(F)F",
+        "getRainStrength": "Ladm;j(F)F",
+        "getThunderStrength": "Ladm;h(F)F"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinColorizerGrass": {
+        "getGrassColor": "Ladl;a(DD)I"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinGuiMainMenu": {
         "mouseClicked": "Laya;a(III)V",
@@ -41,25 +91,46 @@
       },
       "client/m1ck3y/rattix/injection/mixin/MixinGuiScreen": {
         "drawBackground": "Laxu;c(I)V",
-        "drawScreen": "Laxu;a(IIF)V",
-        "width": "l",
-        "height": "m",
-        "mc": "j"
+        "drawScreen": "Laxu;a(IIF)V"
       },
-      "client/m1ck3y/rattix/injection/mixin/MixinLoadingScreenRenderer": {
-        "setLoadingProgress": "Lavi;a(I)V",
-        "mc": "b",
-        "message": "a",
-        "currentlyDisplayedText": "c",
-        "systemTime": "d",
-        "framebuffer": "g",
-        "scaledResolution": "f"
+      "client/m1ck3y/rattix/injection/mixin/MixinBiomeColorHelper": {
+        "getGrassColorAtPos": "Laea;a(Ladq;Lcj;)I",
+        "getFoliageColorAtPos": "Laea;b(Ladq;Lcj;)I"
       }
     },
     "searge": {
+      "client/m1ck3y/rattix/injection/mixin/MixinEntityRenderer": {
+        "setupFog": "Lnet/minecraft/client/renderer/EntityRenderer;func_78468_a(IF)V",
+        "Lnet/minecraft/world/biome/WorldChunkManager;getTemperatureAtHeight(FI)F": "Lnet/minecraft/world/biome/WorldChunkManager;func_76939_a(FI)F",
+        "renderRainSnow": "Lnet/minecraft/client/renderer/EntityRenderer;func_78474_d(F)V"
+      },
       "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
-        "drawSplashScreen": "Lnet/minecraft/client/Minecraft;func_180510_a(Lnet/minecraft/client/renderer/texture/TextureManager;)V",
-        "drawSplashScreen(Lnet/minecraft/client/renderer/texture/TextureManager;)V": "Lnet/minecraft/client/Minecraft;func_180510_a(Lnet/minecraft/client/renderer/texture/TextureManager;)V"
+        "drawSplashScreen": "Lnet/minecraft/client/Minecraft;func_180510_a(Lnet/minecraft/client/renderer/texture/TextureManager;)V"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinBiomeGenBase": {
+        "getFloatTemperature": "Lnet/minecraft/world/biome/BiomeGenBase;func_180626_a(Lnet/minecraft/util/BlockPos;)F",
+        "isSnowyBiome": "Lnet/minecraft/world/biome/BiomeGenBase;func_150559_j()Z",
+        "getEnableSnow": "Lnet/minecraft/world/biome/BiomeGenBase;func_76746_c()Z",
+        "canRain": "Lnet/minecraft/world/biome/BiomeGenBase;func_76738_d()Z",
+        "getGrassColorAtPos": "Lnet/minecraft/world/biome/BiomeGenBase;func_180627_b(Lnet/minecraft/util/BlockPos;)I",
+        "getFoliageColorAtPos": "Lnet/minecraft/world/biome/BiomeGenBase;func_180625_c(Lnet/minecraft/util/BlockPos;)I"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinColorizerFoliage": {
+        "getFoliageColor": "Lnet/minecraft/world/ColorizerFoliage;func_77470_a(DD)I",
+        "getFoliageColorBirch": "Lnet/minecraft/world/ColorizerFoliage;func_77469_b()I",
+        "getFoliageColorPine": "Lnet/minecraft/world/ColorizerFoliage;func_77466_a()I",
+        "getFoliageColorBasic": "Lnet/minecraft/world/ColorizerFoliage;func_77468_c()I"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinWorld": {
+        "setWorldTime": "Lnet/minecraft/world/World;func_72877_b(J)V",
+        "setRainStrength": "Lnet/minecraft/world/World;func_72894_k(F)V",
+        "getWorldTime": "Lnet/minecraft/world/World;func_72820_D()J",
+        "getCelestialAngle": "Lnet/minecraft/world/World;func_72826_c(F)F",
+        "getRainStrength": "Lnet/minecraft/world/World;func_72867_j(F)F",
+        "getThunderStrength": "Lnet/minecraft/world/World;func_72819_i(F)F"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinColorizerGrass": {
+        "getGrassColor": "Lnet/minecraft/world/ColorizerGrass;func_77480_a(DD)I"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinGuiMainMenu": {
         "mouseClicked": "Lnet/minecraft/client/gui/GuiMainMenu;func_73864_a(III)V",
@@ -69,19 +140,11 @@
       },
       "client/m1ck3y/rattix/injection/mixin/MixinGuiScreen": {
         "drawBackground": "Lnet/minecraft/client/gui/GuiScreen;func_146278_c(I)V",
-        "drawScreen": "Lnet/minecraft/client/gui/GuiScreen;func_73863_a(IIF)V",
-        "width": "field_146294_l",
-        "height": "field_146295_m",
-        "mc": "field_146297_k"
+        "drawScreen": "Lnet/minecraft/client/gui/GuiScreen;func_73863_a(IIF)V"
       },
-      "client/m1ck3y/rattix/injection/mixin/MixinLoadingScreenRenderer": {
-        "setLoadingProgress": "Lnet/minecraft/client/LoadingScreenRenderer;func_73718_a(I)V",
-        "mc": "field_73725_b",
-        "message": "field_73727_a",
-        "currentlyDisplayedText": "field_73726_c",
-        "systemTime": "field_73723_d",
-        "framebuffer": "field_146588_g",
-        "scaledResolution": "field_146587_f"
+      "client/m1ck3y/rattix/injection/mixin/MixinBiomeColorHelper": {
+        "getGrassColorAtPos": "Lnet/minecraft/world/biome/BiomeColorHelper;func_180286_a(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/BlockPos;)I",
+        "getFoliageColorAtPos": "Lnet/minecraft/world/biome/BiomeColorHelper;func_180287_b(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/BlockPos;)I"
       }
     }
   }

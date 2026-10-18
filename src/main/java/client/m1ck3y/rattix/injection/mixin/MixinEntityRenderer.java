@@ -94,7 +94,7 @@ public abstract class MixinEntityRenderer {
     @Inject(method = "renderRainSnow", at = @At("HEAD"), cancellable = true)
     private void onRenderRainSnow(float partialTicks, CallbackInfo ci) {
         Ambiance ambiance = Ambiance.getInstance();
-        if (ambiance != null && ambiance.isEnabled() && ambiance.customRain.getValue()) {
+        if (ambiance != null && ambiance.isEnabled() && ambiance.customRain.getValue() && !ambiance.isWeatherClear()) {
             this.renderCustomRainSnow(partialTicks, ambiance);
             ci.cancel();
         }
@@ -111,12 +111,8 @@ public abstract class MixinEntityRenderer {
             return;
         }
 
-        if (ambiance.isWeatherClear()) {
-            return;
-        }
-
         float f = this.mc.theWorld.getRainStrength(partialTicks);
-        if (ambiance.isWeatherRain() || ambiance.isWeatherSnow()) {
+        if (ambiance.isRainingActive()) {
             f = Math.max(f, 1.0F);
         }
 
@@ -154,13 +150,15 @@ public abstract class MixinEntityRenderer {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         BlockPos.MutableBlockPos blockpos = new BlockPos.MutableBlockPos();
 
-        float rainSize = ambiance.rainSize.getValue().floatValue();
-        float rainOpacity = ambiance.rainOpacity.getValue().floatValue() / 100.0F;
-        float rainDensity = ambiance.rainDensity.getValue().floatValue();
+        float rainSize = Math.max(0.1F, ambiance.rainSize.getValue().floatValue());
+        float rainOpacity = MathHelper.clamp_float(ambiance.rainOpacity.getValue().floatValue() / 100.0F, 0.0F, 1.0F);
+        float rainDensity = Math.max(0.1F, ambiance.rainDensity.getValue().floatValue());
         int rainColorRGB = ambiance.rainColor.getRGB();
         float rainR = ((rainColorRGB >> 16) & 0xFF) / 255.0F;
         float rainG = ((rainColorRGB >> 8) & 0xFF) / 255.0F;
         float rainB = (rainColorRGB & 0xFF) / 255.0F;
+        float rainA = ((rainColorRGB >>> 24) & 0xFF) / 255.0F;
+        if (rainA <= 0.0F) rainA = 1.0F;
 
         for (int k1 = k - i1; k1 <= k + i1; ++k1) {
             for (int l1 = i - i1; l1 <= i + i1; ++l1) {
@@ -170,7 +168,7 @@ public abstract class MixinEntityRenderer {
                 blockpos.set(l1, 0, k1);
                 BiomeGenBase biomegenbase = world.getBiomeGenForCoords(blockpos);
 
-                if (biomegenbase.canRain() || biomegenbase.getEnableSnow() || ambiance.isWeatherRain() || ambiance.isWeatherSnow()) {
+                if (biomegenbase.canRain() || biomegenbase.getEnableSnow() || ambiance.isRainingActive()) {
                     int j2 = world.getPrecipitationHeight(blockpos).getY();
                     int k2 = j - i1;
                     int l2 = j + i1;
@@ -182,73 +180,77 @@ public abstract class MixinEntityRenderer {
                     if (j2 < l) i3 = l;
 
                     if (k2 != l2) {
-                        this.random.setSeed((long) (l1 * l1 * 3121 + l1 * 45238971 ^ k1 * k1 * 418711 + k1 * 13761));
                         blockpos.set(l1, k2, k1);
                         float f2 = biomegenbase.getFloatTemperature(blockpos);
 
                         boolean isRain = world.getWorldChunkManager().getTemperatureAtHeight(f2, j2) >= 0.15F;
                         if (ambiance.isWeatherSnow()) {
                             isRain = false;
-                        } else if (ambiance.isWeatherRain()) {
+                        } else if (ambiance.isWeatherRain() || ambiance.customRain.getValue()) {
                             isRain = true;
                         }
 
                         if (isRain) {
-                            // Custom Rain
-                            int dropCount = (int) Math.floor(rainDensity);
-                            float remainder = rainDensity - dropCount;
-                            if (dropCount == 0) {
-                                if (this.random.nextFloat() < remainder) {
-                                    dropCount = 1;
+                            if (rainDensity < 1.0F) {
+                                long colHash = ((long) l1 * 3121L + (long) k1 * 418711L) & 0xFFFFL;
+                                if ((float) colHash / 65535.0F > rainDensity) {
+                                    continue;
                                 }
+                            }
+
+                            int dropCount = (int) Math.floor(rainDensity);
+                            float remainder = rainDensity - (float) dropCount;
+                            if (dropCount < 1) {
+                                dropCount = 1;
                             } else if (remainder > 0.001F) {
-                                if (this.random.nextFloat() < remainder) {
+                                long remHash = ((long) l1 * 13761L + (long) k1 * 45238971L) & 0xFFFFL;
+                                if ((float) remHash / 65535.0F < remainder) {
                                     dropCount++;
                                 }
                             }
 
-                            if (dropCount > 0) {
-                                if (j1 != 0) {
-                                    if (j1 >= 0) {
-                                        tessellator.draw();
-                                    }
-                                    j1 = 0;
-                                    this.mc.getTextureManager().bindTexture(CUSTOM_RAIN_TEXTURE);
-                                    worldrenderer.begin(7, DefaultVertexFormats.PARTICLE_POSITION_TEX_COLOR_LMAP);
+                            if (j1 != 0) {
+                                if (j1 >= 0) {
+                                    tessellator.draw();
+                                }
+                                j1 = 0;
+                                this.mc.getTextureManager().bindTexture(CUSTOM_RAIN_TEXTURE);
+                                worldrenderer.begin(7, DefaultVertexFormats.PARTICLE_POSITION_TEX_COLOR_LMAP);
+                            }
+
+                            double d6 = (double) ((float) l1 + 0.5F) - entity.posX;
+                            double d7 = (double) ((float) k1 + 0.5F) - entity.posZ;
+                            float f3 = MathHelper.sqrt_double(d6 * d6 + d7 * d7) / (float) i1;
+                            float f4 = MathHelper.clamp_float(((1.0F - f3 * f3) * 0.5F + 0.5F) * f * rainOpacity * rainA, 0.0F, 1.0F);
+
+                            blockpos.set(l1, i3, k1);
+                            int j3 = world.getCombinedLight(blockpos, 0);
+                            int k3 = j3 >> 16 & 65535;
+                            int l3 = j3 & 65535;
+
+                            double d3 = baseD3 * (double) rainSize;
+                            double d4 = baseD4 * (double) rainSize;
+
+                            for (int drop = 0; drop < dropCount; drop++) {
+                                double offX = 0.0D;
+                                double offZ = 0.0D;
+                                double d5;
+                                if (drop == 0) {
+                                    long colSeed = (long) (l1 * l1 * 3121 + l1 * 45238971 ^ k1 * k1 * 418711 + k1 * 13761);
+                                    double speedFactor = 3.0D + ((double) ((colSeed >> 16) & 1023) / 1024.0D);
+                                    d5 = ((double) (this.rendererUpdateCount + (int) (colSeed & 31)) + (double) partialTicks) / 32.0D * speedFactor;
+                                } else {
+                                    long dropSeed = (long) (l1 * 73856093L ^ k1 * 19349663L ^ (long) drop * 84611L);
+                                    offX = (((double) ((dropSeed >> 4) & 1023) / 1024.0D) - 0.5D) * 0.85D;
+                                    offZ = (((double) ((dropSeed >> 14) & 1023) / 1024.0D) - 0.5D) * 0.85D;
+                                    double speedFactorDrop = 3.0D + ((double) ((dropSeed >> 24) & 1023) / 1024.0D);
+                                    d5 = ((double) (this.rendererUpdateCount + (int) (dropSeed & 31)) + (double) partialTicks) / 32.0D * speedFactorDrop;
                                 }
 
-                                double baseD5 = ((double) (this.rendererUpdateCount + l1 * l1 * 3121 + l1 * 45238971 + k1 * k1 * 418711 + k1 * 13761 & 31) + (double) partialTicks) / 32.0D * (3.0D + this.random.nextDouble());
-                                double d6 = (double) ((float) l1 + 0.5F) - entity.posX;
-                                double d7 = (double) ((float) k1 + 0.5F) - entity.posZ;
-                                float f3 = MathHelper.sqrt_double(d6 * d6 + d7 * d7) / (float) i1;
-                                float f4 = ((1.0F - f3 * f3) * 0.5F + 0.5F) * f * rainOpacity;
-                                if (f4 > 1.0F) f4 = 1.0F;
-                                if (f4 < 0.0F) f4 = 0.0F;
-
-                                blockpos.set(l1, i3, k1);
-                                int j3 = world.getCombinedLight(blockpos, 0);
-                                int k3 = j3 >> 16 & 65535;
-                                int l3 = j3 & 65535;
-
-                                double d3 = baseD3 * rainSize;
-                                double d4 = baseD4 * rainSize;
-                                double vStep = 0.25D / Math.max(0.1D, (double) rainSize);
-
-                                for (int drop = 0; drop < dropCount; drop++) {
-                                    double offX = 0.0D;
-                                    double offZ = 0.0D;
-                                    double d5 = baseD5;
-                                    if (drop > 0) {
-                                        offX = (this.random.nextDouble() - 0.5D) * 0.85D;
-                                        offZ = (this.random.nextDouble() - 0.5D) * 0.85D;
-                                        d5 += this.random.nextDouble() * 0.5D;
-                                    }
-
-                                    worldrenderer.pos((double) l1 + offX - d3 + 0.5D, (double) k2, (double) k1 + offZ - d4 + 0.5D).tex(0.0D, (double) k2 * vStep + d5).color(rainR, rainG, rainB, f4).lightmap(k3, l3).endVertex();
-                                    worldrenderer.pos((double) l1 + offX + d3 + 0.5D, (double) k2, (double) k1 + offZ + d4 + 0.5D).tex(1.0D, (double) k2 * vStep + d5).color(rainR, rainG, rainB, f4).lightmap(k3, l3).endVertex();
-                                    worldrenderer.pos((double) l1 + offX + d3 + 0.5D, (double) l2, (double) k1 + offZ + d4 + 0.5D).tex(1.0D, (double) l2 * vStep + d5).color(rainR, rainG, rainB, f4).lightmap(k3, l3).endVertex();
-                                    worldrenderer.pos((double) l1 + offX - d3 + 0.5D, (double) l2, (double) k1 + offZ - d4 + 0.5D).tex(0.0D, (double) l2 * vStep + d5).color(rainR, rainG, rainB, f4).lightmap(k3, l3).endVertex();
-                                }
+                                worldrenderer.pos((double) l1 + offX - d3 + 0.5D, (double) k2, (double) k1 + offZ - d4 + 0.5D).tex(0.0D, (double) k2 * 0.25D + d5).color(rainR, rainG, rainB, f4).lightmap(k3, l3).endVertex();
+                                worldrenderer.pos((double) l1 + offX + d3 + 0.5D, (double) k2, (double) k1 + offZ + d4 + 0.5D).tex(1.0D, (double) k2 * 0.25D + d5).color(rainR, rainG, rainB, f4).lightmap(k3, l3).endVertex();
+                                worldrenderer.pos((double) l1 + offX + d3 + 0.5D, (double) l2, (double) k1 + offZ + d4 + 0.5D).tex(1.0D, (double) l2 * 0.25D + d5).color(rainR, rainG, rainB, f4).lightmap(k3, l3).endVertex();
+                                worldrenderer.pos((double) l1 + offX - d3 + 0.5D, (double) l2, (double) k1 + offZ - d4 + 0.5D).tex(0.0D, (double) l2 * 0.25D + d5).color(rainR, rainG, rainB, f4).lightmap(k3, l3).endVertex();
                             }
                         } else {
                             // Snow
@@ -261,6 +263,7 @@ public abstract class MixinEntityRenderer {
                                 worldrenderer.begin(7, DefaultVertexFormats.PARTICLE_POSITION_TEX_COLOR_LMAP);
                             }
 
+                            this.random.setSeed((long) (l1 * l1 * 3121 + l1 * 45238971 ^ k1 * k1 * 418711 + k1 * 13761));
                             double d8 = (double) (((float) (this.rendererUpdateCount & 511) + partialTicks) / 512.0F);
                             double d9 = this.random.nextDouble() + (double) f1 * 0.01D * (double) ((float) this.random.nextGaussian());
                             double d10 = this.random.nextDouble() + (double) (f1 * (float) this.random.nextGaussian()) * 0.001D;

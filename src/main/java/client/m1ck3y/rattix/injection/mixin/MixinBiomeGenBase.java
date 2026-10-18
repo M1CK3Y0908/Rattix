@@ -12,9 +12,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinBiomeGenBase {
 
     /**
-     * 强制控制生物群系温度：
+     * 强制控制生物群系温度（参考 Augustus 实现）：
      * 当开启雪天时强制返回负温度（< 0.15F），使游戏在任意群系（包括沙漠、平原等）均渲染降雪贴图与下雪效果；
-     * 当开启雨天时强制返回高温（>= 0.15F），渲染降雨贴图。
+     * 当开启雨天或自定义雨时强制返回高温（>= 0.15F），渲染降雨贴图。
      */
     @Inject(method = "getFloatTemperature", at = @At("HEAD"), cancellable = true)
     private void onGetFloatTemperature(BlockPos pos, CallbackInfoReturnable<Float> cir) {
@@ -22,7 +22,7 @@ public abstract class MixinBiomeGenBase {
         if (ambiance != null && ambiance.isEnabled()) {
             if (ambiance.isWeatherSnow()) {
                 cir.setReturnValue(-1.0F);
-            } else if (ambiance.isWeatherRain()) {
+            } else if (ambiance.isRainingActive()) {
                 cir.setReturnValue(1.0F);
             }
         }
@@ -51,16 +51,16 @@ public abstract class MixinBiomeGenBase {
     }
 
     /**
-     * 控制群系是否允许降雨
+     * 控制群系是否允许降雨（参考 Augustus 实现：支持全群系包括沙漠降雨）
      */
     @Inject(method = "canRain", at = @At("HEAD"), cancellable = true)
     private void onCanRain(CallbackInfoReturnable<Boolean> cir) {
         Ambiance ambiance = Ambiance.getInstance();
         if (ambiance != null && ambiance.isEnabled()) {
-            if (ambiance.isWeatherRain()) {
-                cir.setReturnValue(true);
-            } else if (ambiance.isWeatherSnow() || ambiance.isWeatherClear()) {
+            if (ambiance.isWeatherClear() || ambiance.isWeatherSnow()) {
                 cir.setReturnValue(false);
+            } else if (ambiance.isRainingActive()) {
+                cir.setReturnValue(true);
             }
         }
     }
