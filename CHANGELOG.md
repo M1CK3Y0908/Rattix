@@ -1,3 +1,33 @@
+### **CHANGELOG 102426(2)**
+
+[#]Fix **ClickGUI Debounce Protection** Resolved instant-close bug where pressing RSHIFT closed ClickGUI within 5-15ms; added 250ms open timestamp cooldown in `ClickGUI.Screen.keyTyped` to ignore key bounce and repeat events, along with 250ms close debounce in `ClickGUI.wasRecentlyClosed`
+[#]Fix **Mod Container Singleton & Static Key Handling** Converted `rshiftPressed` and `clickGuiKey` to static fields in `RattixMod`, ensuring keybind registration and RSHIFT state tracking function even in development or mixin-only runtimes where Forge mod container instantiation is bypassed
+[#]Fix **2D HUD Render Pipeline & GL State** Re-established clean 2D projection matrix and OpenGL state in `RattixMod.handleRender2D` via `mc.entityRenderer.setupOverlayRendering()`, matrix isolation, blend state, alpha testing, and lighting disable; eliminated rendering corruption, black boxes, and invisible text across all in-game HUD modules
+[#]Fix **Overlay Render Event Dispatch** Restricted Forge `RenderGameOverlayEvent.Post` listener strictly to `ElementType.ALL` and tuned frame throttling to 500μs, preventing mid-frame element conflicts and dropped HUD draw calls
+[#]Fix **HUD Text Blend State** Ensured blend mode and alpha test are explicitly enabled in `FontUtil.drawHudString` prior to font rendering, guaranteeing smooth anti-aliased text rendering with color codes
+[#]Fix **HUD Element Coordinate Collision** Adjusted `Keystrokes` vertical position from Y:40 to Y:58, completely eliminating overlap with `PingDisplay` (Y:40) and creating a clean vertical cascade (`FPS` -> `CPS` -> `Ping` -> `Keystrokes`)
+[#]Update **Default Visual Module States** Enabled `Keystrokes` and `ArmorStatus` by default upon client startup
+[#]Fix **Shader Configuration BOM Character** Removed UTF-8 BOM headers from `shaders.txt` and added runtime `\uFEFF` sanitization in `ShaderManager`, resolving shader loading failure warnings on startup
+[#]Deploy **Gradle Reobfuscated Build** Recompiled and verified 100% clean build with zero warnings via `./gradlew build`, producing verified artifact `build/libs/Rattix-1.0.0.jar`
+
+### **CHANGELOG 102426(1)**
+
+[#]Refactor **1:1 LiquidBounce Module Architecture** Realigned all modules under their respective LiquidBounce category packages (`movement.ToggleSprint`, `render.ClickGUI`, `render.Ambiance`, `render.Font`, `render.Fullbright`, etc.) and created category packages for `combat`, `exploit`, `fun`, `misc`, `player`, and `world`
+[#]Refactor **Full 13 Root Package Parity** Fully aligned top-level package architecture across `api`, `cape`, `chat`, `config`, `event`, `features`, `file`, `injection`, `lang`, `script`, `tabs`, `ui`, and `utils` matching LiquidBounce-b100
+[#]Refactor **Subpackage Structure Alignment** Aligned `features/command` (`commands`, `shortcuts`, `special`), `features/special`, `file/configs/models`, `ui/client`, `ui/elements`, `ui/font`, `utils/client`, `utils/inventory`, `utils/movement`, `utils/render/animation`, `utils/render/shader`, `utils/timing`, and `utils/ui`
+[#]Refactor **Event Bus Parity** Realigned event system with LiquidBounce standard by organizing event classes directly in `client.m1ck3y.rattix.event` alongside `event.async` (matching LiquidBounce `Events.kt` architecture)
+[#]Add **LiquidBounce Standard Config & Value System** Integrated `client.m1ck3y.rattix.config` providing `Value`, `Values` (`BoolValue`, `IntegerValue`, `FloatValue`, `ListValue`, `TextValue`), `Configurable`, and `SettingsUtils`
+[#]Update **Developer Guide & API Docs** Synchronized `docs/MODULE_DEVELOPMENT_GUIDE.md` and all documentation with the categorized module structure and updated package paths
+[#]Fix **Source File Encoding & Compilation** Purged all UTF-8 BOM headers (`\ufeff`) across source files, verifying 100% clean compilation via ForgeGradle (`BUILD SUCCESSFUL`)
+[#]Refactor **LiquidBounce Directory Architecture Parity** Realigned Rattix package hierarchy with LiquidBounce-b100 standard architecture: introducing `features.command`, `features.module`, `features.special`, `file`, `file.configs`, `ui.font`, `ui.client`, `utils.render`, and `utils.render.shader`
+[#]Refactor **Module Architecture** Reorganized all modules directly into `features.module.modules` (flat structure without category subpackages) while preserving runtime `Category` classification (`COMBAT`, `PLAYER`, `MOVEMENT`, `RENDER`/`VISUAL`, `WORLD`, `MISC`, `EXPLOIT`, `FUN`, `THEME`)
+[#]Refactor **Dynamic Module Discovery** Enhanced `ModuleManager` with recursive directory reflection scanning across all subpackages and updated fallback registry
+[#]Refactor **File & Config Architecture** Migrated `FileManager` to `client.m1ck3y.rattix.file` and configurations (`ClickGuiConfig`, `ConfigManager`) to `client.m1ck3y.rattix.file.configs`
+[#]Refactor **Font & UI Architecture** Migrated font rendering and utilities (`FontUtil`, `CustomFontRenderer`, `GlobalFontRenderer`) to `client.m1ck3y.rattix.ui.font`
+[#]Refactor **Render & Shader Architecture** Structured rendering helpers and dynamic shaders under `client.m1ck3y.rattix.utils.render` and `client.m1ck3y.rattix.utils.render.shader`
+[+]Add **LiquidBounce Parity Subsystems** Added architectural packages and managers for `features.special` (`ClientFixes`, `AntiForge`, `BungeeCordSpoof`), `cape` (`CapeService`), `chat` (`ClientChat`), `lang` (`LanguageManager`), and `tabs` (`RattixTab`)
+[#]Update **API & Documentation** Fully updated `RattixAPI`, mixins, and `docs/MODULE_DEVELOPMENT_GUIDE.md` to reflect the LiquidBounce architecture
+
 ### **UPDATE LOG 101826(7)**
 
 [*]Refactor **Augustus Weather Architecture** Realigned Ambiance weather handling with Augustus's proven architectural pipeline, driving precipitation state via `World.getRainStrength`, `World.setRainStrength`, and biome environmental parameters

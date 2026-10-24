@@ -1,22 +1,23 @@
 package client.m1ck3y.rattix;
 
-import client.m1ck3y.rattix.command.CommandManager;
-import client.m1ck3y.rattix.config.ConfigManager;
+import client.m1ck3y.rattix.features.command.CommandManager;
+import client.m1ck3y.rattix.file.configs.ConfigManager;
 import client.m1ck3y.rattix.event.EventManager;
-import client.m1ck3y.rattix.event.events.KeyEvent;
-import client.m1ck3y.rattix.event.events.Render2DEvent;
-import client.m1ck3y.rattix.event.events.TickEvent;
-import client.m1ck3y.rattix.module.Module;
-import client.m1ck3y.rattix.module.ModuleManager;
-import client.m1ck3y.rattix.module.modules.ClickGUI;
+import client.m1ck3y.rattix.event.KeyEvent;
+import client.m1ck3y.rattix.event.Render2DEvent;
+import client.m1ck3y.rattix.event.TickEvent;
+import client.m1ck3y.rattix.features.module.Module;
+import client.m1ck3y.rattix.features.module.ModuleManager;
+import client.m1ck3y.rattix.features.module.modules.ClickGUI;
 import client.m1ck3y.rattix.script.ScriptManager;
-import client.m1ck3y.rattix.utils.FileManager;
-import client.m1ck3y.rattix.utils.FontUtil;
-import client.m1ck3y.rattix.utils.IconUtils;
-import client.m1ck3y.rattix.utils.SoundUtil;
-import client.m1ck3y.rattix.utils.StartupScreen;
+import client.m1ck3y.rattix.file.FileManager;
+import client.m1ck3y.rattix.ui.font.FontUtil;
+import client.m1ck3y.rattix.utils.render.IconUtils;
+import client.m1ck3y.rattix.utils.client.SoundUtil;
+import client.m1ck3y.rattix.ui.client.StartupScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -50,8 +51,65 @@ public class RattixMod {
     @Mod.Instance(MODID)
     public static RattixMod instance;
 
-    private KeyBinding clickGuiKey;
-    private boolean rshiftPressed;
+    private static volatile boolean clientStarted = false;
+    private static long lastRenderNano = 0;
+    public static KeyBinding clickGuiKey;
+    private static boolean rshiftPressed = false;
+
+    public static synchronized void startClient() {
+        if (clientStarted) return;
+        clientStarted = true;
+
+        System.out.println("[Rattix] Initializing Rattix Client v" + VERSION + "...");
+        try {
+            StartupScreen.draw("Initializing File Manager & Fonts...", 0.30f);
+            FileManager.init();
+            FontUtil.init();
+
+            StartupScreen.draw("Loading Configurations...", 0.50f);
+            ConfigManager.getInstance().init();
+            client.m1ck3y.rattix.utils.render.shader.ShaderManager.getInstance();
+
+            StartupScreen.draw("Loading Scripts...", 0.70f);
+            ScriptManager.getInstance().init();
+
+            StartupScreen.draw("Registering Modules & Categories...", 0.90f);
+            ModuleManager.registerAll();
+
+            if (instance == null) {
+                instance = new RattixMod();
+            }
+            if (clickGuiKey == null) {
+                clickGuiKey = new KeyBinding("key.rattix.clickgui", Keyboard.KEY_RSHIFT, "key.categories.rattix");
+                try {
+                    ClientRegistry.registerKeyBinding(clickGuiKey);
+                } catch (Throwable ignored) {
+                }
+            }
+            try {
+                MinecraftForge.EVENT_BUS.register(instance);
+                FMLCommonHandler.instance().bus().register(instance);
+            } catch (Throwable ignored) {
+            }
+
+            updateTitleAndIcon();
+            StartupScreen.draw("Rattix Client Ready", 1.0f);
+            System.out.println("[Rattix] Client initialization completed successfully. Loaded "
+                    + ModuleManager.getLoadedModuleCount() + " modules and "
+                    + ModuleManager.getLoadedOptionCount() + " settings.");
+        } catch (Throwable t) {
+            System.err.println("[Rattix] Error during client startup:");
+            t.printStackTrace();
+        }
+    }
+
+    public static void stopClient() {
+        try {
+            System.out.println("[Rattix] Stopping Rattix Client...");
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -73,29 +131,7 @@ public class RattixMod {
 
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        StartupScreen.draw("Initializing File Manager & Fonts...", 0.30f);
-        FileManager.init();
-        FontUtil.init();
-
-        StartupScreen.draw("Loading Configurations...", 0.50f);
-        ConfigManager.getInstance().init();
-        client.m1ck3y.rattix.utils.shader.ShaderManager.getInstance();
-
-        StartupScreen.draw("Loading Scripts...", 0.70f);
-        ScriptManager.getInstance().init();
-
-        StartupScreen.draw("Registering Modules & Categories...", 0.90f);
-        ModuleManager.registerAll();
-
-        clickGuiKey = new KeyBinding("key.rattix.clickgui", Keyboard.KEY_RSHIFT, "key.categories.rattix");
-        ClientRegistry.registerKeyBinding(clickGuiKey);
-
-        // 注册到所有可能的 Forge/FML 事件总线，确保百分之百接收事件
-        MinecraftForge.EVENT_BUS.register(this);
-        FMLCommonHandler.instance().bus().register(this);
-
-        updateTitleAndIcon();
-        StartupScreen.draw("Rattix Client Ready", 1.0f);
+        startClient();
     }
 
     public static void updateTitleAndIcon() {
@@ -113,6 +149,99 @@ public class RattixMod {
         IconUtils.initLwjglIcon();
     }
 
+    public static void handleKey(int key) {
+        if (key == 0) return;
+        if (!EventManager.getInstance().isEmpty()) {
+            EventManager.getInstance().call(new KeyEvent(key));
+        }
+
+        Module clickGui = ModuleManager.getModule(ClickGUI.class);
+        int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
+        int bindKey = (clickGuiKey != null) ? clickGuiKey.getKeyCode() : 0;
+
+        if (key == Keyboard.KEY_RSHIFT || (guiKey != 0 && key == guiKey) || (bindKey != 0 && key == bindKey)) {
+            rshiftPressed = true;
+            openClickGui();
+        } else {
+            ModuleManager.onKey(key);
+        }
+    }
+
+    public static void handleTick() {
+        if (!clientStarted) {
+            startClient();
+        }
+        if (!EventManager.getInstance().isEmpty()) {
+            EventManager.getInstance().call(new TickEvent());
+        }
+        if (!NAME.equals(Display.getTitle())) {
+            Display.setTitle(NAME);
+        }
+        ModuleManager.onClientTick();
+        FontUtil.ensureGlobalFontRenderer();
+
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.theWorld != null && mc.thePlayer != null) {
+            Module clickGui = ModuleManager.getModule(ClickGUI.class);
+            int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
+            boolean isDown = Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)
+                    || (guiKey > 0 && guiKey < Keyboard.KEYBOARD_SIZE && Keyboard.isKeyDown(guiKey));
+            if (mc.currentScreen != null || ClickGUI.wasRecentlyClosed()) {
+                rshiftPressed = isDown;
+            } else {
+                if (isDown && !rshiftPressed) {
+                    openClickGui();
+                }
+                rshiftPressed = isDown;
+            }
+        }
+    }
+
+    public static void handleRender2D(float partialTicks) {
+        if (!clientStarted) {
+            startClient();
+        }
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.theWorld == null || mc.thePlayer == null || mc.gameSettings.showDebugInfo) {
+            return;
+        }
+
+        long now = System.nanoTime();
+        if (now - lastRenderNano < 500_000L) {
+            return; // Throttle to prevent duplicate draw calls in the same frame
+        }
+        lastRenderNano = now;
+
+        // Ensure 2D projection matrix and clean OpenGL state for HUD overlay
+        mc.entityRenderer.setupOverlayRendering();
+        GlStateManager.pushMatrix();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.enableAlpha();
+        GlStateManager.alphaFunc(516, 0.1F);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.disableLighting();
+        GlStateManager.enableTexture2D();
+
+        if (!EventManager.getInstance().isEmpty()) {
+            EventManager.getInstance().call(new Render2DEvent(partialTicks));
+        }
+        ModuleManager.onRenderOverlay();
+
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.enableBlend();
+        GlStateManager.popMatrix();
+    }
+
+    public static void openClickGui() {
+        try {
+            ClickGUI.open();
+        } catch (Throwable t) {
+            System.err.println("[Rattix] Failed to open ClickGUI:");
+            t.printStackTrace();
+        }
+    }
+
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (Keyboard.getEventKeyState()) {
@@ -120,71 +249,24 @@ public class RattixMod {
             if (key == 0) {
                 key = Keyboard.getEventCharacter() + 256;
             }
-            if (!EventManager.getInstance().isEmpty()) {
-                EventManager.getInstance().call(new KeyEvent(key));
-            }
-
             while (this.clickGuiKey != null && this.clickGuiKey.isPressed()) {
-                // Drain accumulated pressTime so other keys do not trigger ClickGUI
+                // Drain accumulated pressTime
             }
-
-            Module clickGui = ModuleManager.getModule(ClickGUI.class);
-            int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
-            int bindKey = (this.clickGuiKey != null) ? this.clickGuiKey.getKeyCode() : 0;
-
-            if (key == Keyboard.KEY_RSHIFT || (guiKey != 0 && key == guiKey) || (bindKey != 0 && key == bindKey)) {
-                this.rshiftPressed = true;
-                openClickGui();
-            } else {
-                ModuleManager.onKey(key);
-            }
+            handleKey(key);
         }
     }
 
     @SubscribeEvent
     public void onClientTick(net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent event) {
         if (event.phase == net.minecraftforge.fml.common.gameevent.TickEvent.Phase.END) {
-            if (!EventManager.getInstance().isEmpty()) {
-                EventManager.getInstance().call(new TickEvent());
-            }
-            if (!NAME.equals(Display.getTitle())) {
-                Display.setTitle(NAME);
-            }
-            ModuleManager.onClientTick();
-            FontUtil.ensureGlobalFontRenderer();
-
-            Minecraft mc = Minecraft.getMinecraft();
-            if (mc.theWorld != null && mc.thePlayer != null) {
-                Module clickGui = ModuleManager.getModule(ClickGUI.class);
-                int guiKey = (clickGui != null && clickGui.getKeyCode() != 0) ? clickGui.getKeyCode() : Keyboard.KEY_RSHIFT;
-                boolean isDown = Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)
-                        || (guiKey > 0 && guiKey < Keyboard.KEYBOARD_SIZE && Keyboard.isKeyDown(guiKey));
-                if (mc.currentScreen != null || ClickGUI.wasRecentlyClosed()) {
-                    this.rshiftPressed = isDown;
-                } else {
-                    if (isDown && !this.rshiftPressed) {
-                        openClickGui();
-                    }
-                    this.rshiftPressed = isDown;
-                }
-            }
+            handleTick();
         }
-    }
-
-    public static void openClickGui() {
-        ClickGUI.open();
     }
 
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
-        if (event.type == RenderGameOverlayEvent.ElementType.TEXT) {
-            if (!EventManager.getInstance().isEmpty()) {
-                EventManager.getInstance().call(new Render2DEvent(event.partialTicks));
-            }
-            Minecraft mc = Minecraft.getMinecraft();
-            if (mc.thePlayer != null && !mc.gameSettings.showDebugInfo) {
-                ModuleManager.onRenderOverlay();
-            }
+        if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
+            handleRender2D(event.partialTicks);
         }
     }
 
@@ -221,7 +303,7 @@ public class RattixMod {
                 Minecraft mc = Minecraft.getMinecraft();
                 int mouseX = org.lwjgl.input.Mouse.getEventX() * event.gui.width / Math.max(1, mc.displayWidth);
                 int mouseY = event.gui.height - org.lwjgl.input.Mouse.getEventY() * event.gui.height / Math.max(1, mc.displayHeight) - 1;
-                if (client.m1ck3y.rattix.utils.shader.ShaderManager.getInstance().handleMouseWheel(dWheel, mouseX, mouseY)) {
+                if (client.m1ck3y.rattix.utils.render.shader.ShaderManager.getInstance().handleMouseWheel(dWheel, mouseX, mouseY)) {
                     event.setCanceled(true);
                 }
             }
@@ -235,7 +317,7 @@ public class RattixMod {
                 char c = Keyboard.getEventCharacter();
                 int k = Keyboard.getEventKey();
                 if (k == 0) k = c + 256;
-                if (client.m1ck3y.rattix.utils.shader.ShaderManager.getInstance().keyTyped(c, k)) {
+                if (client.m1ck3y.rattix.utils.render.shader.ShaderManager.getInstance().keyTyped(c, k)) {
                     event.setCanceled(true);
                 }
             }

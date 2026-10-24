@@ -47,9 +47,15 @@ flowchart LR
 ## 三、 分类开发规范 (Category Specification)
 
 ### 1. 内置分类
-Rattix 预置了三个核心分类：
-- `Category.MOVEMENT`（移动类功能，图标：`movement`）
-- `Category.VISUAL`（视觉与界面类功能，图标：`visual`）
+Rattix 对齐 LiquidBounce 标准客户端分类体系，内置并支持以下核心分类：
+- `Category.COMBAT`（战斗/PVP 功能，图标：`combat`）
+- `Category.PLAYER`（玩家个人辅助，图标：`player`）
+- `Category.MOVEMENT`（移动与机动性功能，图标：`movement`）
+- `Category.RENDER` / `Category.VISUAL`（视觉渲染与 HUD 模块，图标：`visual`）
+- `Category.WORLD`（世界与环境交互，图标：`other`）
+- `Category.MISC`（杂项工具功能，图标：`other`）
+- `Category.EXPLOIT`（漏洞/协议特性，图标：`ghost`）
+- `Category.FUN`（娱乐与趣味模块，图标：`other`）
 - `Category.THEME`（主题与字体专用配置页面，图标：`theme`）
 
 ### 2. 内置可用图标
@@ -58,7 +64,7 @@ Rattix 预置了三个核心分类：
 - `"movement"`（奔跑小人图标，适合机动性模块）
 - `"visual"`（眼睛图标，适合渲染与 HUD 模块）
 - `"player"`（玩家角色半身像图标，适合个人辅助类）
-- `"ghost"`（幽灵图标，适合隐身/Ghost 辅助）
+- `"ghost"`（幽灵图标，适合隐身/Ghost/Exploit 辅助）
 - `"theme"`（调色盘图标，适合外观配置）
 - `"other"`（立方体方块图标，默认通用图标）
 
@@ -78,7 +84,7 @@ Category utilityCat = RattixAPI.registerCategoryWithSvg("UTILITY", "Utility", "m
 
 ## 四、 模块开发规范 (Module Specification)
 
-所有模块必须直接或间接继承 [`client.m1ck3y.rattix.modules.manager.Register`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/modules/manager/Register.java)（或兼容别名 `Register.Module`）。
+所有模块必须直接或间接继承 [`client.m1ck3y.rattix.features.module.Module`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/features/module/Module.java)。
 
 ### 1. 生命周期回调方法
 | 回调方法 | 触发时机 | 最佳实践 |
@@ -90,7 +96,7 @@ Category utilityCat = RattixAPI.registerCategoryWithSvg("UTILITY", "Utility", "m
 | `onRender3D()` | 当模块启用时在世界 3D 渲染阶段触发 | 适合绘制 ESP、Trace、方块高亮 |
 
 ### 2. 参数类型系统 (Settings)
-Rattix 提供了一整套自动生成 Fluent UI 组件的参数体系（位于 `client.m1ck3y.rattix.modules.ClickGUI.*`）：
+Rattix 提供了一整套自动生成 Fluent UI 组件的参数体系（位于 `client.m1ck3y.rattix.features.module.modules.render.ClickGUI.*`）：
 
 1. **`CheckBoxSetting` (布尔开关)**
    ```java
@@ -127,11 +133,11 @@ Rattix 提供了一整套自动生成 Fluent UI 组件的参数体系（位于 `
 ```java
 package com.example.addon.modules;
 
-import client.m1ck3y.rattix.module.Category;
-import client.m1ck3y.rattix.module.Module;
-import client.m1ck3y.rattix.module.modules.ClickGUI.CheckBoxSetting;
-import client.m1ck3y.rattix.module.modules.ClickGUI.ModeSetting;
-import client.m1ck3y.rattix.module.modules.ClickGUI.NumberSetting;
+import client.m1ck3y.rattix.features.module.Category;
+import client.m1ck3y.rattix.features.module.Module;
+import client.m1ck3y.rattix.features.module.modules.render.ClickGUI.CheckBoxSetting;
+import client.m1ck3y.rattix.features.module.modules.render.ClickGUI.ModeSetting;
+import client.m1ck3y.rattix.features.module.modules.render.ClickGUI.NumberSetting;
 import org.lwjgl.input.Keyboard;
 
 public class AutoSprintHelper extends Module {
@@ -186,7 +192,7 @@ public class AutoSprintHelper extends Module {
 package com.example.addon;
 
 import client.m1ck3y.rattix.api.RattixAPI;
-import client.m1ck3y.rattix.module.Category;
+import client.m1ck3y.rattix.features.module.Category;
 import com.example.addon.modules.AutoSprintHelper;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;

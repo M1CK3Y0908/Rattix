@@ -1,6 +1,6 @@
 package client.m1ck3y.rattix.injection.mixin;
 
-import client.m1ck3y.rattix.module.modules.Ambiance;
+import client.m1ck3y.rattix.features.module.modules.Ambiance;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.biome.BiomeColorHelper;

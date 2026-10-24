@@ -1,11 +1,11 @@
 package client.m1ck3y.rattix.api;
 
 import client.m1ck3y.rattix.RattixMod;
-import client.m1ck3y.rattix.module.Category;
-import client.m1ck3y.rattix.module.Module;
-import client.m1ck3y.rattix.module.ModuleManager;
-import client.m1ck3y.rattix.module.modules.ClickGUI;
-import client.m1ck3y.rattix.utils.SvgIconHelper;
+import client.m1ck3y.rattix.features.module.Category;
+import client.m1ck3y.rattix.features.module.Module;
+import client.m1ck3y.rattix.features.module.ModuleManager;
+import client.m1ck3y.rattix.features.module.modules.ClickGUI;
+import client.m1ck3y.rattix.utils.render.SvgIconHelper;
 
 import java.util.Collections;
 import java.util.List;

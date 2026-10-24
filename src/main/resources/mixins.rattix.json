@@ -10,6 +10,7 @@
   ],
   "client": [
     "MixinMinecraft",
+    "MixinGuiInGame",
     "MixinGuiMainMenu",
     "MixinGuiScreen",
     "MixinLoadingScreenRenderer",

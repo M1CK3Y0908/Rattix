@@ -1,6 +1,6 @@
 package client.m1ck3y.rattix.injection.mixin;
 
-import client.m1ck3y.rattix.utils.shader.ShaderManager;
+import client.m1ck3y.rattix.utils.render.shader.ShaderManager;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
 import org.spongepowered.asm.mixin.Mixin;

@@ -2,6 +2,27 @@
 
 Rattix Client - A customized Forge 1.8.9 Client.
 
+### **UPDATE LOG 102426(2)**
+
+[#]Refactor **1:1 LiquidBounce Module Architecture** Realigned all modules under their respective LiquidBounce category packages (`movement.ToggleSprint`, `render.ClickGUI`, `render.Ambiance`, `render.Font`, `render.Fullbright`, etc.) and created category packages for `combat`, `exploit`, `fun`, `misc`, `player`, and `world`
+[#]Refactor **Full 13 Root Package Parity** Fully aligned top-level package architecture across `api`, `cape`, `chat`, `config`, `event`, `features`, `file`, `injection`, `lang`, `script`, `tabs`, `ui`, and `utils` matching LiquidBounce-b100
+[#]Refactor **Subpackage Structure Alignment** Aligned `features/command` (`commands`, `shortcuts`, `special`), `features/special`, `file/configs/models`, `ui/client`, `ui/elements`, `ui/font`, `utils/client`, `utils/inventory`, `utils/movement`, `utils/render/animation`, `utils/render/shader`, `utils/timing`, and `utils/ui`
+[#]Refactor **Event Bus Parity** Realigned event system with LiquidBounce standard by organizing event classes directly in `client.m1ck3y.rattix.event` alongside `event.async` (matching LiquidBounce `Events.kt` architecture)
+[#]Add **LiquidBounce Standard Config & Value System** Integrated `client.m1ck3y.rattix.config` providing `Value`, `Values` (`BoolValue`, `IntegerValue`, `FloatValue`, `ListValue`, `TextValue`), `Configurable`, and `SettingsUtils`
+[#]Update **Developer Guide & API Docs** Synchronized `docs/MODULE_DEVELOPMENT_GUIDE.md` and all documentation with the categorized module structure and updated package paths
+[#]Fix **Source File Encoding & Compilation** Purged all UTF-8 BOM headers (`\ufeff`) across source files, verifying 100% clean compilation via ForgeGradle (`BUILD SUCCESSFUL`)
+
+### **UPDATE LOG 102426(1)**
+
+[#]Refactor **LiquidBounce Directory Architecture Parity** Realigned Rattix package hierarchy with LiquidBounce-b100 standard architecture: introducing `features.command`, `features.module`, `features.special`, `file`, `file.configs`, `ui.font`, `ui.client`, `utils.render`, and `utils.render.shader`
+[#]Refactor **Module Architecture** Reorganized all modules directly into `features.module.modules` (flat structure without category subpackages) while preserving runtime `Category` classification (`COMBAT`, `PLAYER`, `MOVEMENT`, `RENDER`/`VISUAL`, `WORLD`, `MISC`, `EXPLOIT`, `FUN`, `THEME`)
+[#]Refactor **Dynamic Module Discovery** Enhanced `ModuleManager` with recursive directory reflection scanning across all subpackages and updated fallback registry
+[#]Refactor **File & Config Architecture** Migrated `FileManager` to `client.m1ck3y.rattix.file` and configurations (`ClickGuiConfig`, `ConfigManager`) to `client.m1ck3y.rattix.file.configs`
+[#]Refactor **Font & UI Architecture** Migrated font rendering and utilities (`FontUtil`, `CustomFontRenderer`, `GlobalFontRenderer`) to `client.m1ck3y.rattix.ui.font`
+[#]Refactor **Render & Shader Architecture** Structured rendering helpers and dynamic shaders under `client.m1ck3y.rattix.utils.render` and `client.m1ck3y.rattix.utils.render.shader`
+[+]Add **LiquidBounce Parity Subsystems** Added architectural packages and managers for `features.special` (`ClientFixes`, `AntiForge`, `BungeeCordSpoof`), `cape` (`CapeService`), `chat` (`ClientChat`), `lang` (`LanguageManager`), and `tabs` (`RattixTab`)
+[#]Update **API & Documentation** Fully updated `RattixAPI`, mixins, and `docs/MODULE_DEVELOPMENT_GUIDE.md` to reflect the LiquidBounce architecture
+
 ### **UPDATE LOG 101826(4)**
 
 [-]Remove **TimeChanger** Completely removed legacy TimeChanger module
