@@ -1,7 +1,6 @@
 package client.m1ck3y.rattix.injection.mixin;
 
 import client.m1ck3y.rattix.utils.render.IconUtils;
-import client.m1ck3y.rattix.utils.render.Win11UiRenderer;
 import client.m1ck3y.rattix.utils.render.shader.ShaderBackgroundRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiDownloadTerrain;
@@ -106,11 +105,5 @@ public abstract class MixinGuiScreen extends Gui {
             float iconY = self.height / 2.0f - 115.0f;
             IconUtils.drawIconDirect(iconX, iconY, iconSize);
         }
-    }
-
-    /** Final overlay pass for vanilla/OptiFine menu buttons. */
-    @Inject(method = "drawScreen", at = @At("TAIL"), require = 0)
-    private void onDrawScreenWin11Buttons(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
-        Win11UiRenderer.drawButtons((GuiScreen) (Object) this, net.minecraft.client.Minecraft.getMinecraft(), mouseX, mouseY, buttonList);
     }
 }

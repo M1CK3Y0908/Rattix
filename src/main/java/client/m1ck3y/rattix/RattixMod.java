@@ -35,7 +35,16 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 
+import client.m1ck3y.rattix.ui.elements.FluentGuiButton;
+import client.m1ck3y.rattix.utils.render.Win11UiRenderer;
+import client.m1ck3y.rattix.utils.ui.GuiScreenBridge;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 @Mod(
     modid = RattixMod.MODID,
@@ -280,8 +289,52 @@ public class RattixMod {
         }
     }
 
-    @SubscribeEvent
+    private final Map<GuiScreen, Map<GuiButton, Boolean>> hiddenButtonsMap = new WeakHashMap<>();
+
+    @SubscribeEvent(priority = net.minecraftforge.fml.common.eventhandler.EventPriority.HIGHEST)
+    public void onDrawScreenPre(GuiScreenEvent.DrawScreenEvent.Pre event) {
+        if (event.gui == null) return;
+        // If Mixin has hooked GuiButton and is actively drawing, let Mixin handle it natively
+        if (Win11UiRenderer.isMixinActive()) return;
+
+        // Fail-safe fallback for external launchers / OptiFine:
+        // Temporarily suppress vanilla widgets.png button rendering during GuiScreen.drawScreen
+        List<GuiButton> buttons = GuiScreenBridge.getButtonList(event.gui);
+        if (buttons == null || buttons.isEmpty()) return;
+
+        Map<GuiButton, Boolean> visibilityMap = new HashMap<>();
+        for (GuiButton btn : buttons) {
+            if (btn != null && !(btn instanceof FluentGuiButton)) {
+                visibilityMap.put(btn, btn.visible);
+                btn.visible = false;
+            }
+        }
+        if (!visibilityMap.isEmpty()) {
+            hiddenButtonsMap.put(event.gui, visibilityMap);
+        }
+    }
+
+    @SubscribeEvent(priority = net.minecraftforge.fml.common.eventhandler.EventPriority.LOWEST)
     public void onDrawScreenPost(GuiScreenEvent.DrawScreenEvent.Post event) {
+        if (event.gui == null) return;
+
+        // Restore suppressed button visibility and render with Win11 Fluent styling
+        Map<GuiButton, Boolean> visibilityMap = hiddenButtonsMap.remove(event.gui);
+        if (visibilityMap != null && !visibilityMap.isEmpty()) {
+            Minecraft mc = Minecraft.getMinecraft();
+            for (Map.Entry<GuiButton, Boolean> entry : visibilityMap.entrySet()) {
+                GuiButton btn = entry.getKey();
+                boolean wasVisible = entry.getValue();
+                btn.visible = wasVisible;
+                if (wasVisible) {
+                    Win11UiRenderer.drawFluentButton(btn, mc, event.mouseX, event.mouseY);
+                    if (Win11UiRenderer.isSliderButton(btn)) {
+                        GuiScreenBridge.mouseDragged(btn, mc, event.mouseX, event.mouseY);
+                    }
+                }
+            }
+        }
+
         if (event.gui instanceof GuiMainMenu || event.gui instanceof RattixMainMenu) {
             if (!SoundUtil.hasPlayedStartupSound()) {
                 SoundUtil.playStartupSound();

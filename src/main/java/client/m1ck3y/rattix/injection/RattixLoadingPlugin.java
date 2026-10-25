@@ -15,6 +15,7 @@ import java.util.Map;
 @IFMLLoadingPlugin.MCVersion("1.8.9")
 @IFMLLoadingPlugin.Name("Rattix")
 @IFMLLoadingPlugin.SortingIndex(1)
+@IFMLLoadingPlugin.TransformerExclusions({"client.m1ck3y.rattix.injection"})
 public class RattixLoadingPlugin implements IFMLLoadingPlugin {
 
     static {
@@ -69,11 +70,39 @@ public class RattixLoadingPlugin implements IFMLLoadingPlugin {
         }
     }
 
+    private static void configureMixinEnvironment() {
+        try {
+            MixinBootstrap.init();
+            Mixins.addConfiguration("mixins.rattix.json");
+
+            for (MixinEnvironment.Phase phase : new MixinEnvironment.Phase[]{
+                    MixinEnvironment.Phase.PREINIT,
+                    MixinEnvironment.Phase.INIT,
+                    MixinEnvironment.Phase.DEFAULT
+            }) {
+                try {
+                    MixinEnvironment env = MixinEnvironment.getEnvironment(phase);
+                    if (env != null) {
+                        env.setSide(MixinEnvironment.Side.CLIENT);
+                        env.setObfuscationContext("searge");
+                    }
+                } catch (Throwable ignored) {}
+            }
+
+            MixinEnvironment defaultEnv = MixinEnvironment.getDefaultEnvironment();
+            if (defaultEnv != null) {
+                defaultEnv.setSide(MixinEnvironment.Side.CLIENT);
+                defaultEnv.setObfuscationContext("searge");
+            }
+        } catch (Throwable t) {
+            System.err.println("[Rattix] Failed to configure Mixin environment:");
+            t.printStackTrace();
+        }
+    }
+
     public RattixLoadingPlugin() {
         injectSelfToSystemClassLoader();
-        MixinBootstrap.init();
-        Mixins.addConfiguration("mixins.rattix.json");
-        MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
+        configureMixinEnvironment();
     }
 
     @Override
@@ -93,6 +122,7 @@ public class RattixLoadingPlugin implements IFMLLoadingPlugin {
 
     @Override
     public void injectData(Map<String, Object> data) {
+        configureMixinEnvironment();
     }
 
     @Override

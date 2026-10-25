@@ -1,5 +1,6 @@
 package client.m1ck3y.rattix.ui.client;
 
+import client.m1ck3y.rattix.ui.elements.FluentGuiButton;
 import client.m1ck3y.rattix.ui.window.WindowManager;
 import client.m1ck3y.rattix.utils.render.AugustusMainMenuRenderer;
 import client.m1ck3y.rattix.utils.render.shader.ShaderBackgroundRenderer;
@@ -27,10 +28,10 @@ public class RattixMainMenu extends GuiScreen {
     public void initGui() {
         buttonList.clear();
         int x = Math.max(250, width / 2 - 115), y = height / 2 - 18;
-        buttonList.add(new GuiButton(SINGLEPLAYER, x, y, 220, 24, "Singleplayer"));
-        buttonList.add(new GuiButton(MULTIPLAYER, x, y + 31, 220, 24, "Multiplayer"));
-        buttonList.add(new GuiButton(OPTIONS, x, y + 62, 106, 24, "Options"));
-        buttonList.add(new GuiButton(QUIT, x + 114, y + 62, 106, 24, "Quit"));
+        buttonList.add(new FluentGuiButton(SINGLEPLAYER, x, y, 220, 24, "Singleplayer"));
+        buttonList.add(new FluentGuiButton(MULTIPLAYER, x, y + 31, 220, 24, "Multiplayer"));
+        buttonList.add(new FluentGuiButton(OPTIONS, x, y + 62, 106, 24, "Options"));
+        buttonList.add(new FluentGuiButton(QUIT, x + 114, y + 62, 106, 24, "Quit"));
     }
 
     @Override

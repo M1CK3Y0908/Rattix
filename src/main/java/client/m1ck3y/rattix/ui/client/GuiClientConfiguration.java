@@ -1,6 +1,7 @@
 package client.m1ck3y.rattix.ui.client;
 
 import client.m1ck3y.rattix.RattixMod;
+import client.m1ck3y.rattix.ui.elements.FluentGuiButton;
 import client.m1ck3y.rattix.utils.render.RenderUtil;
 import client.m1ck3y.rattix.utils.render.shader.ShaderManager;
 import net.minecraft.client.gui.GuiButton;
@@ -41,18 +42,18 @@ public class GuiClientConfiguration extends GuiScreen {
         int startY = Math.max(40, height / 2 - 100);
 
         // Shader switcher: Prev / Next
-        buttonList.add(new GuiButton(BTN_PREV_SHADER, centerX - 120, startY + 22, 28, 20, "<"));
-        buttonList.add(new GuiButton(BTN_NEXT_SHADER, centerX + 92, startY + 22, 28, 20, ">"));
+        buttonList.add(new FluentGuiButton(BTN_PREV_SHADER, centerX - 120, startY + 22, 28, 20, "<"));
+        buttonList.add(new FluentGuiButton(BTN_NEXT_SHADER, centerX + 92, startY + 22, 28, 20, ">"));
 
         // Speed & Resolution
-        buttonList.add(new GuiButton(BTN_CYCLE_SPEED, centerX - 120, startY + 68, 115, 20, getSpeedString()));
-        buttonList.add(new GuiButton(BTN_CYCLE_RES, centerX + 5, startY + 68, 115, 20, getResolutionString()));
+        buttonList.add(new FluentGuiButton(BTN_CYCLE_SPEED, centerX - 120, startY + 68, 115, 20, getSpeedString()));
+        buttonList.add(new FluentGuiButton(BTN_CYCLE_RES, centerX + 5, startY + 68, 115, 20, getResolutionString()));
 
         // Keybind
-        buttonList.add(new GuiButton(BTN_CLICKGUI_KEY, centerX - 120, startY + 114, 240, 20, getKeybindString()));
+        buttonList.add(new FluentGuiButton(BTN_CLICKGUI_KEY, centerX - 120, startY + 114, 240, 20, getKeybindString()));
 
         // Done button
-        buttonList.add(new GuiButton(BTN_DONE, centerX - 75, height - 38, 150, 24, "Done"));
+        buttonList.add(new FluentGuiButton(BTN_DONE, centerX - 75, height - 38, 150, 24, "Done"));
     }
 
     private String getSpeedString() {

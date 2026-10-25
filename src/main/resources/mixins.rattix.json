@@ -13,6 +13,8 @@
     "MixinGuiInGame",
     "MixinGuiMainMenu",
     "MixinGuiButton",
+    "MixinGuiButtonExt",
+    "MixinGuiOptionSlider",
     "MixinGuiTextField",
     "MixinGuiScreen",
     "MixinGuiSlot",

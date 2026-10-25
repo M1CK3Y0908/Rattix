@@ -4,6 +4,7 @@ import client.m1ck3y.rattix.features.module.Category;
 import client.m1ck3y.rattix.features.module.Module;
 import client.m1ck3y.rattix.features.module.ModuleManager;
 import client.m1ck3y.rattix.features.module.modules.ClickGUI;
+import client.m1ck3y.rattix.ui.elements.FluentGuiButton;
 import client.m1ck3y.rattix.utils.render.RenderUtil;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
@@ -42,8 +43,8 @@ public class GuiModulesOverview extends GuiScreen {
         buttonList.clear();
 
         int centerX = width / 2;
-        buttonList.add(new GuiButton(BTN_CLICKGUI, width - 150, 10, 135, 20, "Open ClickGUI (RSHIFT)"));
-        buttonList.add(new GuiButton(BTN_DONE, centerX - 60, height - 28, 120, 22, "Done"));
+        buttonList.add(new FluentGuiButton(BTN_CLICKGUI, width - 150, 10, 135, 20, "Open ClickGUI (RSHIFT)"));
+        buttonList.add(new FluentGuiButton(BTN_DONE, centerX - 60, height - 28, 120, 22, "Done"));
     }
 
     private List<Module> getFilteredModules() {

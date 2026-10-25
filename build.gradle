@@ -40,9 +40,14 @@ compileJava.dependsOn processResources
 compileJava.doLast {
     File refMap = file("${buildDir}/resources/main/mixins.rattix.refmap.json")
     if (refMap.exists()) {
-        copy {
-            from refMap
-            into "src/main/resources"
+        try {
+            java.nio.file.Files.copy(
+                refMap.toPath(),
+                file("src/main/resources/mixins.rattix.refmap.json").toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING
+            )
+        } catch (Throwable t) {
+            println "[Rattix] Note: Could not sync refmap to src/main/resources: " + t.getMessage()
         }
     }
 }
