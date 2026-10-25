@@ -36,6 +36,17 @@ compileJava {
     ]
 }
 
+compileJava.dependsOn processResources
+compileJava.doLast {
+    File refMap = file("${buildDir}/resources/main/mixins.rattix.refmap.json")
+    if (refMap.exists()) {
+        copy {
+            from refMap
+            into "src/main/resources"
+        }
+    }
+}
+
 repositories {
     mavenCentral()
     maven {
@@ -79,6 +90,7 @@ processResources {
 
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
+        exclude 'mixins.rattix.refmap.json'
     }
 }
 

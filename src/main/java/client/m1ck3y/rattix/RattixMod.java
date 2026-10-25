@@ -15,6 +15,7 @@ import client.m1ck3y.rattix.ui.font.FontUtil;
 import client.m1ck3y.rattix.utils.render.IconUtils;
 import client.m1ck3y.rattix.utils.client.SoundUtil;
 import client.m1ck3y.rattix.ui.client.StartupScreen;
+import client.m1ck3y.rattix.ui.client.RattixMainMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.renderer.GlStateManager;
@@ -273,14 +274,15 @@ public class RattixMod {
     @SubscribeEvent
     public void onGuiOpen(net.minecraftforge.client.event.GuiOpenEvent event) {
         StartupScreen.onStartupComplete();
-        if (event.gui instanceof GuiMainMenu) {
+        if (event.gui instanceof GuiMainMenu && !(event.gui instanceof RattixMainMenu)) {
+            event.gui = new RattixMainMenu();
             SoundUtil.playStartupSound();
         }
     }
 
     @SubscribeEvent
     public void onDrawScreenPost(GuiScreenEvent.DrawScreenEvent.Post event) {
-        if (event.gui instanceof GuiMainMenu) {
+        if (event.gui instanceof GuiMainMenu || event.gui instanceof RattixMainMenu) {
             if (!SoundUtil.hasPlayedStartupSound()) {
                 SoundUtil.playStartupSound();
             }
@@ -297,7 +299,7 @@ public class RattixMod {
 
     @SubscribeEvent
     public void onMouseInput(GuiScreenEvent.MouseInputEvent.Pre event) {
-        if (event.gui instanceof GuiMainMenu) {
+        if (event.gui instanceof GuiMainMenu || event.gui instanceof RattixMainMenu) {
             int dWheel = org.lwjgl.input.Mouse.getEventDWheel();
             if (dWheel != 0) {
                 Minecraft mc = Minecraft.getMinecraft();
@@ -312,7 +314,7 @@ public class RattixMod {
 
     @SubscribeEvent
     public void onKeyboardInput(GuiScreenEvent.KeyboardInputEvent.Pre event) {
-        if (event.gui instanceof GuiMainMenu) {
+        if (event.gui instanceof GuiMainMenu || event.gui instanceof RattixMainMenu) {
             if (Keyboard.getEventKeyState()) {
                 char c = Keyboard.getEventCharacter();
                 int k = Keyboard.getEventKey();

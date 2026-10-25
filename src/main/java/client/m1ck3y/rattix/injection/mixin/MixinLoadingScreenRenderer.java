@@ -1,7 +1,7 @@
 package client.m1ck3y.rattix.injection.mixin;
 
-import client.m1ck3y.rattix.features.module.modules.MenuShader;
 import client.m1ck3y.rattix.utils.render.IconUtils;
+import client.m1ck3y.rattix.utils.render.shader.ShaderBackgroundRenderer;
 import client.m1ck3y.rattix.utils.render.shader.ShaderManager;
 import net.minecraft.client.LoadingScreenRenderer;
 import net.minecraft.client.Minecraft;
@@ -12,8 +12,10 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.shader.Framebuffer;
 import org.lwjgl.opengl.Display;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LoadingScreenRenderer.class)
 public abstract class MixinLoadingScreenRenderer {
@@ -26,25 +28,31 @@ public abstract class MixinLoadingScreenRenderer {
     @Shadow private ScaledResolution scaledResolution;
 
     /**
-     * @author Rattix
-     * @reason 将纯黑/动态着色器 + ricon + 现代进度条风格延续到单人世界加载、生成、保存与资源重载等所有加载界面
+     * 将原生无压暗动态着色器 + ricon + 现代进度条风格延续到单人世界加载、生成、保存与资源重载等所有加载界面
      */
-    @Overwrite
-    public void setLoadingProgress(int progress) {
+    @Inject(method = "setLoadingProgress", at = @At("HEAD"), cancellable = true)
+    private void onSetLoadingProgress(int progress, CallbackInfo ci) {
         long now = Minecraft.getSystemTime();
         if (now - this.systemTime < 100L) {
+            ci.cancel();
             return;
         }
         this.systemTime = now;
 
-        if (this.mc == null || !Display.isCreated()) return;
+        if (this.mc == null || !Display.isCreated()) {
+            ci.cancel();
+            return;
+        }
 
         this.scaledResolution = new ScaledResolution(this.mc);
         int scale = this.scaledResolution.getScaleFactor();
         int width = this.scaledResolution.getScaledWidth();
         int height = this.scaledResolution.getScaledHeight();
 
-        if (width <= 0 || height <= 0 || scale <= 0) return;
+        if (width <= 0 || height <= 0 || scale <= 0) {
+            ci.cancel();
+            return;
+        }
 
         int dispW = width * scale;
         int dispH = height * scale;
@@ -68,12 +76,9 @@ public abstract class MixinLoadingScreenRenderer {
         GlStateManager.enableTexture2D();
         GlStateManager.resetColor();
 
-        // 1. 背景：启用着色器时绘制动态背景，否则为极简纯黑暗色背景
-        MenuShader ms = MenuShader.getInstance();
-        boolean useShader = ms != null && ms.enableShader.isEnabled() && ms.loadingScreens.isEnabled() && ShaderManager.getInstance().isShaderActive();
-        if (useShader) {
-            ShaderManager.getInstance().render(width, height, width / 2, height / 2);
-            Gui.drawRect(0, 0, width, height, 0x88000000);
+        // 1. 背景：启用着色器时绘制动态背景，完全无压暗遮罩；未启用时为极简纯黑暗色背景
+        if (ShaderBackgroundRenderer.shouldRenderShader()) {
+            ShaderBackgroundRenderer.renderLoadingScreen(width, height);
         } else {
             Gui.drawRect(0, 0, width, height, 0xFF141414);
         }
@@ -116,5 +121,6 @@ public abstract class MixinLoadingScreenRenderer {
         GlStateManager.enableAlpha();
         GlStateManager.alphaFunc(516, 0.1F);
         this.mc.updateDisplay();
+        ci.cancel();
     }
 }

@@ -52,6 +52,7 @@ public class ShaderManager {
     private int fragmentShaderId = 0;
     private int programId = 0;
     private Framebuffer shaderFbo = null;
+    private static final boolean OPTIFINE_PRESENT = detectOptiFine();
 
     private int timeLoc = -1;
     private int resolutionLoc = -1;
@@ -90,6 +91,16 @@ public class ShaderManager {
     private ShaderManager() {
         loadShaderList();
         loadConfig();
+    }
+
+    private static boolean detectOptiFine() {
+        try {
+            Class.forName("optifine.Config", false, ShaderManager.class.getClassLoader());
+            System.out.println("[Rattix] OptiFine detected; using direct GUI shader rendering");
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private void loadShaderList() {
@@ -251,6 +262,14 @@ public class ShaderManager {
 
     public boolean isShaderActive() {
         return !"Vanilla".equalsIgnoreCase(currentShader);
+    }
+
+    /** Returns whether the currently selected shader has a linked GL program.
+     *  OptiFine can expose a different framebuffer/capability path, so callers
+     *  must use this before cancelling vanilla GUI background rendering.
+     */
+    public boolean canRenderBackground() {
+        return isShaderActive() && glInitialized && programId != 0;
     }
 
     public String getCurrentShader() {
@@ -513,7 +532,10 @@ public class ShaderManager {
         int renderW = Math.max(16, (int) (dispW * resScale));
         int renderH = Math.max(16, (int) (dispH * resScale));
 
-        boolean canUseFbo = OpenGlHelper.isFramebufferEnabled();
+        // OptiFine owns/rebinds the main framebuffer during GUI rendering. Using a
+        // second FBO here can leave the screen black after the background injection,
+        // so use the direct-screen path when OptiFine is present.
+        boolean canUseFbo = OpenGlHelper.isFramebufferEnabled() && !OPTIFINE_PRESENT;
 
         // Check if FBO needs creation or resize
         if (canUseFbo) {

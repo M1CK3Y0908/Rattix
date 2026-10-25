@@ -1,14 +1,14 @@
 package client.m1ck3y.rattix.injection.mixin;
 
-import client.m1ck3y.rattix.features.module.modules.MenuShader;
 import client.m1ck3y.rattix.utils.render.IconUtils;
-import client.m1ck3y.rattix.utils.render.shader.ShaderManager;
-import net.minecraft.client.Minecraft;
+import client.m1ck3y.rattix.utils.render.Win11UiRenderer;
+import client.m1ck3y.rattix.utils.render.shader.ShaderBackgroundRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiDownloadTerrain;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.multiplayer.GuiConnecting;
-import org.lwjgl.input.Mouse;
+import java.util.List;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,26 +18,51 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GuiScreen.class)
 public abstract class MixinGuiScreen extends Gui {
 
+    @Shadow public abstract void drawBackground(int tint);
+    @Shadow protected List<GuiButton> buttonList;
+
+    /**
+     * 1.8.9 的大多数设置/列表界面通过 drawDefaultBackground() 绘制默认泥土背景，
+     * 而不是直接调用 drawBackground()。在这里拦截才能覆盖 GuiOptions、GuiVideoSettings、
+     * GuiLanguage、GuiControls 等界面的原版泥土纹理。
+     */
+    @Inject(method = "drawDefaultBackground", at = @At("HEAD"), cancellable = true)
+    private void onDrawDefaultBackground(CallbackInfo ci) {
+        if (ShaderBackgroundRenderer.shouldRenderShader()) {
+            if (ShaderBackgroundRenderer.renderCurrentScreen(true)) {
+                ci.cancel();
+            }
+        }
+    }
+
     /**
      * 将统一背景风格（动态着色器或纯黑背景）延伸到所有非局内界面（多人游戏、选项设置、世界选择、断开连接等）
      */
     @Inject(method = "drawBackground", at = @At("HEAD"), cancellable = true)
     private void onDrawBackground(int tint, CallbackInfo ci) {
-        GuiScreen self = (GuiScreen) (Object) this;
-        if (self.mc != null && self.mc.theWorld == null) {
-            MenuShader ms = MenuShader.getInstance();
-            boolean useShader = ms != null && ms.enableShader.isEnabled() && ms.allMenus.isEnabled() && ShaderManager.getInstance().isShaderActive();
-            if (useShader) {
-                int mouseX = Mouse.getX() * self.width / Math.max(1, self.mc.displayWidth);
-                int mouseY = self.height - Mouse.getY() * self.height / Math.max(1, self.mc.displayHeight) - 1;
-                ShaderManager.getInstance().render(self.width, self.height, mouseX, mouseY);
-                // 柔和暗色遮罩，保证前景设置项、按钮、服务器列表等文本极其清晰易读
-                drawRect(0, 0, self.width, self.height, 0x88000000);
-            } else {
+        if (ShaderBackgroundRenderer.shouldRenderShader()) {
+            if (ShaderBackgroundRenderer.renderCurrentScreen()) {
+                ci.cancel();
+            }
+        } else {
+            GuiScreen self = (GuiScreen) (Object) this;
+            if (self.mc == null || self.mc.theWorld == null || self instanceof GuiDownloadTerrain || self instanceof GuiConnecting) {
                 // 纯黑暗色背景替代原版泥土平铺
                 drawRect(0, 0, self.width, self.height, 0xFF141414);
+                ci.cancel();
             }
-            ci.cancel();
+        }
+    }
+
+    /**
+     * 拦截世界背景绘制，确保下载地形与连接界面在 theWorld 非空时亦不会绘制原版暗色渐变
+     */
+    @Inject(method = "drawWorldBackground", at = @At("HEAD"), cancellable = true)
+    private void onDrawWorldBackground(int tint, CallbackInfo ci) {
+        if (ShaderBackgroundRenderer.shouldRenderShader()) {
+            if (ShaderBackgroundRenderer.renderCurrentScreen()) {
+                ci.cancel();
+            }
         }
     }
 
@@ -53,5 +78,11 @@ public abstract class MixinGuiScreen extends Gui {
             float iconY = self.height / 2.0f - 115.0f;
             IconUtils.drawIconDirect(iconX, iconY, iconSize);
         }
+    }
+
+    /** Final overlay pass for vanilla/OptiFine menu buttons. */
+    @Inject(method = "drawScreen", at = @At("TAIL"), require = 0)
+    private void onDrawScreenWin11Buttons(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+        Win11UiRenderer.drawButtons((GuiScreen) (Object) this, net.minecraft.client.Minecraft.getMinecraft(), mouseX, mouseY, buttonList);
     }
 }

@@ -4,6 +4,8 @@ import client.m1ck3y.rattix.RattixMod;
 import client.m1ck3y.rattix.ui.client.StartupScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiMainMenu;
+import client.m1ck3y.rattix.ui.client.RattixMainMenu;
 import net.minecraft.client.renderer.texture.TextureManager;
 import org.lwjgl.input.Keyboard;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,9 +17,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 @SuppressWarnings("all")
 public abstract class MixinMinecraft {
+    private static boolean rattix$redirectingMainMenu;
 
     @Shadow
     public GuiScreen currentScreen;
+
+    /** Fallback handoff used when OptiFine replaces GuiMainMenu.initGui before its Mixin runs. */
+    @Inject(method = "displayGuiScreen", at = @At("HEAD"), cancellable = true, require = 0)
+    private void rattix$redirectDisplayedMainMenu(GuiScreen screen, CallbackInfo ci) {
+        if (rattix$redirectingMainMenu || !(screen instanceof GuiMainMenu)) return;
+        rattix$redirectingMainMenu = true;
+        try {
+            Minecraft.getMinecraft().displayGuiScreen(new RattixMainMenu());
+            ci.cancel();
+        } finally {
+            rattix$redirectingMainMenu = false;
+        }
+    }
 
     /**
      * @author Rattix Team (reference FPSMaster-Edge)
