@@ -305,6 +305,12 @@ public class RattixMod {
                 Minecraft mc = Minecraft.getMinecraft();
                 int mouseX = org.lwjgl.input.Mouse.getEventX() * event.gui.width / Math.max(1, mc.displayWidth);
                 int mouseY = event.gui.height - org.lwjgl.input.Mouse.getEventY() * event.gui.height / Math.max(1, mc.displayHeight) - 1;
+                if (event.gui instanceof RattixMainMenu) {
+                    RattixMainMenu rmm = (RattixMainMenu) event.gui;
+                    if (rmm.getWindowManager() != null && rmm.getWindowManager().isMouseOverAnyWindow(mouseX, mouseY)) {
+                        return;
+                    }
+                }
                 if (client.m1ck3y.rattix.utils.render.shader.ShaderManager.getInstance().handleMouseWheel(dWheel, mouseX, mouseY)) {
                     event.setCanceled(true);
                 }

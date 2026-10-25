@@ -56,6 +56,7 @@
       "initGui": "Lnet/minecraft/client/gui/GuiMainMenu;func_73866_w_()V"
     },
     "client/m1ck3y/rattix/injection/mixin/MixinGuiScreen": {
+      "handleMouseInput": "Lnet/minecraft/client/gui/GuiScreen;func_146274_d()V",
       "drawBackground": "Lnet/minecraft/client/gui/GuiScreen;func_146278_c(I)V",
       "drawWorldBackground": "Lnet/minecraft/client/gui/GuiScreen;func_146270_b(I)V",
       "drawDefaultBackground": "Lnet/minecraft/client/gui/GuiScreen;func_146276_q_()V",
@@ -126,6 +127,7 @@
         "initGui": "Laya;b()V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinGuiScreen": {
+        "handleMouseInput": "Laxu;k()V",
         "drawBackground": "Laxu;c(I)V",
         "drawWorldBackground": "Laxu;b_(I)V",
         "drawDefaultBackground": "Laxu;c()V",
@@ -195,6 +197,7 @@
         "initGui": "Lnet/minecraft/client/gui/GuiMainMenu;func_73866_w_()V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinGuiScreen": {
+        "handleMouseInput": "Lnet/minecraft/client/gui/GuiScreen;func_146274_d()V",
         "drawBackground": "Lnet/minecraft/client/gui/GuiScreen;func_146278_c(I)V",
         "drawWorldBackground": "Lnet/minecraft/client/gui/GuiScreen;func_146270_b(I)V",
         "drawDefaultBackground": "Lnet/minecraft/client/gui/GuiScreen;func_146276_q_()V",

@@ -528,19 +528,71 @@ public class RenderUtil {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
+    public static void drawCircleOutline(float cx, float cy, float r, float lineWidth, int color) {
+        float a = (float) (color >> 24 & 255) / 255.0F;
+        float red = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+
+        GlStateManager.enableBlend();
+        GlStateManager.disableTexture2D();
+        GlStateManager.disableCull();
+        GlStateManager.disableAlpha();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.color(red, g, b, a);
+        GL11.glLineWidth(lineWidth);
+
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(GL11.GL_LINE_LOOP, DefaultVertexFormats.POSITION);
+        for (int i = 0; i < SIN_360_STEP6.length; i++) {
+            worldrenderer.pos(cx + SIN_360_STEP6[i] * r, cy + COS_360_STEP6[i] * r, 0.0D).endVertex();
+        }
+        tessellator.draw();
+
+        GL11.glLineWidth(1.0f);
+        GlStateManager.enableAlpha();
+        GlStateManager.enableCull();
+        GlStateManager.enableTexture2D();
+        GlStateManager.disableBlend();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
     public static boolean isHovered(float mouseX, float mouseY, float x, float y, float width, float height) {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
     }
 
+    private static final java.util.Deque<int[]> scissorStack = new java.util.ArrayDeque<>();
+
     public static void enablePixelScissor(float x, float y, float width, float height) {
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
         int screenHeight = mc.displayHeight;
-        GL11.glEnable(GL11.GL_SCISSOR_TEST);
         int sx = (int) Math.floor(x);
         int sy = (int) Math.floor(screenHeight - (y + height));
         int sw = (int) Math.ceil(width + (x - sx));
         int sh = (int) Math.ceil(height + ((screenHeight - (y + height)) - sy));
-        GL11.glScissor(Math.max(0, sx), Math.max(0, sy), Math.max(0, sw), Math.max(0, sh));
+        sx = Math.max(0, sx);
+        sy = Math.max(0, sy);
+        sw = Math.max(0, sw);
+        sh = Math.max(0, sh);
+
+        if (!scissorStack.isEmpty()) {
+            int[] parent = scissorStack.peek();
+            int nx = Math.max(sx, parent[0]);
+            int ny = Math.max(sy, parent[1]);
+            int nr = Math.min(sx + sw, parent[0] + parent[2]);
+            int nt = Math.min(sy + sh, parent[1] + parent[3]);
+            int nw = Math.max(0, nr - nx);
+            int nh = Math.max(0, nt - ny);
+            sx = nx;
+            sy = ny;
+            sw = nw;
+            sh = nh;
+        }
+
+        scissorStack.push(new int[]{sx, sy, sw, sh});
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor(sx, sy, sw, sh);
     }
 
     private static net.minecraft.client.gui.ScaledResolution cachedSr = null;
@@ -571,6 +623,19 @@ public class RenderUtil {
     }
 
     public static void disableScissor() {
+        if (!scissorStack.isEmpty()) {
+            scissorStack.pop();
+        }
+        if (!scissorStack.isEmpty()) {
+            int[] top = scissorStack.peek();
+            GL11.glScissor(top[0], top[1], top[2], top[3]);
+        } else {
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        }
+    }
+
+    public static void resetScissor() {
+        scissorStack.clear();
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
 

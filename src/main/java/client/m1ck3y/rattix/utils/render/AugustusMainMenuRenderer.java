@@ -12,6 +12,10 @@ public final class AugustusMainMenuRenderer {
     private AugustusMainMenuRenderer() {}
 
     public static void draw(GuiScreen screen, Minecraft mc, int mouseX, int mouseY, List<GuiButton> buttons) {
+        draw(screen, mc, mouseX, mouseY, buttons, null);
+    }
+
+    public static void draw(GuiScreen screen, Minecraft mc, int mouseX, int mouseY, List<GuiButton> buttons, client.m1ck3y.rattix.ui.window.WindowManager windowManager) {
         if (screen == null || mc == null) return;
         int w = screen.width, h = screen.height;
         // Keep the active GLSL background visible through the launcher surface.
@@ -25,9 +29,19 @@ public final class AugustusMainMenuRenderer {
         f.drawStringWithShadow("R", 38, 35, 0xFF76B9ED);
         f.drawString("RATTIX", 76, 31, 0xFFF4F7FA);
         f.drawString("CLIENT", 76, 43, 0xFF7F8A98);
-        drawNavItem(f, "Home", 82, true);
-        drawNavItem(f, "Modules", 118, false);
-        drawNavItem(f, "Settings", 154, false);
+
+        client.m1ck3y.rattix.ui.window.SubpageWindow top = (windowManager != null) ? windowManager.getActiveTopWindow() : null;
+        boolean homeSelected = (top == null);
+        boolean modulesSelected = (top != null && top.getType() == client.m1ck3y.rattix.ui.window.WindowType.MODULES);
+        boolean settingsSelected = (top != null && top.getType() == client.m1ck3y.rattix.ui.window.WindowType.SETTINGS);
+
+        boolean homeHover = mouseX >= 16 && mouseX <= 166 && mouseY >= 82 - 9 && mouseY <= 82 + 19;
+        boolean modulesHover = mouseX >= 16 && mouseX <= 166 && mouseY >= 118 - 9 && mouseY <= 118 + 19;
+        boolean settingsHover = mouseX >= 16 && mouseX <= 166 && mouseY >= 154 - 9 && mouseY <= 154 + 19;
+
+        drawNavItem(f, "Home", 82, homeSelected, homeHover);
+        drawNavItem(f, "Modules", 118, modulesSelected, modulesHover);
+        drawNavItem(f, "Settings", 154, settingsSelected, settingsHover);
         f.drawString("1.8.9 Forge", 24, h - 34, 0xFF7F8A98);
         f.drawString("Rattix 1.0.0", 24, h - 21, 0xFF566170);
 
@@ -50,9 +64,13 @@ public final class AugustusMainMenuRenderer {
         f.drawString("Build your own visual profile in ClickGUI  •  Right Shift", cardX + 28, h - 24, 0xFF667384);
     }
 
-    private static void drawNavItem(FontRenderer f, String text, int y, boolean selected) {
-        if (selected) RenderUtil.drawRoundedRect(16, y - 9, 150, 28, 7, 0xFF20344B);
-        f.drawString(text, 34, y, selected ? 0xFFF4F7FA : 0xFF929CAA);
-        if (selected) RenderUtil.drawRoundedRect(16, y - 9, 3, 28, 1.5f, 0xFF76B9ED);
+    private static void drawNavItem(FontRenderer f, String text, int y, boolean selected, boolean hovered) {
+        if (selected) {
+            RenderUtil.drawRoundedRect(16, y - 9, 150, 28, 7, 0xFF20344B);
+            RenderUtil.drawRoundedRect(16, y - 9, 3, 28, 1.5f, 0xFF76B9ED);
+        } else if (hovered) {
+            RenderUtil.drawRoundedRect(16, y - 9, 150, 28, 7, 0x3320344B);
+        }
+        f.drawString(text, 34, y, selected ? 0xFFF4F7FA : (hovered ? 0xFFCED5DF : 0xFF929CAA));
     }
 }

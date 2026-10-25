@@ -28,6 +28,12 @@ public abstract class MixinGuiScreen extends Gui {
      */
     @Inject(method = "drawDefaultBackground", at = @At("HEAD"), cancellable = true)
     private void onDrawDefaultBackground(CallbackInfo ci) {
+        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded) {
+            GuiScreen self = (GuiScreen) (Object) this;
+            drawRect(0, 0, self.width, self.height, 0xF212151D);
+            ci.cancel();
+            return;
+        }
         if (ShaderBackgroundRenderer.shouldRenderShader()) {
             if (ShaderBackgroundRenderer.renderCurrentScreen(true)) {
                 ci.cancel();
@@ -40,6 +46,12 @@ public abstract class MixinGuiScreen extends Gui {
      */
     @Inject(method = "drawBackground", at = @At("HEAD"), cancellable = true)
     private void onDrawBackground(int tint, CallbackInfo ci) {
+        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded) {
+            GuiScreen self = (GuiScreen) (Object) this;
+            drawRect(0, 0, self.width, self.height, 0xF212151D);
+            ci.cancel();
+            return;
+        }
         if (ShaderBackgroundRenderer.shouldRenderShader()) {
             if (ShaderBackgroundRenderer.renderCurrentScreen()) {
                 ci.cancel();
@@ -59,8 +71,24 @@ public abstract class MixinGuiScreen extends Gui {
      */
     @Inject(method = "drawWorldBackground", at = @At("HEAD"), cancellable = true)
     private void onDrawWorldBackground(int tint, CallbackInfo ci) {
+        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded) {
+            ci.cancel();
+            return;
+        }
         if (ShaderBackgroundRenderer.shouldRenderShader()) {
             if (ShaderBackgroundRenderer.renderCurrentScreen()) {
+                ci.cancel();
+            }
+        }
+    }
+
+    /**
+     * 拦截嵌套窗口内的原生 handleMouseInput 按钮点击，防止与 SubpageWindow 的精准相对坐标分发发生重复触发
+     */
+    @Inject(method = "handleMouseInput", at = @At("HEAD"), cancellable = true)
+    private void onHandleMouseInput(CallbackInfo ci) {
+        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded) {
+            if (org.lwjgl.input.Mouse.getEventButton() != -1) {
                 ci.cancel();
             }
         }

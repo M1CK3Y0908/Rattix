@@ -2,6 +2,40 @@
 
 Rattix Client - A customized Forge 1.8.9 Client.
 
+### **UPDATE LOG 102526**
+
+[#]Fix **Custom Main Menu Launcher Disappearance Bug** Resolved the critical issue where custom main menu was displayed in IDEA but disappeared in production launchers (HMCL/PCL/official launcher) by fixing Gradle build refmap overwrite and adding dual Forge/Mixin screen handoffs
+[#]Fix **Gradle Refmap Overwrite Pipeline** Updated `build.gradle` so `compileJava.dependsOn processResources` runs first, excluded `mixins.rattix.refmap.json` from `processResources` copy task so stale source files no longer wipe out annotation processor output, and synced generated refmaps back into resources
+[#]Fix **Obfuscated Refmap Generation** Correctly generated Searge (`func_147108_a`, `func_73866_w_`) and Notch (`a(Laxu;)V`, `b()V`) refmap mappings for `MixinMinecraft.displayGuiScreen` and `MixinGuiMainMenu.initGui`, eliminating silent `require = 0` drops in production runtimes
+[#]Add **Forge GuiOpenEvent Menu Fallback** Added redundant screen replacement in `RattixMod.onGuiOpen`, intercepting `GuiMainMenu` instantiation on the native Forge event bus and redirecting to `RattixMainMenu`, providing 100% fail-safe display across diverse launcher environments and OptiFine setups
+[#]Fix **Main Menu Escape Key Handling** Prevented redundant screen reconstruction loops on pressing Escape within `RattixMainMenu`, matching vanilla main menu keyboard semantics
+[#]Update **Event Lifecycle Compatibility** Extended `onDrawScreenPost`, `onMouseInput`, and `onKeyboardInput` event subscriptions to explicitly recognize `RattixMainMenu` for seamless module count rendering and shader mouse-wheel switching
+[#]Add **Standalone RattixMainMenu Screen** Added dedicated GUI with its own button lifecycle, action dispatch, Escape handling, Shader background integration, and Augustus-inspired rendering without relying on vanilla menu internals
+[#]Add **Augustus-Inspired Main Menu Surface** Replaced the vanilla main-menu layout with a custom dark launcher surface featuring a left navigation rail, Rattix branding card, action buttons, version footer, and translucent shader-compatible panels
+[#]Refactor **Fluent Design Button States** Reworked GuiButton rendering with Fluent-style low-contrast surfaces, hover reveal overlays, 1px accent borders, disabled colors, rounded 4px geometry, and bottom focus indicators while preserving vanilla interaction dispatch
+[#]Update **Fluent Slider Controls** Restyled Forge option sliders with a neutral track and accent thumb consistent with the Fluent control visual language
+[#]Add **Fluent TextField Styling** Implemented rounded card styling and active focus borders for GuiTextField controls
+[#]Fix **OptiFine Button Rendering Compatibility** Added a generic GuiScreen tail pass that reapplies Win11/UWP button styling after vanilla or OptiFine button rendering while preserving original click behavior
+[#]Add **Shared ShaderBackgroundRenderer Architecture** Implemented centralized `ShaderBackgroundRenderer` pipeline connecting `ShaderManager` with all non-in-game GUI screens, featuring automated resolution/mouse coordinate calculations and a 150-microsecond per-frame deduplication protection to eliminate state conflicts and duplicate rendering
+[#]Fix **OptiFine GUI Black Screen Compatibility** Added OptiFine detection and switched shader backgrounds to the direct-screen OpenGL path instead of the secondary FBO path, avoiding OptiFine framebuffer rebinding conflicts
+[#]Fix **Shader Failure Vanilla Fallback** GUI background injections now cancel vanilla rendering only after a linked shader program is confirmed; shader initialization/render failures automatically fall back to the normal Minecraft background instead of leaving a black screen
+[#]Fix **GuiDefaultBackground Shader Replacement** Added a cancellable `drawDefaultBackground` injection to `MixinGuiScreen`, replacing the vanilla dirt texture used by 1.8.9 options, video settings, language, controls, resource-pack, and other settings screens with the active custom GLSL shader background
+[#]Fix **Non-Main-Menu Shader Coverage** Forced a fresh shader render at the default-background interception point, ensuring screens that bypass `drawBackground`/`drawWorldBackground` no longer fall back to `options_background.png`
+[#]Fix **Refmap Binding & Non-Blocking Injections in GuiSlot** Replaced `@Overwrite` in `MixinGuiSlot` with `@Inject` on `drawScreen(HEAD)`, `drawContainerBackground`, `overlayBackground`, and `drawSelectionBox`, ensuring 100% Searge/Notch refmap binding; completely suppressed Forge container dirt quads and header/footer dirt overlays
+[#]Add **Hardware Viewport Scissoring for Scroll Lists** Scoped list entry rendering (`drawSelectionBox`) within `RenderUtil.enableScissor(left, top, width, bottom - top)` in `MixinGuiSlot`, guaranteeing scrollable entries remain perfectly clipped within their containers without relying on vanilla dirt overlay bars
+[#]Deploy **Production Reobfuscated Build** Recompiled and validated 100% clean compilation via `./gradlew build`, producing verified release artifact `build/libs/Rattix-1.0.0.jar`
+
+### **UPDATE LOG 102426(3)**
+
+[#]Add **Shared ShaderBackgroundRenderer Architecture** Implemented centralized `ShaderBackgroundRenderer` pipeline connecting `ShaderManager` with all non-in-game GUI screens, featuring automated resolution/mouse coordinate calculations and a 150-microsecond per-frame deduplication protection to eliminate state conflicts and duplicate rendering
+[#]Fix **Global Background Interception in GuiScreen** Injected `ShaderBackgroundRenderer.renderCurrentScreen` directly into `MixinGuiScreen.onDrawBackground` and `onDrawWorldBackground`, cleanly replacing vanilla dirt textures across options, video settings, language, disconnect, and connection screens
+[#]Fix **Refmap Binding & Non-Blocking Injections in GuiSlot** Replaced `@Overwrite` in `MixinGuiSlot` with `@Inject` on `drawScreen(HEAD)`, `drawContainerBackground`, `overlayBackground`, and `drawSelectionBox`, ensuring 100% Searge/Notch refmap binding; completely suppressed Forge container dirt quads and header/footer dirt overlays
+[#]Fix **Multiplayer Server & Singleplayer World List Visuals** Bound direct shader invocation to `GuiSlot.drawScreen` HEAD, ensuring scrolling list screens (`GuiMultiplayer`, `GuiSelectWorld`, `GuiScreenResourcePacks`, `GuiControls`) render the vibrant full-screen shader underneath transparent scissored entries
+[#]Fix **World Loading Screen Refmap & Shader Integration** Migrated `MixinLoadingScreenRenderer.setLoadingProgress` from `@Overwrite` to `@Inject(HEAD, cancellable)`, successfully generating Searge `func_73718_a` and Notch `a(I)V` mappings and rendering the un-dimmed shader with modern progress bar
+[#]Remove **Background Dimming & Darkening Overlays** Completely eliminated all darkening and tint overlays (`0x88000000` in `MixinGuiScreen` and `MixinLoadingScreenRenderer`, plus `0x55000000` bottom gradient in `MixinGuiMainMenu`), presenting vibrant, crystal-clear GLSL shader visuals without post-processing dimming
+[#]Add **Hardware Viewport Scissoring for Scroll Lists** Scoped list entry rendering (`drawSelectionBox`) within `RenderUtil.enableScissor(left, top, width, bottom - top)` in `MixinGuiSlot`, guaranteeing scrollable entries remain perfectly clipped within their containers without relying on vanilla dirt overlay bars
+[#]Deploy **Production Reobfuscated Build** Recompiled and validated 100% clean compilation via `./gradlew build`, producing verified release artifact `build/libs/Rattix-1.0.0.jar`
+
 ### **UPDATE LOG 102426(2)**
 
 [#]Refactor **1:1 LiquidBounce Module Architecture** Realigned all modules under their respective LiquidBounce category packages (`movement.ToggleSprint`, `render.ClickGUI`, `render.Ambiance`, `render.Font`, `render.Fullbright`, etc.) and created category packages for `combat`, `exploit`, `fun`, `misc`, `player`, and `world`

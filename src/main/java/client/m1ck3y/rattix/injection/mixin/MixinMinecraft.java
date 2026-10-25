@@ -22,9 +22,19 @@ public abstract class MixinMinecraft {
     @Shadow
     public GuiScreen currentScreen;
 
-    /** Fallback handoff used when OptiFine replaces GuiMainMenu.initGui before its Mixin runs. */
+    /** Fallback handoff used when OptiFine replaces GuiMainMenu.initGui before its Mixin runs,
+     * and windowed child-page routing when RattixMainMenu is active. */
     @Inject(method = "displayGuiScreen", at = @At("HEAD"), cancellable = true, require = 0)
     private void rattix$redirectDisplayedMainMenu(GuiScreen screen, CallbackInfo ci) {
+        if (this.currentScreen instanceof RattixMainMenu) {
+            RattixMainMenu menu = (RattixMainMenu) this.currentScreen;
+            if (menu.getWindowManager() != null) {
+                if (!menu.getWindowManager().onDisplayGuiScreen(screen)) {
+                    ci.cancel();
+                    return;
+                }
+            }
+        }
         if (rattix$redirectingMainMenu || !(screen instanceof GuiMainMenu)) return;
         rattix$redirectingMainMenu = true;
         try {
