@@ -15,7 +15,6 @@ import java.util.Map;
 @IFMLLoadingPlugin.MCVersion("1.8.9")
 @IFMLLoadingPlugin.Name("Rattix")
 @IFMLLoadingPlugin.SortingIndex(1)
-@IFMLLoadingPlugin.TransformerExclusions({"client.m1ck3y.rattix.injection"})
 public class RattixLoadingPlugin implements IFMLLoadingPlugin {
 
     static {

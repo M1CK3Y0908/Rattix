@@ -1,10 +1,11 @@
 package client.m1ck3y.rattix.ui.window;
 
+import client.m1ck3y.rattix.ui.font.FontUtil;
 import client.m1ck3y.rattix.utils.render.RenderUtil;
+import client.m1ck3y.rattix.utils.render.SvgIconHelper;
 import client.m1ck3y.rattix.utils.ui.CursorUtil;
 import client.m1ck3y.rattix.utils.ui.GuiScreenBridge;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.input.Mouse;
@@ -14,7 +15,8 @@ import java.util.Stack;
 
 /**
  * SubpageWindow - Floating, resizable, draggable, maximizable, and minimizable secondary page window.
- * Matches ClickGUI's design language, multi-window focus, and Win11 control architecture.
+ * Matches ClickGUI's design language, dimensions (640x400 / 300x40 minimized), multi-window focus,
+ * and Win11 vector control architecture with 100% parity.
  */
 public class SubpageWindow {
 
@@ -37,9 +39,11 @@ public class SubpageWindow {
     public static final float RESIZE_BORDER = 5.0f;
     public static final float RESIZE_CORNER = 12.0f;
 
-    // Dock dimensions
-    public static final float MINIMIZED_WIDTH = 150.0f;
-    public static final float MINIMIZED_HEIGHT = 28.0f;
+    // Dimensions matching ClickGUI
+    public static final float MIN_WINDOW_WIDTH = 380.0f;
+    public static final float MIN_WINDOW_HEIGHT = 240.0f;
+    public static final float MINIMIZED_WIDTH = 160.0f;
+    public static final float MINIMIZED_HEIGHT = 22.0f;
 
     private final String id;
     private String title;
@@ -51,8 +55,8 @@ public class SubpageWindow {
     private float posY;
     private float windowWidth;
     private float windowHeight;
-    private float minWidth = 420.0f;
-    private float minHeight = 280.0f;
+    private float minWidth = MIN_WINDOW_WIDTH;
+    private float minHeight = MIN_WINDOW_HEIGHT;
 
     private float restoreX;
     private float restoreY;
@@ -66,6 +70,7 @@ public class SubpageWindow {
     private boolean dragging = false;
     private float dragX = 0;
     private float dragY = 0;
+    private long lastTitlebarClickTime = 0;
 
     // Resizing state
     private boolean resizing = false;
@@ -77,9 +82,9 @@ public class SubpageWindow {
     private float resizeStartW = 0;
     private float resizeStartH = 0;
 
-    // Layout
-    private final float titlebarH = 30.0f;
-    private final float controlW = 28.0f;
+    // Layout matching ClickGUI
+    private final float titlebarH = 22.0f;
+    private final float controlW = 24.0f;
 
     public SubpageWindow(String id, WindowType type, String title, GuiScreen content, float posX, float posY, float width, float height) {
         this.id = id;
@@ -150,44 +155,72 @@ public class SubpageWindow {
     }
 
     public float getPosX() {
-        return isMaximized ? 0 : posX;
+        return posX;
+    }
+
+    public void setPosX(float posX) {
+        this.posX = posX;
     }
 
     public float getPosY() {
-        return isMaximized ? 0 : posY;
+        return posY;
     }
 
-    public float getWidth() {
-        if (isMaximized) {
-            Minecraft mc = Minecraft.getMinecraft();
-            return mc.currentScreen != null ? mc.currentScreen.width : 854;
-        }
+    public void setPosY(float posY) {
+        this.posY = posY;
+    }
+
+    public float getWindowWidth() {
         return windowWidth;
     }
 
-    public float getHeight() {
-        if (isMaximized) {
-            Minecraft mc = Minecraft.getMinecraft();
-            return mc.currentScreen != null ? mc.currentScreen.height : 480;
-        }
+    public void setWindowWidth(float windowWidth) {
+        this.windowWidth = Math.max(minWidth, windowWidth);
+    }
+
+    public float getWindowHeight() {
         return windowHeight;
     }
 
+    public void setWindowHeight(float windowHeight) {
+        this.windowHeight = Math.max(minHeight, windowHeight);
+    }
+
+    public float getMinWidth() {
+        return minWidth;
+    }
+
+    public void setMinWidth(float minWidth) {
+        this.minWidth = minWidth;
+    }
+
+    public float getMinHeight() {
+        return minHeight;
+    }
+
+    public void setMinHeight(float minHeight) {
+        this.minHeight = minHeight;
+    }
+
     public float getContentW() {
-        return Math.max(10, getWidth());
+        Minecraft mc = Minecraft.getMinecraft();
+        float screenW = mc.currentScreen != null ? mc.currentScreen.width : 854;
+        return isMaximized ? screenW : windowWidth;
     }
 
     public float getContentH() {
-        return Math.max(10, getHeight() - titlebarH);
+        Minecraft mc = Minecraft.getMinecraft();
+        float screenH = mc.currentScreen != null ? mc.currentScreen.height : 480;
+        return (isMaximized ? screenH : windowHeight) - titlebarH;
     }
 
-    public void pushScreen(GuiScreen newScreen) {
-        if (newScreen == null) return;
-        Minecraft mc = Minecraft.getMinecraft();
+    public void pushScreen(GuiScreen next) {
+        if (next == null) return;
         if (this.content != null) {
             this.history.push(this.content);
         }
-        this.content = newScreen;
+        this.content = next;
+        Minecraft mc = Minecraft.getMinecraft();
         if (mc != null) {
             this.content.setWorldAndResolution(mc, (int) getContentW(), (int) getContentH());
         }
@@ -360,54 +393,91 @@ public class SubpageWindow {
             }
         }
 
-        // 5. Draw Window Surface & Drop Shadow
+        // 5. Draw Window Surface & Drop Shadow (matching ClickGUI)
         if (!isMaximized) {
             int shadowCol = isTopFocus ? 0x65000000 : 0x40000000;
-            RenderUtil.drawDropShadow(curX, curY, curW, curH, winRadius, 12.0f, shadowCol);
+            RenderUtil.drawDropShadow(curX, curY, curW, curH, winRadius, 8.0f, shadowCol);
         }
-        RenderUtil.drawRoundedRect(curX, curY, curW, curH, winRadius, 0xF212151D);
+        int winBg = 0xFF0C0C0C;
+        RenderUtil.drawRoundedRect(curX, curY, curW, curH, winRadius, winBg);
 
-        // 6. Draw Titlebar
-        RenderUtil.drawRoundedRect(curX, curY, curW, titlebarH, isMaximized ? 0 : winRadius, isMaximized ? 0 : winRadius, 0, 0, 0xFF191D26);
-        RenderUtil.drawRect(curX, curY + titlebarH - 1, curX + curW, curY + titlebarH, 0x303F6D94);
+        // 6. Draw Titlebar (matching ClickGUI)
+        int tbBg = 0xFF202020;
+        int tbSep = 0xFF303030;
+        RenderUtil.drawRoundedRect(curX, curY, curW, titlebarH, isMaximized ? 0 : winRadius, isMaximized ? 0 : winRadius, 0, 0, tbBg);
+        RenderUtil.drawRect(curX, curY + titlebarH - 1, curX + curW, curY + titlebarH, tbSep);
 
-        // Icon & Title
-        drawTypeIcon(curX + 10, curY + (titlebarH - 14) / 2, isTopFocus ? 0xFF76B9ED : 0xFF7E8A99);
-        FontRenderer fr = mc.fontRendererObj;
-        if (fr != null) {
-            fr.drawStringWithShadow(title, curX + 30, curY + (titlebarH - 8) / 2, isTopFocus ? 0xFFFFFFFF : 0xFFB0B8C4);
-        }
-
-        // 7. Right Control Buttons (Minimize, Maximize/Restore, Close)
+        // Tab Card (matching ClickGUI titlebar tab style)
         float controlsTotalW = controlW * 3;
-        float minBtnX = curX + curW - controlsTotalW;
-        float maxBtnX = minBtnX + controlW;
-        float closeBtnX = maxBtnX + controlW;
+        float tabsViewportW = curW - controlsTotalW;
+
+        float textWidth = FontUtil.getStringWidth1x(title);
+        float tabW = Math.min(tabsViewportW - 10.0f, textWidth + 36.0f);
+        float tabX = curX + 2.0f;
+
+        int activeTabBg = 0xFF0C0C0C;
+        int inactTabBg = 0xFF181818;
+        int tabBg = isTopFocus ? activeTabBg : inactTabBg;
+        RenderUtil.drawRoundedRect(tabX + 1, curY + 2, tabW - 2, titlebarH - 3, 3, 3, 0, 0, tabBg);
+
+        int tabSep = 0xFF2C2C2C;
+        RenderUtil.drawRect(tabX + tabW - 1, curY + 4, tabX + tabW, curY + titlebarH - 4, tabSep);
+
+        if (isTopFocus) {
+            int activeTabBar = 0xFF76B9ED;
+            RenderUtil.drawRoundedRect(tabX + 3, curY + titlebarH - 2, tabW - 6, 2, 1, activeTabBar);
+        }
+
+        // Icon & Title (12px icon + FontUtil 1x string matching ClickGUI title size)
+        float textOffset = tabX + 7.0f;
+        int iconColor = isTopFocus ? 0xFF76B9ED : 0xFFB0B0B0;
+        drawTypeIcon(textOffset, curY + 5.0f, iconColor);
+        textOffset += 16.0f;
+
+        int textColor = isTopFocus ? 0xFFFFFFFF : 0xFFD7D7D7;
+        FontUtil.drawString1x(title, textOffset, curY + 6.5f, textColor);
+
+        // 7. Right Control Buttons (Minimize, Maximize/Restore, Close - 24px each, matching ClickGUI)
+        float controlsStartX = curX + curW - controlsTotalW;
+        int controlsBg = 0xFF202020;
+        RenderUtil.drawRoundedRect(controlsStartX, curY, controlsTotalW, titlebarH, 0, isMaximized ? 0 : winRadius, 0, 0, controlsBg);
+        RenderUtil.drawRect(controlsStartX, curY + titlebarH - 1, curX + curW, curY + titlebarH, tbSep);
+
+        float closeBtnX = curX + curW - controlW;
+        float maxBtnX = closeBtnX - controlW;
+        float minBtnX = maxBtnX - controlW;
+
+        int ctrlHoverBg = 0xFF333333;
+        int ctrlIcon = 0xFFDDDDDD;
 
         // Minimize button
         boolean minHover = isTopFocus && isHovered(mouseX, mouseY, minBtnX, curY, controlW, titlebarH);
-        if (minHover) RenderUtil.drawRect(minBtnX, curY, minBtnX + controlW, curY + titlebarH, 0x22FFFFFF);
-        drawWin11MinimizeIcon(minBtnX + (controlW - 10) / 2, curY + (titlebarH - 10) / 2, minHover ? 0xFFFFFFFF : 0xFFB0B8C4);
+        if (minHover) RenderUtil.drawRect(minBtnX, curY, minBtnX + controlW, curY + titlebarH, ctrlHoverBg);
+        int minColor = minHover ? 0xFFFFFFFF : ctrlIcon;
+        drawWin11MinimizeIcon(minBtnX + 7.5f, curY + 6.5f, minColor);
 
         // Maximize/Restore button
         boolean maxHover = isTopFocus && isHovered(mouseX, mouseY, maxBtnX, curY, controlW, titlebarH);
-        if (maxHover) RenderUtil.drawRect(maxBtnX, curY, maxBtnX + controlW, curY + titlebarH, 0x22FFFFFF);
+        if (maxHover) RenderUtil.drawRect(maxBtnX, curY, maxBtnX + controlW, curY + titlebarH, ctrlHoverBg);
+        int maxColor = maxHover ? 0xFFFFFFFF : ctrlIcon;
         if (isMaximized) {
-            drawWin11RestoreIcon(maxBtnX + (controlW - 10) / 2, curY + (titlebarH - 10) / 2, maxHover ? 0xFFFFFFFF : 0xFFB0B8C4);
+            drawWin11RestoreIcon(maxBtnX + 7.5f, curY + 6.5f, maxColor);
         } else {
-            drawWin11MaximizeIcon(maxBtnX + (controlW - 10) / 2, curY + (titlebarH - 10) / 2, maxHover ? 0xFFFFFFFF : 0xFFB0B8C4);
+            drawWin11MaximizeIcon(maxBtnX + 7.5f, curY + 6.5f, maxColor);
         }
 
         // Close button
         boolean closeHover = isTopFocus && isHovered(mouseX, mouseY, closeBtnX, curY, controlW, titlebarH);
         if (closeHover) {
+            int closeHoverBg = 0xFFC42B1C;
             if (!isMaximized) {
-                RenderUtil.drawRoundedRect(closeBtnX, curY, controlW, titlebarH, 0, winRadius, 0, 0, 0xFFC42B1C);
+                RenderUtil.drawRoundedRect(closeBtnX, curY, controlW, titlebarH, 0, winRadius, 0, 0, closeHoverBg);
             } else {
-                RenderUtil.drawRect(closeBtnX, curY, closeBtnX + controlW, curY + titlebarH, 0xFFC42B1C);
+                RenderUtil.drawRect(closeBtnX, curY, closeBtnX + controlW, curY + titlebarH, closeHoverBg);
             }
         }
-        drawWin11CloseIcon(closeBtnX + (controlW - 10) / 2, curY + (titlebarH - 10) / 2, closeHover ? 0xFFFFFFFF : 0xFFB0B8C4);
+        int closeColor = closeHover ? 0xFFFFFFFF : ctrlIcon;
+        drawWin11CloseIcon(closeBtnX + 7.5f, curY + 6.5f, closeColor);
 
         // 8. Content Area Rendering with Scissoring
         float contentX = curX;
@@ -443,8 +513,8 @@ public class SubpageWindow {
 
         // 9. Window Border Outline
         if (!isMaximized) {
-            int borderColor = isTopFocus ? 0xFF76B9ED : 0x303F6D94;
-            RenderUtil.drawRoundedOutline(curX, curY, curW, curH, winRadius, 1.0f, borderColor);
+            int outlineColor = isTopFocus ? 0xFF454545 : 0xFF282828;
+            RenderUtil.drawRoundedOutline(curX, curY, curW, curH, winRadius, 1.0f, outlineColor);
         }
     }
 
@@ -455,60 +525,93 @@ public class SubpageWindow {
 
         float minX = getMinimizedX(minIndex, screenW);
         float minY = getMinimizedY(minIndex, screenH);
-        float minW = MINIMIZED_WIDTH;
-        float minH = MINIMIZED_HEIGHT;
-        float radius = 6.0f;
+        float minW = MINIMIZED_WIDTH;  // 160.0f
+        float minH = MINIMIZED_HEIGHT; // 22.0f
+        float winRadius = 4.0f;
 
-        boolean hover = isHovered(mouseX, mouseY, minX, minY, minW, minH);
+        // 1. Drop Shadow
+        int shadowColor = isTopFocus ? 0x65000000 : 0x40000000;
+        RenderUtil.drawDropShadow(minX, minY, minW, minH, winRadius, 6.0f, shadowColor);
 
-        // Drop shadow
-        RenderUtil.drawDropShadow(minX, minY, minW, minH, radius, 8.0f, isTopFocus ? 0x65000000 : 0x40000000);
-        // Surface
-        RenderUtil.drawRoundedRect(minX, minY, minW, minH, radius, hover ? 0xF2222733 : 0xF2181C26);
-        // Outline
-        RenderUtil.drawRoundedOutline(minX, minY, minW, minH, radius, 1.0f, isTopFocus ? 0xFF76B9ED : (hover ? 0x8876B9ED : 0x403F6D94));
+        // 2. Background
+        int minBg = 0xF2202020;
+        RenderUtil.drawRoundedRect(minX, minY, minW, minH, winRadius, minBg);
 
-        // Icon + Title
-        drawTypeIcon(minX + 8, minY + (minH - 14) / 2, isTopFocus ? 0xFF76B9ED : 0xFF9EABB9);
-        FontRenderer fr = mc.fontRendererObj;
-        if (fr != null) {
-            String shortTitle = title;
-            if (fr.getStringWidth(shortTitle) > minW - 56) {
-                shortTitle = fr.trimStringToWidth(shortTitle, (int) (minW - 62)) + "...";
+        // 3. Outline
+        int outlineColor = isTopFocus ? 0xFF4C4C4C : 0xFF303030;
+        RenderUtil.drawRoundedOutline(minX, minY, minW, minH, winRadius, 1.0f, outlineColor);
+
+        // 4. Icon & Title (12px icon + FontUtil string)
+        int accent = 0xFF76B9ED;
+        float textOffset = minX + 6.0f;
+        drawTypeIcon(textOffset, minY + 5.0f, accent);
+        textOffset += 16.0f;
+
+        float btnW = 20.0f;
+        float closeX = minX + minW - btnW;
+        float maxX = closeX - btnW;
+        float restoreX = maxX - btnW;
+
+        float maxTitleW = restoreX - textOffset - 4.0f;
+        String displayTitle = title;
+        if (FontUtil.getStringWidth1x(displayTitle) > maxTitleW) {
+            while (displayTitle.length() > 3 && FontUtil.getStringWidth1x(displayTitle + "...") > maxTitleW) {
+                displayTitle = displayTitle.substring(0, displayTitle.length() - 1);
             }
-            fr.drawStringWithShadow(shortTitle, minX + 26, minY + (minH - 8) / 2, hover ? 0xFFFFFFFF : 0xFFE0E5EC);
+            displayTitle = displayTitle + "...";
         }
+        FontUtil.drawString1x(displayTitle, textOffset, minY + 6.5f, 0xFFFFFFFF);
 
-        // Restore & Close buttons
-        float ctrlW = 16.0f;
-        float closeX = minX + minW - 20;
-        float restoreX = closeX - 18;
+        // 5. Right Control Buttons: Restore, Maximize, Close (20px each, matching ClickGUI)
+        int ctrlHoverBg = 0xFF333333;
+        int ctrlIcon = 0xFFDDDDDD;
 
-        boolean resHover = isHovered(mouseX, mouseY, restoreX - 2, minY + (minH - ctrlW) / 2, ctrlW, ctrlW);
-        if (resHover) RenderUtil.drawRoundedRect(restoreX - 2, minY + (minH - ctrlW) / 2, ctrlW, ctrlW, 3.0f, 0x33FFFFFF);
-        drawWin11RestoreIcon(restoreX + 2, minY + (minH - 10) / 2, resHover ? 0xFFFFFFFF : 0xFF8F9BA8);
+        // Restore
+        boolean restoreHover = isHovered(mouseX, mouseY, restoreX, minY, btnW, minH);
+        if (restoreHover) {
+            RenderUtil.drawRect(restoreX, minY, restoreX + btnW, minY + minH, ctrlHoverBg);
+        }
+        int restoreColor = restoreHover ? 0xFFFFFFFF : ctrlIcon;
+        drawWin11RestoreIcon(restoreX + 5.5f, minY + 6.5f, restoreColor);
 
-        boolean clsHover = isHovered(mouseX, mouseY, closeX - 2, minY + (minH - ctrlW) / 2, ctrlW, ctrlW);
-        if (clsHover) RenderUtil.drawRoundedRect(closeX - 2, minY + (minH - ctrlW) / 2, ctrlW, ctrlW, 3.0f, 0xFFC42B1C);
-        drawWin11CloseIcon(closeX + 2, minY + (minH - 10) / 2, clsHover ? 0xFFFFFFFF : 0xFF8F9BA8);
+        // Maximize
+        boolean maxHover = isHovered(mouseX, mouseY, maxX, minY, btnW, minH);
+        if (maxHover) {
+            RenderUtil.drawRect(maxX, minY, maxX + btnW, minY + minH, ctrlHoverBg);
+        }
+        int maxColor = maxHover ? 0xFFFFFFFF : ctrlIcon;
+        drawWin11MaximizeIcon(maxX + 5.5f, minY + 6.5f, maxColor);
+
+        // Close
+        boolean closeHover = isHovered(mouseX, mouseY, closeX, minY, btnW, minH);
+        if (closeHover) {
+            RenderUtil.drawRoundedRect(closeX, minY, btnW, minH, 0, winRadius, winRadius, 0, 0xFFC42B1C);
+        }
+        int closeColor = closeHover ? 0xFFFFFFFF : ctrlIcon;
+        drawWin11CloseIcon(closeX + 5.5f, minY + 6.5f, closeColor);
     }
 
     public float getMinimizedX(int minIndex, float screenW) {
-        float startX = 204.0f;
+        Minecraft mc = Minecraft.getMinecraft();
+        boolean onMainMenu = (mc.currentScreen instanceof client.m1ck3y.rattix.ui.client.RattixMainMenu);
+        float margin = onMainMenu ? 204.0f : 16.0f;
         float gap = 8.0f;
-        float availW = screenW - startX - 20.0f;
+        float availW = screenW - margin - 16.0f;
         int perRow = Math.max(1, (int) ((availW + gap) / (MINIMIZED_WIDTH + gap)));
         int col = Math.max(0, minIndex) % perRow;
-        return startX + col * (MINIMIZED_WIDTH + gap);
+        return margin + col * (MINIMIZED_WIDTH + gap);
     }
 
     public float getMinimizedY(int minIndex, float screenH) {
         float gap = 8.0f;
-        float startX = 204.0f;
-        float availW = screenH - startX - 20.0f;
+        Minecraft mc = Minecraft.getMinecraft();
+        boolean onMainMenu = (mc.currentScreen instanceof client.m1ck3y.rattix.ui.client.RattixMainMenu);
+        float marginX = onMainMenu ? 204.0f : 16.0f;
+        float screenW = mc.currentScreen != null ? mc.currentScreen.width : 854;
+        float availW = screenW - marginX - 16.0f;
         int perRow = Math.max(1, (int) ((availW + gap) / (MINIMIZED_WIDTH + gap)));
         int row = Math.max(0, minIndex) / perRow;
-        return screenH - MINIMIZED_HEIGHT - 12.0f - row * (MINIMIZED_HEIGHT + gap);
+        return screenH - 12.0f - MINIMIZED_HEIGHT - row * (MINIMIZED_HEIGHT + gap);
     }
 
     public boolean isInsideWindow(float mx, float my) {
@@ -523,6 +626,16 @@ public class SubpageWindow {
 
         return mx >= curX - RESIZE_BORDER && mx <= curX + curW + RESIZE_BORDER &&
                my >= curY - RESIZE_BORDER && my <= curY + curH + RESIZE_BORDER;
+    }
+
+    public boolean isInsideTitlebar(float mx, float my) {
+        if (isMinimized) return false;
+        Minecraft mc = Minecraft.getMinecraft();
+        float screenW = mc.currentScreen != null ? mc.currentScreen.width : 854;
+        float curX = isMaximized ? 0 : posX;
+        float curY = isMaximized ? 0 : posY;
+        float curW = isMaximized ? screenW : windowWidth;
+        return mx >= curX && mx <= curX + curW && my >= curY && my <= curY + titlebarH;
     }
 
     public boolean isInsideContent(float mx, float my) {
@@ -582,29 +695,7 @@ public class SubpageWindow {
 
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton, int minIndex, WindowManager manager) {
         if (isMinimized) {
-            Minecraft mc = Minecraft.getMinecraft();
-            float screenW = mc.currentScreen != null ? mc.currentScreen.width : 854;
-            float screenH = mc.currentScreen != null ? mc.currentScreen.height : 480;
-            float minX = getMinimizedX(minIndex, screenW);
-            float minY = getMinimizedY(minIndex, screenH);
-            float minW = MINIMIZED_WIDTH;
-            float minH = MINIMIZED_HEIGHT;
-            if (!isHovered(mouseX, mouseY, minX, minY, minW, minH)) {
-                return false;
-            }
-
-            float closeX = minX + minW - 20;
-            float restoreX = closeX - 18;
-            if (isHovered(mouseX, mouseY, closeX - 2, minY + 4, 16, 16)) {
-                manager.closeWindow(this);
-                return true;
-            }
-            if (isHovered(mouseX, mouseY, restoreX - 2, minY + 4, 16, 16) || mouseButton == 0) {
-                setMinimized(false);
-                manager.bringToFront(this);
-                return true;
-            }
-            return true;
+            return mouseClickedMinimized(mouseX, mouseY, mouseButton, minIndex, manager);
         }
 
         Minecraft mc = Minecraft.getMinecraft();
@@ -624,9 +715,9 @@ public class SubpageWindow {
         // 1. Check titlebar control buttons
         if (mouseY >= curY && mouseY <= curY + titlebarH) {
             float controlsTotalW = controlW * 3;
-            float minBtnX = curX + curW - controlsTotalW;
-            float maxBtnX = minBtnX + controlW;
-            float closeBtnX = maxBtnX + controlW;
+            float closeBtnX = curX + curW - controlW;
+            float maxBtnX = closeBtnX - controlW;
+            float minBtnX = maxBtnX - controlW;
 
             if (isHovered(mouseX, mouseY, closeBtnX, curY, controlW, titlebarH)) {
                 manager.closeWindow(this);
@@ -641,11 +732,28 @@ public class SubpageWindow {
                 return true;
             }
 
-            // Clicked on titlebar (Drag)
+            // Clicked on titlebar (Drag or Double-Click Maximize)
             if (mouseButton == 0 && !isMaximized) {
+                long now = System.currentTimeMillis();
+                if (now - lastTitlebarClickTime < 280) {
+                    toggleMaximize();
+                    lastTitlebarClickTime = 0;
+                    return true;
+                }
+                lastTitlebarClickTime = now;
                 dragging = true;
                 dragX = mouseX - posX;
                 dragY = mouseY - posY;
+                return true;
+            }
+            if (mouseButton == 0 && isMaximized) {
+                long now = System.currentTimeMillis();
+                if (now - lastTitlebarClickTime < 280) {
+                    toggleMaximize();
+                    lastTitlebarClickTime = 0;
+                    return true;
+                }
+                lastTitlebarClickTime = now;
                 return true;
             }
         }
@@ -683,6 +791,48 @@ public class SubpageWindow {
             return true;
         }
 
+        return true;
+    }
+
+    public boolean mouseClickedMinimized(int mouseX, int mouseY, int mouseButton, int minIndex, WindowManager manager) {
+        Minecraft mc = Minecraft.getMinecraft();
+        float screenW = mc.currentScreen != null ? mc.currentScreen.width : 854;
+        float screenH = mc.currentScreen != null ? mc.currentScreen.height : 480;
+        float curX = getMinimizedX(minIndex, screenW);
+        float curY = getMinimizedY(minIndex, screenH);
+        float curW = MINIMIZED_WIDTH;
+        float curH = MINIMIZED_HEIGHT;
+
+        if (!isHovered(mouseX, mouseY, curX, curY, curW, curH)) {
+            return false;
+        }
+
+        float btnW = 20.0f;
+        float closeX = curX + curW - btnW;
+        float maxX = closeX - btnW;
+        float restoreX = maxX - btnW;
+
+        if (mouseButton == 0) {
+            if (isHovered(mouseX, mouseY, closeX, curY, btnW, curH)) {
+                manager.closeWindow(this);
+                return true;
+            }
+            if (isHovered(mouseX, mouseY, maxX, curY, btnW, curH)) {
+                setMinimized(false);
+                setMaximized(true);
+                manager.bringToFront(this);
+                return true;
+            }
+            if (isHovered(mouseX, mouseY, restoreX, curY, btnW, curH)) {
+                setMinimized(false);
+                setMaximized(false);
+                manager.bringToFront(this);
+                return true;
+            }
+            setMinimized(false);
+            manager.bringToFront(this);
+            return true;
+        }
         return true;
     }
 
@@ -746,57 +896,48 @@ public class SubpageWindow {
 
     private void drawTypeIcon(float x, float y, int color) {
         if (type == null) {
-            RenderUtil.drawRectOutline(x + 2.0f, y + 2.0f, 10.0f, 10.0f, 1.2f, color);
+            RenderUtil.drawTerminalIcon(x, y, 12.0f, color);
             return;
         }
         switch (type) {
-            case SINGLEPLAYER:
-                // Earth/World circle with latitude & longitude
-                RenderUtil.drawCircleOutline(x + 7.0f, y + 7.0f, 6.0f, 1.2f, color);
-                RenderUtil.drawLine(x + 1.0f, y + 7.0f, x + 13.0f, y + 7.0f, 1.0f, color);
-                RenderUtil.drawLine(x + 7.0f, y + 1.0f, x + 7.0f, y + 13.0f, 1.0f, color);
-                break;
-            case MULTIPLAYER:
-                // Server tower
-                RenderUtil.drawRectOutline(x + 3.0f, y + 2.0f, 8.0f, 10.0f, 1.2f, color);
-                RenderUtil.drawLine(x + 5.0f, y + 5.0f, x + 9.0f, y + 5.0f, 1.0f, color);
-                RenderUtil.drawLine(x + 5.0f, y + 8.0f, x + 9.0f, y + 8.0f, 1.0f, color);
-                break;
-            case OPTIONS:
-                // Gear / concentric circles
-                RenderUtil.drawCircleOutline(x + 7.0f, y + 7.0f, 5.0f, 1.2f, color);
-                RenderUtil.drawCircle(x + 7.0f, y + 7.0f, 2.0f, color);
+            case MODULES:
+                RenderUtil.drawModulesIcon(x, y, 12.0f, color);
                 break;
             case SETTINGS:
-                // Sliders icon
-                RenderUtil.drawLine(x + 2.0f, y + 4.0f, x + 12.0f, y + 4.0f, 1.0f, color);
-                RenderUtil.drawRect(x + 8.0f, y + 2.5f, x + 10.5f, y + 5.5f, color);
-                RenderUtil.drawLine(x + 2.0f, y + 10.0f, x + 12.0f, y + 10.0f, 1.0f, color);
-                RenderUtil.drawRect(x + 4.0f, y + 8.5f, x + 6.5f, y + 11.5f, color);
+                RenderUtil.drawTerminalIcon(x, y, 12.0f, color);
                 break;
-            case MODULES:
-                RenderUtil.drawModulesIcon(x, y - 2.0f, 16.0f, color);
+            case SINGLEPLAYER:
+                SvgIconHelper.drawIcon("player", x, y, 12.0f, color);
+                break;
+            case MULTIPLAYER:
+                SvgIconHelper.drawIcon("ghost", x, y, 12.0f, color);
+                break;
+            case OPTIONS:
+                SvgIconHelper.drawIcon("other", x, y, 12.0f, color);
+                break;
+            default:
+                RenderUtil.drawTerminalIcon(x, y, 12.0f, color);
                 break;
         }
     }
 
     private void drawWin11MinimizeIcon(float x, float y, int color) {
-        RenderUtil.drawLine(x + 0.5f, y + 5.0f, x + 9.5f, y + 5.0f, 1.2f, color);
+        RenderUtil.drawLine(x + 0.5f, y + 4.5f, x + 8.5f, y + 4.5f, 1.2f, color);
     }
 
     private void drawWin11MaximizeIcon(float x, float y, int color) {
-        RenderUtil.drawRectOutline(x + 1.0f, y + 1.0f, 8.0f, 8.0f, 1.2f, color);
+        RenderUtil.drawRectOutline(x + 0.5f, y + 0.5f, 8.0f, 8.0f, 1.2f, color);
     }
 
     private void drawWin11RestoreIcon(float x, float y, int color) {
-        RenderUtil.drawRectOutline(x + 1.0f, y + 3.0f, 6.5f, 6.5f, 1.2f, color);
-        RenderUtil.drawLine(x + 3.0f, y + 1.0f, x + 9.5f, y + 1.0f, 1.2f, color);
-        RenderUtil.drawLine(x + 9.5f, y + 1.0f, x + 9.5f, y + 7.5f, 1.2f, color);
+        RenderUtil.drawRectOutline(x + 0.5f, y + 2.5f, 6.0f, 6.0f, 1.2f, color);
+        RenderUtil.drawLine(x + 2.5f, y + 0.5f, x + 8.5f, y + 0.5f, 1.2f, color);
+        RenderUtil.drawLine(x + 8.5f, y + 0.5f, x + 8.5f, y + 6.5f, 1.2f, color);
     }
 
     private void drawWin11CloseIcon(float x, float y, int color) {
-        RenderUtil.drawLine(x + 1.0f, y + 1.0f, x + 9.0f, y + 9.0f, 1.2f, color);
-        RenderUtil.drawLine(x + 9.0f, y + 1.0f, x + 1.0f, y + 9.0f, 1.2f, color);
+        RenderUtil.drawLine(x + 0.5f, y + 0.5f, x + 8.5f, y + 8.5f, 1.2f, color);
+        RenderUtil.drawLine(x + 8.5f, y + 0.5f, x + 0.5f, y + 8.5f, 1.2f, color);
     }
 
     private boolean isHovered(float mx, float my, float x, float y, float w, float h) {

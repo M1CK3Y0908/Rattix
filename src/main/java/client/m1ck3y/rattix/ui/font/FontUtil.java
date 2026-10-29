@@ -294,4 +294,127 @@ public class FontUtil {
         if (text == null || text.isEmpty()) return 0;
         return Minecraft.getMinecraft().fontRendererObj.getStringWidth(text);
     }
+
+    // --- Standard 1x Scale Text Rendering (Matches ClickGUI Visual Screen Size) ---
+    public static void drawString1x(String text, float x, float y, int color) {
+        if (text == null || text.isEmpty()) return;
+        CustomFontRenderer cfr = getGlobalFont();
+        if (cfr != null) {
+            cfr.drawString(text, x, y, color, true, 0.5f);
+        } else {
+            drawMinecraftString1x(text, x, y, color);
+        }
+    }
+
+    public static float getStringWidth1x(String text) {
+        if (text == null || text.isEmpty()) return 0;
+        Font font = Font.getInstance();
+        if (font.cachedIsCustom) {
+            CustomFontRenderer cfr = font.cachedCustomFont;
+            if (cfr != null) {
+                return cfr.getStringWidth(text) * 0.5f * font.cachedEffectiveScale;
+            }
+        }
+        return getMinecraftStringWidth1x(text);
+    }
+
+    public static void drawConsolasString1x(String text, float x, float y, int color) {
+        if (text == null || text.isEmpty()) return;
+        CustomFontRenderer cfr = getConsolasFont();
+        if (cfr != null) {
+            cfr.drawString(text, x, y, color, true, 0.5f);
+        } else {
+            drawString1x(text, x, y, color);
+        }
+    }
+
+    public static float getConsolasStringWidth1x(String text) {
+        if (text == null || text.isEmpty()) return 0;
+        CustomFontRenderer cfr = getConsolasFont();
+        if (cfr != null) {
+            float width = cfr.getStringWidth(text) * 0.5f;
+            Font font = Font.getInstance();
+            if (font.cachedIsConsolas) {
+                return width * font.cachedEffectiveScale;
+            }
+            return width;
+        }
+        return getStringWidth1x(text);
+    }
+
+    public static void drawMinecraftString1x(String text, float x, float y, int color) {
+        if (text == null || text.isEmpty()) return;
+        Font font = Font.getInstance();
+        float sizeScale = font.cachedEffectiveScale;
+        float offX = font.cachedOffsetX;
+        float offY = font.cachedOffsetY;
+        boolean shadowEnabled = font.cachedShadow;
+        float shadowOffX = font.cachedShadowOffsetX;
+        float shadowOffY = font.cachedShadowOffsetY;
+        boolean customShadow = "Custom".equalsIgnoreCase(font.cachedShadowMode);
+        boolean outlineEnabled = font.cachedOutline;
+        float outlineWidth = font.cachedOutlineWidth;
+        String outlineMode = font.cachedOutlineColor;
+
+        int alpha = (color >> 24) & 0xFF;
+        if (alpha == 0) alpha = 255;
+
+        FontRenderer fr = vanillaFontRenderer != null ? vanillaFontRenderer : (Minecraft.getMinecraft() != null ? Minecraft.getMinecraft().fontRendererObj : null);
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(x + offX, y + offY, 0);
+        if (sizeScale != 1.0f) {
+            GlStateManager.scale(sizeScale, sizeScale, 1.0f);
+        }
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.enableAlpha();
+
+        if (fr != null) {
+            String clean = stripColorCodes(text);
+
+            if (outlineEnabled) {
+                int outColor;
+                if ("Dark".equalsIgnoreCase(outlineMode)) {
+                    outColor = (alpha << 24) | ((color & 0xFCFCFC) >> 2);
+                } else if ("50% Alpha".equalsIgnoreCase(outlineMode)) {
+                    outColor = ((alpha / 2) << 24) | 0x000000;
+                } else {
+                    outColor = (alpha << 24) | 0x000000;
+                }
+                float ow = outlineWidth * 0.5f;
+                fr.drawString(clean, -ow, 0, outColor, false);
+                fr.drawString(clean, ow, 0, outColor, false);
+                fr.drawString(clean, 0, -ow, outColor, false);
+                fr.drawString(clean, 0, ow, outColor, false);
+            }
+
+            if (shadowEnabled) {
+                if (customShadow) {
+                    int shadowColor = font.cachedShadowColor;
+                    fr.drawString(clean, shadowOffX, shadowOffY, shadowColor, false);
+                    fr.drawString(text, 0, 0, color, false);
+                } else if (shadowOffX == 1.0f && shadowOffY == 1.0f) {
+                    fr.drawString(text, 0, 0, color, true);
+                } else {
+                    int shadowColor = (alpha << 24) | ((color & 0xFCFCFC) >> 2);
+                    fr.drawString(clean, shadowOffX, shadowOffY, shadowColor, false);
+                    fr.drawString(text, 0, 0, color, false);
+                }
+            } else {
+                fr.drawString(text, 0, 0, color, false);
+            }
+        }
+
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.popMatrix();
+    }
+
+    public static float getMinecraftStringWidth1x(String text) {
+        if (text == null || text.isEmpty()) return 0;
+        float sizeScale = Font.getInstance().cachedEffectiveScale;
+        FontRenderer fr = vanillaFontRenderer != null ? vanillaFontRenderer : (Minecraft.getMinecraft() != null ? Minecraft.getMinecraft().fontRendererObj : null);
+        if (fr == null) return text.length() * 6.0f * sizeScale;
+        return fr.getStringWidth(text) * sizeScale;
+    }
 }

@@ -107,8 +107,7 @@ public class StartupScreen {
             currentProgress = Math.max(0.0f, Math.min(1.0f, progress));
         }
 
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc == null || !Display.isCreated()) {
+        if (!Display.isCreated()) {
             return;
         }
 
@@ -211,9 +210,16 @@ public class StartupScreen {
             } catch (Throwable ignored) {}
             if (configDir == null) {
                 try {
-                    Minecraft mc = Minecraft.getMinecraft();
-                    if (mc != null && mc.mcDataDir != null) {
-                        configDir = new File(mc.mcDataDir, "config");
+                    Object mc = null;
+                    try {
+                        mc = Minecraft.class.getMethod("getMinecraft").invoke(null);
+                    } catch (Throwable ignored2) {
+                        try {
+                            mc = Minecraft.class.getMethod("func_71410_x").invoke(null);
+                        } catch (Throwable ignored3) {}
+                    }
+                    if (mc instanceof Minecraft && ((Minecraft) mc).mcDataDir != null) {
+                        configDir = new File(((Minecraft) mc).mcDataDir, "config");
                     }
                 } catch (Throwable ignored) {}
             }

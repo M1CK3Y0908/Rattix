@@ -193,12 +193,12 @@ public class WindowManager {
         float screenW = mc.currentScreen != null ? mc.currentScreen.width : 854;
         float screenH = mc.currentScreen != null ? mc.currentScreen.height : 480;
 
-        float defaultW = Math.max(480.0f, Math.min(680.0f, screenW - 220.0f));
-        float defaultH = Math.max(320.0f, Math.min(460.0f, screenH - 60.0f));
+        float defaultW = Math.max(SubpageWindow.MIN_WINDOW_WIDTH, Math.min(screenW - 220.0f, 480.0f));
+        float defaultH = Math.max(SubpageWindow.MIN_WINDOW_HEIGHT, Math.min(screenH - 50.0f, 320.0f));
 
         int offsetIndex = windows.size() % 6;
-        float startX = Math.max(200.0f, Math.min(screenW - defaultW - 20.0f, 210.0f + offsetIndex * 24.0f));
-        float startY = Math.max(20.0f, Math.min(screenH - defaultH - 40.0f, 30.0f + offsetIndex * 20.0f));
+        float startX = Math.max(200.0f, Math.min(screenW - defaultW - 10.0f, 210.0f + offsetIndex * 16.0f));
+        float startY = Math.max(24.0f, Math.min(screenH - defaultH - 20.0f, 32.0f + offsetIndex * 14.0f));
 
         return new float[]{startX, startY, defaultW, defaultH};
     }
