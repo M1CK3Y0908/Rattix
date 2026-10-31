@@ -9,10 +9,10 @@ import client.m1ck3y.rattix.ui.client.RattixMainMenu;
 import net.minecraft.client.renderer.texture.TextureManager;
 import org.lwjgl.input.Keyboard;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Minecraft.class)
 @SuppressWarnings("all")
@@ -89,5 +89,16 @@ public abstract class MixinMinecraft {
     @Inject(method = "shutdown", at = @At("HEAD"))
     private void onShutdown(CallbackInfo ci) {
         RattixMod.stopClient();
+    }
+
+    /**
+     * 移除主界面与无世界状态下的 30/60 FPS 锁帧限制，使主界面遵循玩家设置的最大帧率与高刷显示器
+     */
+    @Inject(method = "getLimitFramerate", at = @At("HEAD"), cancellable = true)
+    private void rattix$unlockMainMenuFramerate(CallbackInfoReturnable<Integer> cir) {
+        Minecraft mc = (Minecraft) (Object) this;
+        if (mc.gameSettings != null) {
+            cir.setReturnValue(mc.gameSettings.limitFramerate);
+        }
     }
 }

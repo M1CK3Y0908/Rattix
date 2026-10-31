@@ -40,6 +40,7 @@
       "playSound(DDDLjava/lang/String;FFZ)V": "Lnet/minecraft/client/multiplayer/WorldClient;func_72980_b(DDDLjava/lang/String;FFZ)V"
     },
     "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
+      "getLimitFramerate": "Lnet/minecraft/client/Minecraft;func_90020_K()I",
       "Lnet/minecraft/client/Minecraft;dispatchKeypresses()V": "Lnet/minecraft/client/Minecraft;func_152348_aa()V",
       "startGame": "Lnet/minecraft/client/Minecraft;func_71384_a()V",
       "runTick": "Lnet/minecraft/client/Minecraft;func_71407_l()V",
@@ -128,6 +129,7 @@
         "net/minecraft/client/audio/PositionedSoundRecord": "bpf"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
+        "getLimitFramerate": "Lave;j()I",
         "Lnet/minecraft/client/Minecraft;dispatchKeypresses()V": "Lave;Z()V",
         "startGame": "Lave;am()V",
         "runTick": "Lave;s()V",
@@ -214,6 +216,7 @@
         "playSound(DDDLjava/lang/String;FFZ)V": "Lnet/minecraft/client/multiplayer/WorldClient;func_72980_b(DDDLjava/lang/String;FFZ)V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
+        "getLimitFramerate": "Lnet/minecraft/client/Minecraft;func_90020_K()I",
         "Lnet/minecraft/client/Minecraft;dispatchKeypresses()V": "Lnet/minecraft/client/Minecraft;func_152348_aa()V",
         "startGame": "Lnet/minecraft/client/Minecraft;func_71384_a()V",
         "runTick": "Lnet/minecraft/client/Minecraft;func_71407_l()V",

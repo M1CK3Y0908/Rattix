@@ -1,3 +1,10 @@
+### **CHANGELOG 102526(20)**
+
+[#]Enhance **Uncapped Main Menu Framerate (Removed 60 FPS Limit)** Removed the hardcoded menu framerate restriction in Minecraft:
+- **Root Cause: Hardcoded Menu Framerate Cap**: Vanilla Minecraft hardcodes `theWorld == null && currentScreen != null ? 30 : gameSettings.limitFramerate` inside `Minecraft.getLimitFramerate()`, and OptiFine patches this value to 60. This caused the main menu to strictly cap at 60 FPS regardless of the player's monitor refresh rate (144Hz, 240Hz, etc.) or Video Settings framerate configuration.
+- **Dynamic Framerate Unlocking**: Injected at `Minecraft.getLimitFramerate()` in [`MixinMinecraft.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinMinecraft.java) to always return `mc.gameSettings.limitFramerate`. The main menu now respects the player's configured Max Framerate slider (up to Unlimited) and native high refresh rate monitors with butter-smooth animations and shader backgrounds.
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory `D:\Minecraft\.minecraft\versions\Raven bs\mods\Rattix-1.0.0.jar`
+
 ### **CHANGELOG 102526(19)**
 
 [#]Refactor **Weather Mode Options: Clear, Rain, Snow (Removed Vanilla Mode)** Streamlined Weather module modes per user requirement:
