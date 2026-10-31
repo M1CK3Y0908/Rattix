@@ -1321,10 +1321,10 @@ public class ClickGUI extends Module {
             if (!isMaximized && mc.displayWidth > 0 && mc.displayHeight > 0) {
                 if (!resizing) {
                     if (windowWidth > mc.displayWidth) {
-                        windowWidth = Math.max(Math.min(MIN_WINDOW_WIDTH, mc.displayWidth), mc.displayWidth);
+                        windowWidth = Math.max(Math.min(MIN_WINDOW_WIDTH, mc.displayWidth), Math.max(200.0f, mc.displayWidth - 40.0f));
                     }
                     if (windowHeight > mc.displayHeight) {
-                        windowHeight = Math.max(Math.min(MIN_WINDOW_HEIGHT, mc.displayHeight), mc.displayHeight);
+                        windowHeight = Math.max(Math.min(MIN_WINDOW_HEIGHT, mc.displayHeight), Math.max(150.0f, mc.displayHeight - 40.0f));
                     }
                 }
                 if (!dragging && !resizing) {

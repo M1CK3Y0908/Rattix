@@ -181,17 +181,44 @@ public class WindowManager {
         open("modules", "Modules", new GuiModulesOverview(mainMenu), 500, 340);
     }
 
+    public void onScreenResize(int oldW, int oldH, int newW, int newH) {
+        for (SubpageWindow window : windows) {
+            window.onScreenResize(oldW, oldH, newW, newH);
+        }
+    }
+
+    public void onScreenResize(int newW, int newH) {
+        onScreenResize(-1, -1, newW, newH);
+    }
+
     public float[] calcDefaultBounds(float defaultW, float defaultH) {
         Minecraft mc = Minecraft.getMinecraft();
         float screenW = mc.currentScreen != null ? mc.currentScreen.width : 854;
         float screenH = mc.currentScreen != null ? mc.currentScreen.height : 480;
 
-        float targetW = Math.max(SubpageWindow.MIN_WINDOW_WIDTH, Math.min(screenW - 220.0f, defaultW));
-        float targetH = Math.max(SubpageWindow.MIN_WINDOW_HEIGHT, Math.min(screenH - 50.0f, defaultH));
+        float maxW = Math.max(200.0f, screenW - 20.0f);
+        float targetW = Math.min(defaultW, maxW);
+        if (targetW < SubpageWindow.MIN_WINDOW_WIDTH) {
+            targetW = Math.min(maxW, SubpageWindow.MIN_WINDOW_WIDTH);
+        }
+
+        float maxH = Math.max(150.0f, screenH - 30.0f);
+        float targetH = Math.min(defaultH, maxH);
+        if (targetH < SubpageWindow.MIN_WINDOW_HEIGHT) {
+            targetH = Math.min(maxH, SubpageWindow.MIN_WINDOW_HEIGHT);
+        }
 
         int offsetIndex = windows.size() % 6;
-        float startX = Math.max(200.0f, Math.min(screenW - targetW - 10.0f, 210.0f + offsetIndex * 16.0f));
-        float startY = Math.max(24.0f, Math.min(screenH - targetH - 20.0f, 32.0f + offsetIndex * 14.0f));
+        float preferredX = 200.0f + offsetIndex * 16.0f;
+        float startX;
+        if (screenW >= 194.0f + targetW + 10.0f) {
+            startX = Math.max(194.0f, Math.min(screenW - targetW - 10.0f, preferredX));
+        } else {
+            startX = Math.max(10.0f, Math.min(screenW - targetW - 10.0f, (screenW - targetW) / 2.0f));
+        }
+
+        float preferredY = 32.0f + offsetIndex * 14.0f;
+        float startY = Math.max(10.0f, Math.min(screenH - targetH - 10.0f, preferredY));
 
         return new float[]{startX, startY, targetW, targetH};
     }

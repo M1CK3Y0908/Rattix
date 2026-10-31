@@ -1,5 +1,6 @@
 package client.m1ck3y.rattix.ui.window;
 
+import client.m1ck3y.rattix.ui.client.RattixMainMenu;
 import client.m1ck3y.rattix.ui.font.FontUtil;
 import client.m1ck3y.rattix.utils.render.RenderUtil;
 import client.m1ck3y.rattix.utils.render.SvgIconHelper;
@@ -7,6 +8,7 @@ import client.m1ck3y.rattix.utils.ui.CursorUtil;
 import client.m1ck3y.rattix.utils.ui.GuiScreenBridge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.input.Mouse;
 
@@ -267,7 +269,64 @@ public class SubpageWindow {
         return false;
     }
 
+    public void onScreenResize(int oldW, int oldH, int newW, int newH) {
+        if (newW <= 0 || newH <= 0) return;
+
+        float effectiveMinW = Math.min(MIN_WINDOW_WIDTH, Math.max(180.0f, newW - 20.0f));
+        float effectiveMinH = Math.min(MIN_WINDOW_HEIGHT, Math.max(140.0f, newH - 30.0f));
+
+        if (isMaximized) {
+            windowWidth = newW;
+            windowHeight = newH;
+            posX = 0;
+            posY = 0;
+
+            if (oldW > 0 && oldH > 0) {
+                float sx = (float) newW / oldW;
+                float sy = (float) newH / oldH;
+                restoreW *= sx;
+                restoreH *= sy;
+                restoreX *= sx;
+                restoreY *= sy;
+            }
+            restoreW = Math.max(effectiveMinW, Math.min(newW - 20.0f, restoreW));
+            restoreH = Math.max(effectiveMinH, Math.min(newH - 30.0f, restoreH));
+            restoreX = Math.max(10.0f, Math.min(newW - restoreW - 10.0f, restoreX));
+            restoreY = Math.max(10.0f, Math.min(newH - restoreH - 10.0f, restoreY));
+        } else {
+            if (oldW > 0 && oldH > 0 && (oldW != newW || oldH != newH)) {
+                float sx = (float) newW / oldW;
+                float sy = (float) newH / oldH;
+                posX *= sx;
+                posY *= sy;
+                windowWidth *= sx;
+                windowHeight *= sy;
+            }
+
+            windowWidth = Math.max(effectiveMinW, Math.min(newW - 20.0f, windowWidth));
+            windowHeight = Math.max(effectiveMinH, Math.min(newH - 30.0f, windowHeight));
+            posX = Math.max(10.0f, Math.min(newW - windowWidth - 10.0f, posX));
+            posY = Math.max(10.0f, Math.min(newH - windowHeight - 10.0f, posY));
+
+            restoreX = posX;
+            restoreY = posY;
+            restoreW = windowWidth;
+            restoreH = windowHeight;
+        }
+
+        if (content != null) {
+            Minecraft mc = Minecraft.getMinecraft();
+            int cw = Math.max(100, (int) getContentW());
+            int ch = Math.max(50, (int) getContentH());
+            content.setWorldAndResolution(mc, cw, ch);
+        }
+    }
+
     public void toggleMaximize() {
+        Minecraft mc = Minecraft.getMinecraft();
+        float screenW = (mc != null && mc.currentScreen != null) ? mc.currentScreen.width : 854;
+        float screenH = (mc != null && mc.currentScreen != null) ? mc.currentScreen.height : 480;
+
         if (!isMaximized) {
             restoreX = posX;
             restoreY = posY;
@@ -276,14 +335,17 @@ public class SubpageWindow {
             isMaximized = true;
         } else {
             isMaximized = false;
-            posX = restoreX;
-            posY = restoreY;
-            windowWidth = restoreW;
-            windowHeight = restoreH;
+            float effectiveMinW = Math.min(MIN_WINDOW_WIDTH, Math.max(180.0f, screenW - 20.0f));
+            float effectiveMinH = Math.min(MIN_WINDOW_HEIGHT, Math.max(140.0f, screenH - 30.0f));
+            windowWidth = Math.max(effectiveMinW, Math.min(screenW - 20.0f, restoreW));
+            windowHeight = Math.max(effectiveMinH, Math.min(screenH - 30.0f, restoreH));
+            posX = Math.max(10.0f, Math.min(screenW - windowWidth - 10.0f, restoreX));
+            posY = Math.max(10.0f, Math.min(screenH - windowHeight - 10.0f, restoreY));
         }
-        Minecraft mc = Minecraft.getMinecraft();
         if (content != null && mc != null) {
-            content.setWorldAndResolution(mc, (int) getContentW(), (int) getContentH());
+            int cw = Math.max(100, (int) getContentW());
+            int ch = Math.max(50, (int) getContentH());
+            content.setWorldAndResolution(mc, cw, ch);
         }
     }
 
@@ -377,11 +439,32 @@ public class SubpageWindow {
         }
 
         // 3. Screen bounds restriction
+        float maxAllowedW = Math.max(180.0f, screenW - 20.0f);
+        float maxAllowedH = Math.max(140.0f, screenH - 20.0f);
         if (!isMaximized) {
-            if (posY < 0) posY = 0;
-            if (posY > screenH - titlebarH) posY = screenH - titlebarH;
-            if (posX + windowWidth < 40) posX = 40 - windowWidth;
-            if (posX > screenW - 40) posX = screenW - 40;
+            if (!resizing) {
+                if (windowWidth > maxAllowedW) {
+                    windowWidth = maxAllowedW;
+                }
+                if (windowHeight > maxAllowedH) {
+                    windowHeight = maxAllowedH;
+                }
+            }
+            if (!dragging && !resizing) {
+                if (posX + windowWidth > screenW - 10.0f) {
+                    posX = Math.max(10.0f, screenW - windowWidth - 10.0f);
+                }
+                if (posY + windowHeight > screenH - 10.0f) {
+                    posY = Math.max(10.0f, screenH - windowHeight - 10.0f);
+                }
+                if (posX < 10.0f) posX = 10.0f;
+                if (posY < 10.0f) posY = 10.0f;
+            } else {
+                if (posY < 0) posY = 0;
+                if (posY > screenH - titlebarH) posY = screenH - titlebarH;
+                if (posX + windowWidth < 40) posX = 40 - windowWidth;
+                if (posX > screenW - 40) posX = screenW - 40;
+            }
         }
 
         float curX = isMaximized ? 0 : posX;
@@ -488,11 +571,15 @@ public class SubpageWindow {
         float contentH = curH - titlebarH;
 
         if (content != null) {
-            if (content.width != (int) contentW || content.height != (int) contentH) {
-                content.setWorldAndResolution(mc, (int) contentW, (int) contentH);
+            int targetContentW = Math.max(100, (int) contentW);
+            int targetContentH = Math.max(50, (int) contentH);
+            if (content.width != targetContentW || content.height != targetContentH) {
+                content.setWorldAndResolution(mc, targetContentW, targetContentH);
             }
 
-            RenderUtil.enableScissor(contentX, contentY, contentW, contentH);
+            float scissorW = Math.max(1.0f, contentW);
+            float scissorH = Math.max(1.0f, contentH);
+            RenderUtil.enableScissor(contentX, contentY, scissorW, scissorH);
             GlStateManager.pushMatrix();
             GlStateManager.translate(contentX, contentY, 0);
 
@@ -599,6 +686,9 @@ public class SubpageWindow {
         Minecraft mc = Minecraft.getMinecraft();
         boolean onMainMenu = (mc.currentScreen instanceof client.m1ck3y.rattix.ui.client.RattixMainMenu);
         float margin = onMainMenu ? 204.0f : 16.0f;
+        if (screenW < margin + MINIMIZED_WIDTH + 16.0f) {
+            margin = Math.max(10.0f, screenW - MINIMIZED_WIDTH - 16.0f);
+        }
         float gap = 8.0f;
         float availW = screenW - margin - 16.0f;
         int perRow = Math.max(1, (int) ((availW + gap) / (MINIMIZED_WIDTH + gap)));
@@ -611,7 +701,10 @@ public class SubpageWindow {
         Minecraft mc = Minecraft.getMinecraft();
         boolean onMainMenu = (mc.currentScreen instanceof client.m1ck3y.rattix.ui.client.RattixMainMenu);
         float marginX = onMainMenu ? 204.0f : 16.0f;
-        float screenW = mc.currentScreen != null ? mc.currentScreen.width : 854;
+        float screenW = (mc.currentScreen != null) ? mc.currentScreen.width : 854;
+        if (screenW < marginX + MINIMIZED_WIDTH + 16.0f) {
+            marginX = Math.max(10.0f, screenW - MINIMIZED_WIDTH - 16.0f);
+        }
         float availW = screenW - marginX - 16.0f;
         int perRow = Math.max(1, (int) ((availW + gap) / (MINIMIZED_WIDTH + gap)));
         int row = Math.max(0, minIndex) / perRow;
@@ -788,7 +881,28 @@ public class SubpageWindow {
             int relX = (int) (mouseX - contentX);
             int relY = (int) (mouseY - contentY);
             try {
-                GuiScreenBridge.mouseClicked(content, relX, relY, mouseButton);
+                int oldScale = (mc.gameSettings != null) ? mc.gameSettings.guiScale : -1;
+                isRenderingEmbedded = true;
+                currentContentX = contentX;
+                currentContentY = contentY;
+                try {
+                    GuiScreenBridge.mouseClicked(content, relX, relY, mouseButton);
+                } finally {
+                    isRenderingEmbedded = false;
+                }
+                int newScale = (mc.gameSettings != null) ? mc.gameSettings.guiScale : -1;
+                if (oldScale != newScale) {
+                    ScaledResolution sr = new ScaledResolution(mc);
+                    if (mc.currentScreen instanceof RattixMainMenu) {
+                        RattixMainMenu menu = (RattixMainMenu) mc.currentScreen;
+                        menu.checkResolutionUpdate();
+                    } else if (mc.currentScreen != null) {
+                        mc.currentScreen.setWorldAndResolution(mc, sr.getScaledWidth(), sr.getScaledHeight());
+                    }
+                    int cw = Math.max(100, (int) getContentW());
+                    int ch = Math.max(50, (int) getContentH());
+                    content.setWorldAndResolution(mc, cw, ch);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

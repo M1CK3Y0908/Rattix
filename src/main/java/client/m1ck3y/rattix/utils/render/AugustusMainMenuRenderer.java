@@ -46,13 +46,23 @@ public final class AugustusMainMenuRenderer {
         f.drawString("Rattix 1.0.0", 24, h - 21, 0xFF566170);
 
         // Main hero card
-        int cardX = 222, cardY = 44, cardW = Math.max(300, w - 258), cardH = Math.max(175, h - 116);
+        int cardX = (w < 550) ? 198 : 222;
+        int maxCardW = Math.max(120, w - cardX - 20);
+        int cardW = Math.min(maxCardW, Math.max(120, w - cardX - 36));
+        int cardY = (h < 300) ? 24 : 44;
+        int maxCardH = Math.max(100, h - cardY - 40);
+        int cardH = Math.min(maxCardH, Math.max(100, h - cardY - 72));
+
         RenderUtil.drawRoundedRect(cardX, cardY, cardW, cardH, 14, 0xD9141821);
         RenderUtil.drawRoundedOutline(cardX, cardY, cardW, cardH, 14, 1.0f, 0x303F6D94);
         f.drawString("WELCOME BACK", cardX + 28, cardY + 28, 0xFF76B9ED);
         f.drawString("Rattix Client", cardX + 28, cardY + 55, 0xFFF4F7FA);
-        f.drawString("A clean, fast and configurable Minecraft experience.", cardX + 28, cardY + 74, 0xFF9DA8B5);
-        f.drawString("Choose an action to continue", cardX + 28, cardY + cardH - 44, 0xFF667384);
+        if (cardW >= 240) {
+            f.drawString("A clean, fast and configurable Minecraft experience.", cardX + 28, cardY + 74, 0xFF9DA8B5);
+        }
+        if (cardH >= 140) {
+            f.drawString("Choose an action to continue", cardX + 28, cardY + cardH - 44, 0xFF667384);
+        }
 
         // Buttons are laid out here but remain vanilla GuiButton instances so the
         // original GuiMainMenu actionPerformed logic keeps working.
@@ -61,7 +71,9 @@ public final class AugustusMainMenuRenderer {
                 button.drawButton(mc, mouseX, mouseY);
             }
         }
-        f.drawString("Build your own visual profile in ClickGUI  •  Right Shift", cardX + 28, h - 24, 0xFF667384);
+        if (w >= 450) {
+            f.drawString("Build your own visual profile in ClickGUI  •  Right Shift", cardX + 28, h - 24, 0xFF667384);
+        }
     }
 
     private static void drawNavItem(FontRenderer f, String text, int y, boolean selected, boolean hovered) {

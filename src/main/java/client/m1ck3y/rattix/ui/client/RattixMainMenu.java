@@ -4,8 +4,10 @@ import client.m1ck3y.rattix.ui.elements.FluentGuiButton;
 import client.m1ck3y.rattix.ui.window.WindowManager;
 import client.m1ck3y.rattix.utils.render.AugustusMainMenuRenderer;
 import client.m1ck3y.rattix.utils.render.shader.ShaderBackgroundRenderer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
@@ -24,18 +26,79 @@ public class RattixMainMenu extends GuiScreen {
         return windowManager;
     }
 
+    private int lastScaleFactor = -1;
+
+    public void checkResolutionUpdate() {
+        if (mc == null) return;
+        ScaledResolution sr = new ScaledResolution(mc);
+        int srW = sr.getScaledWidth();
+        int srH = sr.getScaledHeight();
+        int scaleFactor = sr.getScaleFactor();
+
+        if (this.width != srW || this.height != srH || this.lastScaleFactor != scaleFactor) {
+            int oldW = this.width;
+            int oldH = this.height;
+            this.width = srW;
+            this.height = srH;
+            this.lastScaleFactor = scaleFactor;
+
+            this.buttonList.clear();
+            this.initGui();
+
+            if (windowManager != null) {
+                windowManager.onScreenResize(oldW, oldH, srW, srH);
+            }
+        }
+    }
+
+    @Override
+    public void setWorldAndResolution(Minecraft mc, int width, int height) {
+        int oldW = this.width;
+        int oldH = this.height;
+        super.setWorldAndResolution(mc, width, height);
+        if (mc != null) {
+            ScaledResolution sr = new ScaledResolution(mc);
+            this.lastScaleFactor = sr.getScaleFactor();
+        }
+        if (windowManager != null && (oldW != width || oldH != height)) {
+            windowManager.onScreenResize(oldW, oldH, width, height);
+        }
+    }
+
+    @Override
+    public void onResize(Minecraft mc, int w, int h) {
+        int oldW = this.width;
+        int oldH = this.height;
+        super.onResize(mc, w, h);
+        if (mc != null) {
+            ScaledResolution sr = new ScaledResolution(mc);
+            this.lastScaleFactor = sr.getScaleFactor();
+        }
+        if (windowManager != null) {
+            windowManager.onScreenResize(oldW, oldH, w, h);
+        }
+    }
+
     @Override
     public void initGui() {
         buttonList.clear();
-        int x = Math.max(250, width / 2 - 115), y = height / 2 - 18;
-        buttonList.add(new FluentGuiButton(SINGLEPLAYER, x, y, 220, 24, "Singleplayer"));
-        buttonList.add(new FluentGuiButton(MULTIPLAYER, x, y + 31, 220, 24, "Multiplayer"));
-        buttonList.add(new FluentGuiButton(OPTIONS, x, y + 62, 106, 24, "Options"));
-        buttonList.add(new FluentGuiButton(QUIT, x + 114, y + 62, 106, 24, "Quit"));
+        int minX = 196;
+        int btnW = 220;
+        if (width < minX + btnW + 10) {
+            btnW = Math.max(120, width - minX - 10);
+        }
+        int x = Math.max(minX, Math.min(width - btnW - 10, (188 + width) / 2 - btnW / 2));
+        int y = Math.max(20, Math.min(height - 100, height / 2 - 18));
+        buttonList.add(new FluentGuiButton(SINGLEPLAYER, x, y, btnW, 24, "Singleplayer"));
+        buttonList.add(new FluentGuiButton(MULTIPLAYER, x, y + 31, btnW, 24, "Multiplayer"));
+        int halfW = (btnW - 8) / 2;
+        buttonList.add(new FluentGuiButton(OPTIONS, x, y + 62, halfW, 24, "Options"));
+        buttonList.add(new FluentGuiButton(QUIT, x + halfW + 8, y + 62, btnW - halfW - 8, 24, "Quit"));
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        checkResolutionUpdate();
         if (ShaderBackgroundRenderer.shouldRenderShader()) {
             ShaderBackgroundRenderer.renderCurrentScreen(true);
         } else {
@@ -107,6 +170,7 @@ public class RattixMainMenu extends GuiScreen {
 
     @Override
     public void handleMouseInput() throws IOException {
+        checkResolutionUpdate();
         if (windowManager != null) {
             int mouseX = Mouse.getEventX() * width / Math.max(1, mc.displayWidth);
             int mouseY = height - Mouse.getEventY() * height / Math.max(1, mc.displayHeight) - 1;
