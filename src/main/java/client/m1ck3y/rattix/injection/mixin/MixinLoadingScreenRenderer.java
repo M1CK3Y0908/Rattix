@@ -2,7 +2,6 @@ package client.m1ck3y.rattix.injection.mixin;
 
 import client.m1ck3y.rattix.utils.render.IconUtils;
 import client.m1ck3y.rattix.utils.render.shader.ShaderBackgroundRenderer;
-import client.m1ck3y.rattix.utils.render.shader.ShaderManager;
 import net.minecraft.client.LoadingScreenRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -10,22 +9,34 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.shader.Framebuffer;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import org.lwjgl.opengl.Display;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.lang.reflect.Field;
+
 @Mixin(LoadingScreenRenderer.class)
 public abstract class MixinLoadingScreenRenderer {
 
-    @Shadow private Minecraft mc;
-    @Shadow private String message;
-    @Shadow private String currentlyDisplayedText;
-    @Shadow private long systemTime;
-    @Shadow private Framebuffer framebuffer;
-    @Shadow private ScaledResolution scaledResolution;
+    @Unique private static Field messageField;
+    @Unique private static Field currentlyDisplayedTextField;
+    @Unique private long rattix$systemTime;
+    @Unique private Framebuffer rattix$framebuffer;
+
+    static {
+        try {
+            messageField = ReflectionHelper.findField(LoadingScreenRenderer.class, "message", "field_73727_a");
+            messageField.setAccessible(true);
+        } catch (Throwable ignored) {}
+        try {
+            currentlyDisplayedTextField = ReflectionHelper.findField(LoadingScreenRenderer.class, "currentlyDisplayedText", "field_73726_c");
+            currentlyDisplayedTextField.setAccessible(true);
+        } catch (Throwable ignored) {}
+    }
 
     /**
      * 将原生无压暗动态着色器 + ricon + 现代进度条风格延续到单人世界加载、生成、保存与资源重载等所有加载界面
@@ -33,21 +44,22 @@ public abstract class MixinLoadingScreenRenderer {
     @Inject(method = "setLoadingProgress", at = @At("HEAD"), cancellable = true)
     private void onSetLoadingProgress(int progress, CallbackInfo ci) {
         long now = Minecraft.getSystemTime();
-        if (now - this.systemTime < 100L) {
+        if (now - this.rattix$systemTime < 100L) {
             ci.cancel();
             return;
         }
-        this.systemTime = now;
+        this.rattix$systemTime = now;
 
-        if (this.mc == null || !Display.isCreated()) {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc == null || !Display.isCreated()) {
             ci.cancel();
             return;
         }
 
-        this.scaledResolution = new ScaledResolution(this.mc);
-        int scale = this.scaledResolution.getScaleFactor();
-        int width = this.scaledResolution.getScaledWidth();
-        int height = this.scaledResolution.getScaledHeight();
+        ScaledResolution scaledResolution = new ScaledResolution(mc);
+        int scale = scaledResolution.getScaleFactor();
+        int width = scaledResolution.getScaledWidth();
+        int height = scaledResolution.getScaledHeight();
 
         if (width <= 0 || height <= 0 || scale <= 0) {
             ci.cancel();
@@ -57,13 +69,13 @@ public abstract class MixinLoadingScreenRenderer {
         int dispW = width * scale;
         int dispH = height * scale;
 
-        if (this.framebuffer == null) {
-            this.framebuffer = new Framebuffer(dispW, dispH, false);
-        } else if (this.framebuffer.framebufferWidth != dispW || this.framebuffer.framebufferHeight != dispH) {
-            this.framebuffer.createBindFramebuffer(dispW, dispH);
+        if (this.rattix$framebuffer == null) {
+            this.rattix$framebuffer = new Framebuffer(dispW, dispH, false);
+        } else if (this.rattix$framebuffer.framebufferWidth != dispW || this.rattix$framebuffer.framebufferHeight != dispH) {
+            this.rattix$framebuffer.createBindFramebuffer(dispW, dispH);
         }
 
-        this.framebuffer.bindFramebuffer(false);
+        this.rattix$framebuffer.bindFramebuffer(false);
         GlStateManager.matrixMode(5889);
         GlStateManager.loadIdentity();
         GlStateManager.ortho(0.0D, width, height, 0.0D, 100.0D, 300.0D);
@@ -103,24 +115,31 @@ public abstract class MixinLoadingScreenRenderer {
         }
 
         // 4. 文字提示与百分比
-        FontRenderer font = this.mc.fontRendererObj;
+        FontRenderer font = mc.fontRendererObj;
         if (font != null) {
             if (progress >= 0) {
                 String pctStr = progress + "%";
                 font.drawString(pctStr, (width - font.getStringWidth(pctStr)) / 2.0f, barY - 12.0f, 0xFFFFFFFF, false);
             }
-            if (this.currentlyDisplayedText != null && !this.currentlyDisplayedText.isEmpty()) {
-                font.drawString(this.currentlyDisplayedText, (width - font.getStringWidth(this.currentlyDisplayedText)) / 2.0f, barY + barHeight + 10.0f, 0xFFD7D7D7, false);
-            } else if (this.message != null && !this.message.isEmpty()) {
-                font.drawString(this.message, (width - font.getStringWidth(this.message)) / 2.0f, barY + barHeight + 10.0f, 0xFFD7D7D7, false);
+            String message = null;
+            String currentlyDisplayedText = null;
+            try {
+                if (messageField != null) message = (String) messageField.get(this);
+                if (currentlyDisplayedTextField != null) currentlyDisplayedText = (String) currentlyDisplayedTextField.get(this);
+            } catch (Throwable ignored) {}
+
+            if (currentlyDisplayedText != null && !currentlyDisplayedText.isEmpty()) {
+                font.drawString(currentlyDisplayedText, (width - font.getStringWidth(currentlyDisplayedText)) / 2.0f, barY + barHeight + 10.0f, 0xFFD7D7D7, false);
+            } else if (message != null && !message.isEmpty()) {
+                font.drawString(message, (width - font.getStringWidth(message)) / 2.0f, barY + barHeight + 10.0f, 0xFFD7D7D7, false);
             }
         }
 
-        this.framebuffer.unbindFramebuffer();
-        this.framebuffer.framebufferRender(dispW, dispH);
+        this.rattix$framebuffer.unbindFramebuffer();
+        this.rattix$framebuffer.framebufferRender(dispW, dispH);
         GlStateManager.enableAlpha();
         GlStateManager.alphaFunc(516, 0.1F);
-        this.mc.updateDisplay();
+        mc.updateDisplay();
         ci.cancel();
     }
 }

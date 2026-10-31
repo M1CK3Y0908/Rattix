@@ -2,26 +2,15 @@ package client.m1ck3y.rattix.injection.mixin;
 
 import client.m1ck3y.rattix.utils.render.RenderUtil;
 import client.m1ck3y.rattix.utils.render.shader.ShaderBackgroundRenderer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiSlot;
 import net.minecraft.client.renderer.Tessellator;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GuiSlot.class)
 public abstract class MixinGuiSlot {
-
-    @Shadow @Final protected Minecraft mc;
-    @Shadow public int width;
-    @Shadow public int height;
-    @Shadow public int top;
-    @Shadow public int bottom;
-    @Shadow public int right;
-    @Shadow public int left;
 
     /**
      * 在滚动列表（单人世界选择、多人服务器列表、材质包、键位等）渲染之初，
@@ -93,9 +82,10 @@ public abstract class MixinGuiSlot {
     @Inject(method = "drawSelectionBox", at = @At("HEAD"))
     private void onDrawSelectionBoxHead(int p_148120_1_, int p_148120_2_, int mouseXIn, int mouseYIn, CallbackInfo ci) {
         if (ShaderBackgroundRenderer.shouldRenderShader() || client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded) {
-            float scissorX = client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded ? (client.m1ck3y.rattix.ui.window.SubpageWindow.currentContentX + this.left) : this.left;
-            float scissorY = client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded ? (client.m1ck3y.rattix.ui.window.SubpageWindow.currentContentY + this.top) : this.top;
-            RenderUtil.enableScissor(scissorX, scissorY, this.width, this.bottom - this.top);
+            GuiSlot slot = (GuiSlot) (Object) this;
+            float scissorX = client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded ? (client.m1ck3y.rattix.ui.window.SubpageWindow.currentContentX + slot.left) : slot.left;
+            float scissorY = client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded ? (client.m1ck3y.rattix.ui.window.SubpageWindow.currentContentY + slot.top) : slot.top;
+            RenderUtil.enableScissor(scissorX, scissorY, slot.width, slot.bottom - slot.top);
         }
     }
 

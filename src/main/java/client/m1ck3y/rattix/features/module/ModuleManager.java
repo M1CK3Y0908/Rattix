@@ -208,6 +208,8 @@ public class ModuleManager {
                 Keystrokes.class,
                 PingDisplay.class,
                 Weather.class,
+                WeatherParticles.class,
+                WeatherAudio.class,
                 Fog.class,
                 Time.class,
                 Foliage.class,

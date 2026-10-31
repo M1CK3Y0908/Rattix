@@ -19,15 +19,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinMinecraft {
     private static boolean rattix$redirectingMainMenu;
 
-    @Shadow
-    public GuiScreen currentScreen;
-
     /** Fallback handoff used when OptiFine replaces GuiMainMenu.initGui before its Mixin runs,
      * and windowed child-page routing when RattixMainMenu is active. */
     @Inject(method = "displayGuiScreen", at = @At("HEAD"), cancellable = true, require = 0)
     private void rattix$redirectDisplayedMainMenu(GuiScreen screen, CallbackInfo ci) {
-        if (this.currentScreen instanceof RattixMainMenu) {
-            RattixMainMenu menu = (RattixMainMenu) this.currentScreen;
+        GuiScreen cur = ((Minecraft) (Object) this).currentScreen;
+        if (cur instanceof RattixMainMenu) {
+            RattixMainMenu menu = (RattixMainMenu) cur;
             if (menu.getWindowManager() != null) {
                 if (!menu.getWindowManager().onDisplayGuiScreen(screen)) {
                     ci.cancel();
@@ -68,7 +66,7 @@ public abstract class MixinMinecraft {
      */
     @Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;dispatchKeypresses()V", shift = At.Shift.AFTER))
     private void onKeyInput(CallbackInfo ci) {
-        if (Keyboard.getEventKeyState() && currentScreen == null) {
+        if (Keyboard.getEventKeyState() && ((Minecraft) (Object) this).currentScreen == null) {
             int key = Keyboard.getEventKey();
             if (key == 0) {
                 key = Keyboard.getEventCharacter() + 256;

@@ -1,3 +1,64 @@
+### **CHANGELOG 102526(19)**
+
+[#]Refactor **Weather Mode Options: Clear, Rain, Snow (Removed Vanilla Mode)** Streamlined Weather module modes per user requirement:
+- **Removed "Vanilla" Mode**: Completely removed the redundant `"Vanilla"` mode setting. When the `Weather` module is turned off, the game naturally executes vanilla weather logic.
+- **Updated Mode Sequence**: Reordered the mode selection in [`Weather.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/features/module/modules/Weather.java) to `["Clear", "Rain", "Snow"]`, with `"Clear"` as default.
+- **Streamlined Weather Renderer Mixin**: Updated [`MixinWorldProvider.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinWorldProvider.java) so whenever `Weather` is active, `getWeatherRenderer()` cleanly yields `null` to ensure `EntityRenderer.renderRainSnow` and custom state logic always prevail without OptiFine interference.
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory `D:\Minecraft\.minecraft\versions\Raven bs\mods\Rattix-1.0.0.jar`
+
+### **CHANGELOG 102526(18)**
+
+[#]Fix **Weather Inoperability & Runtime Mixin Shadow Resolution Failure** Investigated the root cause of Weather being completely non-functional in-game and discovered runtime mixin application crashes in `fml-client-latest.log`:
+- **Root Cause: InvalidMixinException on Shadow Fields**: Forge runtime obfuscates Minecraft classes into Searge names (`field_72995_K`, `field_78531_r`). SpongePowered Mixin 0.7.11 failed to locate `@Shadow` fields on target classes, causing `MixinWorld` (`isRemote`) and `MixinEntityRenderer` (`mc`, `locationSnowPng`) to throw `InvalidMixinException` and silently abort all transformations:
+  - `net.minecraft.world.World` never injected `getRainStrength`, `setRainStrength`, or `getThunderStrength`.
+  - `net.minecraft.client.renderer.EntityRenderer` never injected the precipitation pipeline (`renderRainSnow`, colors, textures, wind, speed).
+- **Eliminated All @Shadow Fields Across Codebase**:
+  - In [`MixinWorld.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinWorld.java): Removed `@Shadow public boolean isRemote` in favor of direct casting `((World) (Object) this).isRemote`.
+  - In [`MixinEntityRenderer.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinEntityRenderer.java): Removed `@Shadow private Minecraft mc` in favor of `Minecraft.getMinecraft()`. Removed `@Shadow locationSnowPng` in favor of dynamic path resolution `texture != null && texture.getResourcePath().endsWith("snow.png")`.
+  - In [`MixinMinecraft.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinMinecraft.java): Removed `@Shadow currentScreen` in favor of direct casting.
+  - In [`MixinGuiScreen.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinGuiScreen.java), [`MixinGuiButton.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinGuiButton.java), [`MixinGuiSlot.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinGuiSlot.java), [`MixinGuiTextField.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinGuiTextField.java), [`MixinGuiOptionSlider.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinGuiOptionSlider.java), and [`MixinLoadingScreenRenderer.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinLoadingScreenRenderer.java): Cleaned out all shadow fields to ensure zero `InvalidMixinException`s during game startup.
+- **Instant Weather Feedback & Intuitive Defaults**:
+  - In [`Weather.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/features/module/modules/Weather.java): Changed default `mode` to `"Rain"` (`["Rain", "Snow", "Clear", "Vanilla"]`) so enabling the module immediately renders rain.
+  - Set default `transitionSeconds` to `0.0` to eliminate the 2-second ramp lag on toggle.
+  - Enhanced `activeMode()` to apply custom styling even in `"Vanilla"` mode if the world is raining naturally.
+  - Fixed `onEnable()` to immediately initialize strength to target without waiting for tick loops.
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and deployed to launcher mods directory `D:\Minecraft\.minecraft\versions\Raven bs\mods\Rattix-1.0.0.jar`
+
+### **CHANGELOG 102526(17)**
+
+[#]Fix **1:1 Alignment with Miralune Weather, WeatherParticles & WeatherAudio Architecture** Deeply analyzed the root cause of abnormal rain drop colors and appearances from `F:\Projects\miralune\src\main\java\miralune\module\modules\` and fully restored Miralune's dedicated module architecture:
+- **Root Cause 1: Rain Color Discoloration & Darkness**: Vanilla Minecraft's `textures/environment/rain.png` is already tinted blue. Setting a default blue tint (`0xFF80A0FF`) multiplied the texture by `(0.50, 0.62, 1.0)`, resulting in unnatural, dark and murky rain. Restored Miralune's pure white `0xFFFFFFFF` default, preserving 100% crystal-clear, bright, vibrant rain while allowing vivid tinting across all hues.
+- **Root Cause 2: Arbitrary Opacity Multiplier Washout**: Removed the extra `rainOpacity` multiplier which washed out the natural distance-based alpha attenuation `((1.0F - f3 * f3) * 0.5F + 0.5F) * f` in `EntityRenderer.renderRainSnow`.
+- **Root Cause 3: World State Mutation Desync**: Removed calls to `mc.theWorld.getWorldInfo().setRaining()` and `mc.theWorld.setRainStrength()` in `onTick()` which corrupted the game's internal `rainingStrength` / `prevRainingStrength` and desynced singleplayer/server world climate. Followed Miralune's strict principle: *"Narrow render call-site hooks; never alter shared biome or server climate state"*.
+- **Root Cause 4: Disentangled Settings from CustomRain Checkbox**: Removed the artificial `customRain` parent checkbox and default `"Clear"` mode. `Weather` now defaults to `"Vanilla"`, with direct top-level properties matching Miralune's `Weather.java` 1:1.
+- **Dedicated Module Separation (1:1 with Miralune)**:
+  - Created [`WeatherParticles.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/features/module/modules/WeatherParticles.java): Handles rain splash particles (`splashColor = 0xFFB7DFFF`, `splashAmount = 100%`, `splashSize = 1.0F`) and extra 3D falling snowflakes around the player (`snowflakes`, `snowAmount`, `snowSize`).
+  - Created [`WeatherAudio.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/features/module/modules/WeatherAudio.java): Handles rain/thunder volume scaling (`rainVolume = 100%`, `thunderVolume = 100%`) and snow atmospheric sound ambience (`snowAmbience`, `snowVolume = 20%`).
+  - Registered both modules in [`ModuleManager.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/features/module/ModuleManager.java) under `Category.VISUAL`.
+- **Synchronized Mixins**: Updated [`MixinEntityRenderer.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinEntityRenderer.java), [`MixinEffectRenderer.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinEffectRenderer.java), [`MixinWorldClient.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinWorldClient.java), and [`MixinWorldProvider.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinWorldProvider.java) to reference the dedicated modules with robust 24-bit RGB masking (`color & 0xFFFFFF`) and unhindered vertex counting.
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory `D:\Minecraft\.minecraft\versions\Raven bs\mods\Rattix-1.0.0.jar`
+
+### **CHANGELOG 102526(16)**
+
+[#]Fix **Miralune-Standard Precipitation & Custom Rain Architecture Port** Completely re-engineered custom rain and weather rendering pipelines by adopting Miralune's proven surgical mixin hook architecture, fixing all custom rain/snow visual and functional failures:
+- **WorldProvider Weather Renderer Interception**: Created [`MixinWorldProvider.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinWorldProvider.java) injecting at `WorldProvider.getWeatherRenderer()` to cancel custom external renderers and return `null` whenever custom precipitation is active, completely resolving OptiFine's hard bypass of `EntityRenderer.renderRainSnow`
+- **Eliminated Duplicate Render Pipeline**: Deleted the unstable 200-line reimplementation `renderCustomRainSnow` in [`MixinEntityRenderer.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinEntityRenderer.java), replacing it with Miralune's precise call-site redirect hooks:
+  - `rattixWeatherClock`: Head hook tracking world time for smooth texture UV scrolling
+  - `rattixWeatherSnapshot`: Head hook caching weather mode, custom rain/snow colors, fall speed, wind vectors, density, and opacity
+  - `rattixCanRain` & `rattixCanSnow`: Biome redirects in `renderRainSnow` and `addRainParticles` enabling rain/snow in all biomes (including deserts) without corrupting world climate
+  - `rattixTemperatureAtHeight` & `rattixSplashTemperature`: WorldChunkManager redirects providing forced 1.0F/0.0F heights for precipitation texture batching
+  - `rattixPrecipitationTexture`: Redirects `bindTexture` to dynamically distinguish snow batches (`locationSnowPng`) from rain batches
+  - `rattixPrecipitationColor`: Injects `rainColor`, `snowColor`, `density` filtering (`Math.floorMod(vertex / 4 * 37, 100) >= density`), and `rainOpacity` scaling directly into `WorldRenderer.color`
+  - `rattixPrecipitationSpeed`: Injects `(fallSpeed - 1.0) * time` UV offsets into `WorldRenderer.tex` to adjust falling speed without breaking geometry or roof occlusion
+  - `rattixPrecipitationWind`: Injects height-dependent `(y - base) * windX/Z / 200` vertex offsets into `WorldRenderer.pos` for realistic slanted wind drift
+  - `fastWeatherRadius` & `fancyWeatherRadius`: Constant modifiers (5 and 10) dynamically linked to `Weather.radius`
+- **Preserved Biome Vegetation Integrity**: Cleaned [`MixinBiomeGenBase.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinBiomeGenBase.java) by removing destructive global overrides (`getFloatTemperature`, `getEnableSnow`, `isSnowyBiome`, `canRain`), restoring natural foliage, grass, and water shading across all biomes
+- **Rain Splash Particle Customization**: Created [`MixinEffectRenderer.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinEffectRenderer.java) hooking into `EffectRenderer.addEffect` to dynamically tint `EntityRainFX` with `splashColor`, filter particle frequency via `splashAmount`, and scale droplets via `splashSize`
+- **Precipitation Audio Scaling & Snow Ambience**: Created [`MixinWorldClient.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/injection/mixin/MixinWorldClient.java) redirecting `PositionedSoundRecord` in `WorldClient.playSound` to scale volume for `"ambient.weather.rain"` via `rainVolume` and `"ambient.weather.thunder"` via `thunderVolume`. Added gentle atmospheric `snowAmbience` sound when snowing
+- **Synchronized Weather Module Settings**: Updated [`Weather.java`](file:///f:/Projects/Rattix/src/main/java/client/m1ck3y/rattix/features/module/modules/Weather.java) with complete property suites (`rainColor`, `snowColor`, `fallSpeed`, `rainOpacity`, `density`, `windX`, `windZ`, `radius`, `splashColor`, `splashAmount`, `splashSize`, `rainVolume`, `thunderVolume`, `snowAmbience`, `snowVolume`) and reactive `activeMode()` / `isCustomPrecipitation()` handlers
+- **Registered Mixin Manifest**: Registered all new mixins in [`mixins.rattix.json`](file:///f:/Projects/Rattix/src/main/resources/mixins.rattix.json)
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory `D:\Minecraft\.minecraft\versions\Raven bs\mods\Rattix-1.0.0.jar`
+
 ### **CHANGELOG 102526(15)**
 
 [#]Fix **1/2 Scale Control Button Width & 1/2 Scale Vector Icon Sizing** Accurately applied 1/2 scale reduction to both control button width and vector caption icons in `SubpageWindow.java` per design specifications:

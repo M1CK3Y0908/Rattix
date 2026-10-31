@@ -17,9 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GuiScreen.class)
 public abstract class MixinGuiScreen extends Gui {
 
-    @Shadow public abstract void drawBackground(int tint);
-    @Shadow protected List<GuiButton> buttonList;
-
     /**
      * 1.8.9 的大多数设置/列表界面通过 drawDefaultBackground() 绘制默认泥土背景，
      * 而不是直接调用 drawBackground()。在这里拦截才能覆盖 GuiOptions、GuiVideoSettings、

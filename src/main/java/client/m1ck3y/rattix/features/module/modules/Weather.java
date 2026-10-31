@@ -10,6 +10,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
@@ -18,10 +19,12 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 /**
- * 参考 Miralune, Augustus 与 RavenXD 架构实现的天气系统 (Weather) 模块。
- * 支持 Vanilla / Clear / Rain / Snow 模式切换与平滑强度过渡 (TransitionSeconds)，
- * 支持自定义雨雪颜色、下落速度、风力偏移 (WindX/Z)、密度、渲染半径，
- * 并内置逼真的动态雷暴落雷引擎 (Lightning) 与立体声雷鸣。
+ * 完整还原 Miralune Weather 架构的天气控制模块：
+ * 1. 原版气候状态解耦：不修改 WorldInfo 或破坏服务端同步，仅通过细粒度 Mixin 拦截展现层；
+ * 2. 模式与平滑过渡：Clear(1) / Rain(2) / Snow(3)，支持 TransitionSeconds 平滑过渡；
+ * 3. 晶莹高亮纯白默认色彩 (0xFFFFFF)，杜绝过暗发灰或偏色，允许自由调色并真实保留原版光照层次；
+ * 4. 纯净材质 UV 与顶点偏移：下落速度调整与风力偏移 (WindX/Z) 不破坏遮挡模型与多重剔除；
+ * 5. 动态雷暴落雷引擎 (Thunder & Lightning)。
  */
 public class Weather extends Module {
     private static Weather instance;
@@ -35,36 +38,30 @@ public class Weather extends Module {
         }
     }
 
-    // Weather mode & strength transitions (参考 Miralune)
-    public final ModeSetting mode = new ModeSetting("Weather", "Clear", "Weather", new String[]{"Vanilla", "Clear", "Rain", "Snow"});
+    // 1. Weather Mode & Transitions (Clear, Rain, Snow)
+    public final ModeSetting mode = new ModeSetting("Mode", "Clear", "Weather", new String[]{"Clear", "Rain", "Snow"});
     public final NumberSetting intensity = new NumberSetting("Intensity", 100.0, 0.0, 100.0, 5.0, "Weather");
-    public final NumberSetting transitionSeconds = new NumberSetting("TransitionSeconds", 2.0, 0.0, 30.0, 1.0, "Weather");
+    public final NumberSetting transitionSeconds = new NumberSetting("TransitionSeconds", 0.0, 0.0, 30.0, 1.0, "Weather");
 
-    // Dynamic Thunder & Lightning
-    public final CheckBoxSetting thunder = new CheckBoxSetting("Thunder", false, "Weather");
-    public final ModeSetting lightningMode = new ModeSetting("Lightning", "Frequent", "Weather", new String[]{"Vanilla", "Uncommon", "Common", "Frequent", "Intense", "Chaotic"}).withParent(thunder);
-    public final CheckBoxSetting thunderSound = new CheckBoxSetting("ThunderSound", true, "Weather").withParent(thunder);
+    // 2. Precipitation Visuals (1:1 还原 Miralune Weather，纯白默认色 0xFFFFFFFF)
+    public final ColorSetting rainColor = new ColorSetting("RainColor", 0xFFFFFFFF, "Visuals");
+    public final ColorSetting snowColor = new ColorSetting("SnowColor", 0xFFFFFFFF, "Visuals");
+    public final NumberSetting fallSpeed = new NumberSetting("FallSpeed", 1.0, 0.1, 4.0, 0.1, "Visuals");
+    public final NumberSetting windX = new NumberSetting("WindX", 0.0, -100.0, 100.0, 5.0, "Visuals");
+    public final NumberSetting windZ = new NumberSetting("WindZ", 0.0, -100.0, 100.0, 5.0, "Visuals");
+    public final NumberSetting density = new NumberSetting("Density", 100.0, 0.0, 100.0, 5.0, "Visuals");
+    public final NumberSetting radius = new NumberSetting("Radius", 10.0, 2.0, 15.0, 1.0, "Visuals");
 
-    // Rain & Snow Customization (参考 Miralune)
-    public final CheckBoxSetting customRain = new CheckBoxSetting("CustomRain", false, "Precipitation");
-    public final ColorSetting rainColor = new ColorSetting("RainColor", 0xFF80A0FF, "Precipitation").withParent(customRain);
-    public final ColorSetting snowColor = new ColorSetting("SnowColor", 0xFFFFFFFF, "Precipitation").withParent(customRain);
-    public final NumberSetting fallSpeed = new NumberSetting("FallSpeed", 1.0, 0.1, 4.0, 0.1, "Precipitation").withParent(customRain);
-    public final NumberSetting rainSize = new NumberSetting("RainSize", 1.0, 0.1, 5.0, 0.1, "Precipitation").withParent(customRain);
-    public final NumberSetting rainOpacity = new NumberSetting("RainOpacity", 100.0, 0.0, 100.0, 1.0, "Precipitation").withParent(customRain);
-    public final NumberSetting density = new NumberSetting("Density", 100.0, 0.0, 100.0, 5.0, "Precipitation").withParent(customRain);
-    public final NumberSetting windX = new NumberSetting("WindX", 0.0, -100.0, 100.0, 5.0, "Precipitation").withParent(customRain);
-    public final NumberSetting windZ = new NumberSetting("WindZ", 0.0, -100.0, 100.0, 5.0, "Precipitation").withParent(customRain);
-    public final NumberSetting radius = new NumberSetting("Radius", 10.0, 2.0, 15.0, 1.0, "Precipitation").withParent(customRain);
+    // 3. Dynamic Thunder & Lightning
+    public final CheckBoxSetting thunder = new CheckBoxSetting("Thunder", false, "Thunder");
+    public final ModeSetting lightningMode = new ModeSetting("Lightning", "Frequent", "Thunder", new String[]{"Vanilla", "Uncommon", "Common", "Frequent", "Intense", "Chaotic"}).withParent(thunder);
+    public final CheckBoxSetting thunderSound = new CheckBoxSetting("ThunderSound", true, "Thunder").withParent(thunder);
 
-    // Weather strength animation state (参考 Miralune 实现)
+    // Weather strength animation state (Miralune 原理)
     private World strengthWorld;
     private float previousStrength;
     private float currentStrength;
     private long lastUpdateNanos;
-
-    private long savedRain = -1L;
-    private long savedThunder = -1L;
     private long lastThunderTime = 0L;
 
     public enum LightningMode {
@@ -96,12 +93,12 @@ public class Weather extends Module {
     }
 
     public Weather() {
-        super("Weather", "Customise client weather, rain/snow visuals and dynamic lightning.", Category.VISUAL);
+        super("Weather", "Customise client weather, rain/snow visuals, colors and fall dynamics.", Category.VISUAL);
         instance = this;
         addSettings(
                 mode, intensity, transitionSeconds,
-                thunder, lightningMode, thunderSound,
-                customRain, rainColor, snowColor, fallSpeed, rainSize, rainOpacity, density, windX, windZ, radius
+                rainColor, snowColor, fallSpeed, windX, windZ, density, radius,
+                thunder, lightningMode, thunderSound
         );
     }
 
@@ -109,48 +106,59 @@ public class Weather extends Module {
         return instance;
     }
 
-    public boolean isWeatherVanilla() {
-        return isEnabled() && "Vanilla".equalsIgnoreCase(mode.getValue());
+    /**
+     * 1:1 对应 Miralune activeMode():
+     * 0: VANILLA (保持原版气候状态)
+     * 1: CLEAR (晴天无降水)
+     * 2: RAIN (全群系强制降雨)
+     * 3: SNOW (全群系强制降雪)
+     */
+    /**
+     * 对应天气模式:
+     * 0: 模块关闭 (保持原版气候状态)
+     * 1: Clear (晴天无降水)
+     * 2: Rain (全群系强制降雨)
+     * 3: Snow (全群系强制降雪)
+     */
+    public int activeMode() {
+        if (!isEnabled()) return 0;
+        String m = mode.getValue();
+        if ("Clear".equalsIgnoreCase(m)) return 1;
+        if ("Rain".equalsIgnoreCase(m)) return 2;
+        if ("Snow".equalsIgnoreCase(m)) return 3;
+        return 1;
     }
 
-    public boolean isWeatherClear() {
-        return isEnabled() && "Clear".equalsIgnoreCase(mode.getValue());
-    }
+    public boolean isWeatherVanilla() { return !isEnabled(); }
+    public boolean isWeatherClear() { return isEnabled() && activeMode() == 1; }
+    public boolean isWeatherRain() { return isEnabled() && activeMode() == 2; }
+    public boolean isWeatherSnow() { return isEnabled() && activeMode() == 3; }
 
-    public boolean isWeatherRain() {
-        return isEnabled() && "Rain".equalsIgnoreCase(mode.getValue());
-    }
-
-    public boolean isWeatherSnow() {
-        return isEnabled() && "Snow".equalsIgnoreCase(mode.getValue());
-    }
-
-    public boolean isRainingActive() {
-        if (!isEnabled()) return false;
-        if (isWeatherClear() || isWeatherVanilla()) return false;
-        return isWeatherRain() || isWeatherSnow() || customRain.getValue();
-    }
-
-    private float targetStrength() {
-        if (!isEnabled() || isWeatherVanilla() || isWeatherClear()) return 0.0F;
-        return (float) (intensity.getValue() / 100.0);
+    public float targetStrength() {
+        int m = activeMode();
+        if (m == 1) return 0.0F;
+        if (m >= 2) return (float) (intensity.getValue() / 100.0);
+        return 0.0F;
     }
 
     private void bindWorld(World world) {
         if (strengthWorld == world) return;
         strengthWorld = world;
-        previousStrength = currentStrength = world.rainingStrength;
+        if (transitionSeconds.getValue() <= 0.0) {
+            previousStrength = currentStrength = targetStrength();
+        } else {
+            previousStrength = currentStrength = world.rainingStrength;
+        }
         lastUpdateNanos = 0L;
     }
 
     /**
-     * 计算并平滑插值降雨强度（参考 Miralune 实现）
+     * 展现层平滑插值强度 (1:1 还原 Miralune rainStrength)
      */
     public float rainStrength(World world, float partialTicks) {
-        if (!isEnabled() || isWeatherVanilla()) return world.rainingStrength;
         bindWorld(world);
         if (transitionSeconds.getValue() <= 0.0) return targetStrength();
-        float partial = Math.max(0.0F, Math.min(1.0F, partialTicks));
+        float partial = MathHelper.clamp_float(partialTicks, 0.0F, 1.0F);
         return previousStrength + (currentStrength - previousStrength) * partial;
     }
 
@@ -162,27 +170,16 @@ public class Weather extends Module {
 
     @Override
     public void onEnable() {
-        if (mc.theWorld != null && mc.theWorld.getWorldInfo() != null) {
-            savedRain = mc.theWorld.getWorldInfo().isRaining() ? 1L : 0L;
-            savedThunder = mc.theWorld.getWorldInfo().isThundering() ? 1L : 0L;
+        if (mc.theWorld != null) {
+            bindWorld(mc.theWorld);
+            if (transitionSeconds.getValue() <= 0.0) {
+                previousStrength = currentStrength = targetStrength();
+            }
         }
-        resetStrength();
     }
 
     @Override
     public void onDisable() {
-        if (mc.theWorld != null && mc.theWorld.getWorldInfo() != null) {
-            if (savedRain != -1L) {
-                mc.theWorld.getWorldInfo().setRaining(savedRain == 1L);
-                mc.theWorld.setRainStrength(savedRain == 1L ? 1.0F : 0.0F);
-                savedRain = -1L;
-            }
-            if (savedThunder != -1L) {
-                mc.theWorld.getWorldInfo().setThundering(savedThunder == 1L);
-                mc.theWorld.setThunderStrength(savedThunder == 1L ? 1.0F : 0.0F);
-                savedThunder = -1L;
-            }
-        }
         resetStrength();
     }
 
@@ -194,40 +191,28 @@ public class Weather extends Module {
 
     @Override
     public void onTick() {
-        if (!isEnabled() || mc.theWorld == null) {
+        // 遵循 Miralune 规范：在 activeMode == 0 或世界为空时重置动画并退出，绝不调用 setRaining 污染服务端
+        if (activeMode() == 0 || mc.theWorld == null) {
             resetStrength();
+            if (thunder.getValue() && isEnabled()) {
+                this.strike();
+            }
             return;
         }
 
         bindWorld(mc.theWorld);
 
-        // 1. 平滑推进降水强度
-        long now = System.nanoTime();
-        float deltaSeconds = lastUpdateNanos == 0L ? 0.05F : Math.min(0.25F, (now - lastUpdateNanos) / 1000000000.0F);
-        lastUpdateNanos = now;
-        previousStrength = currentStrength;
-        currentStrength = advanceStrength(currentStrength, targetStrength(), deltaSeconds, transitionSeconds.getValue());
-
-        // 2. 同步更新世界雨雪与雷暴标记
-        if (mc.theWorld.getWorldInfo() != null) {
-            if (isRainingActive()) {
-                mc.theWorld.getWorldInfo().setRaining(true);
-                mc.theWorld.setRainStrength(currentStrength);
-            } else if (isWeatherClear()) {
-                mc.theWorld.getWorldInfo().setRaining(false);
-                mc.theWorld.setRainStrength(0.0F);
-            }
-
-            if (thunder.getValue() && !isWeatherClear()) {
-                mc.theWorld.getWorldInfo().setThundering(true);
-                mc.theWorld.setThunderStrength(1.0F);
-            } else if (isWeatherClear()) {
-                mc.theWorld.getWorldInfo().setThundering(false);
-                mc.theWorld.setThunderStrength(0.0F);
-            }
+        if (transitionSeconds.getValue() <= 0.0) {
+            previousStrength = currentStrength = targetStrength();
+        } else {
+            long now = System.nanoTime();
+            float deltaSeconds = lastUpdateNanos == 0L ? 0.05F : Math.min(0.25F, (now - lastUpdateNanos) / 1000000000.0F);
+            lastUpdateNanos = now;
+            previousStrength = currentStrength;
+            currentStrength = advanceStrength(currentStrength, targetStrength(), deltaSeconds, transitionSeconds.getValue());
         }
 
-        // 3. 动态落雷引擎
+        // 动态落雷
         if (thunder.getValue()) {
             this.strike();
         }
@@ -268,9 +253,11 @@ public class Weather extends Module {
             mc.theWorld.addWeatherEffect(new EntityLightningBolt(mc.theWorld, targetPos.getX(), targetPos.getY(), targetPos.getZ()));
 
             if (thunderSound.getValue() && Math.abs(currentTimeMs - lastThunderTime) > 250L) {
+                WeatherAudio audio = WeatherAudio.getInstance();
+                float vol = (audio != null && audio.isEnabled()) ? (10.0F * audio.thunderVolume.getValue().floatValue() / 100.0F) : 10.0F;
                 mc.theWorld.playSound(
                         targetPos.getX(), targetPos.getY(), targetPos.getZ(),
-                        "ambient.weather.thunder", 10.0F,
+                        "ambient.weather.thunder", vol,
                         0.8F + RANDOM.nextFloat() * 0.2F, false
                 );
                 lastThunderTime = currentTimeMs;

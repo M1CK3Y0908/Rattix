@@ -3,16 +3,20 @@
     "client/m1ck3y/rattix/injection/mixin/MixinEntityRenderer": {
       "setupFog": "Lnet/minecraft/client/renderer/EntityRenderer;func_78468_a(IF)V",
       "Lnet/minecraft/world/biome/WorldChunkManager;getTemperatureAtHeight(FI)F": "Lnet/minecraft/world/biome/WorldChunkManager;func_76939_a(FI)F",
+      "Lnet/minecraft/world/biome/BiomeGenBase;getEnableSnow()Z": "Lnet/minecraft/world/biome/BiomeGenBase;func_76746_c()Z",
+      "Lnet/minecraft/client/renderer/WorldRenderer;tex(DD)Lnet/minecraft/client/renderer/WorldRenderer;": "Lnet/minecraft/client/renderer/WorldRenderer;func_181673_a(DD)Lnet/minecraft/client/renderer/WorldRenderer;",
+      "Lnet/minecraft/world/biome/BiomeGenBase;getFloatTemperature(Lnet/minecraft/util/BlockPos;)F": "Lnet/minecraft/world/biome/BiomeGenBase;func_180626_a(Lnet/minecraft/util/BlockPos;)F",
+      "Lnet/minecraft/client/renderer/texture/TextureManager;bindTexture(Lnet/minecraft/util/ResourceLocation;)V": "Lnet/minecraft/client/renderer/texture/TextureManager;func_110577_a(Lnet/minecraft/util/ResourceLocation;)V",
+      "Lnet/minecraft/world/biome/BiomeGenBase;canRain()Z": "Lnet/minecraft/world/biome/BiomeGenBase;func_76738_d()Z",
+      "addRainParticles": "Lnet/minecraft/client/renderer/EntityRenderer;func_78484_h()V",
+      "Lnet/minecraft/client/renderer/WorldRenderer;pos(DDD)Lnet/minecraft/client/renderer/WorldRenderer;": "Lnet/minecraft/client/renderer/WorldRenderer;func_181662_b(DDD)Lnet/minecraft/client/renderer/WorldRenderer;",
+      "Lnet/minecraft/client/renderer/WorldRenderer;color(FFFF)Lnet/minecraft/client/renderer/WorldRenderer;": "Lnet/minecraft/client/renderer/WorldRenderer;func_181666_a(FFFF)Lnet/minecraft/client/renderer/WorldRenderer;",
       "renderRainSnow": "Lnet/minecraft/client/renderer/EntityRenderer;func_78474_d(F)V"
     },
     "client/m1ck3y/rattix/injection/mixin/MixinGuiOptionSlider": {
       "mouseDragged": "Lnet/minecraft/client/gui/GuiOptionSlider;func_146119_b(Lnet/minecraft/client/Minecraft;II)V"
     },
     "client/m1ck3y/rattix/injection/mixin/MixinBiomeGenBase": {
-      "getFloatTemperature": "Lnet/minecraft/world/biome/BiomeGenBase;func_180626_a(Lnet/minecraft/util/BlockPos;)F",
-      "isSnowyBiome": "Lnet/minecraft/world/biome/BiomeGenBase;func_150559_j()Z",
-      "getEnableSnow": "Lnet/minecraft/world/biome/BiomeGenBase;func_76746_c()Z",
-      "canRain": "Lnet/minecraft/world/biome/BiomeGenBase;func_76738_d()Z",
       "getGrassColorAtPos": "Lnet/minecraft/world/biome/BiomeGenBase;func_180627_b(Lnet/minecraft/util/BlockPos;)I",
       "getFoliageColorAtPos": "Lnet/minecraft/world/biome/BiomeGenBase;func_180625_c(Lnet/minecraft/util/BlockPos;)I"
     },
@@ -32,6 +36,9 @@
       "getGrassColorAtPos": "Lnet/minecraft/world/biome/BiomeColorHelper;func_180286_a(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/BlockPos;)I",
       "getFoliageColorAtPos": "Lnet/minecraft/world/biome/BiomeColorHelper;func_180287_b(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/BlockPos;)I"
     },
+    "client/m1ck3y/rattix/injection/mixin/MixinWorldClient": {
+      "playSound(DDDLjava/lang/String;FFZ)V": "Lnet/minecraft/client/multiplayer/WorldClient;func_72980_b(DDDLjava/lang/String;FFZ)V"
+    },
     "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
       "Lnet/minecraft/client/Minecraft;dispatchKeypresses()V": "Lnet/minecraft/client/Minecraft;func_152348_aa()V",
       "startGame": "Lnet/minecraft/client/Minecraft;func_71384_a()V",
@@ -40,6 +47,9 @@
       "Lnet/minecraft/client/Minecraft;checkGLError(Ljava/lang/String;)V": "Lnet/minecraft/client/Minecraft;func_71361_d(Ljava/lang/String;)V",
       "shutdown": "Lnet/minecraft/client/Minecraft;func_71400_g()V",
       "displayGuiScreen": "Lnet/minecraft/client/Minecraft;func_147108_a(Lnet/minecraft/client/gui/GuiScreen;)V"
+    },
+    "client/m1ck3y/rattix/injection/mixin/MixinEffectRenderer": {
+      "addEffect": "Lnet/minecraft/client/particle/EffectRenderer;func_78873_a(Lnet/minecraft/client/particle/EntityFX;)V"
     },
     "client/m1ck3y/rattix/injection/mixin/MixinWorld": {
       "setWorldTime": "Lnet/minecraft/world/World;func_72877_b(J)V",
@@ -80,16 +90,20 @@
       "client/m1ck3y/rattix/injection/mixin/MixinEntityRenderer": {
         "setupFog": "Lbfk;a(IF)V",
         "Lnet/minecraft/world/biome/WorldChunkManager;getTemperatureAtHeight(FI)F": "Laec;a(FI)F",
+        "Lnet/minecraft/world/biome/BiomeGenBase;getEnableSnow()Z": "Lady;d()Z",
+        "Lnet/minecraft/client/renderer/WorldRenderer;tex(DD)Lnet/minecraft/client/renderer/WorldRenderer;": "Lbfd;a(DD)Lbfd;",
+        "Lnet/minecraft/world/biome/BiomeGenBase;getFloatTemperature(Lnet/minecraft/util/BlockPos;)F": "Lady;a(Lcj;)F",
+        "Lnet/minecraft/client/renderer/texture/TextureManager;bindTexture(Lnet/minecraft/util/ResourceLocation;)V": "Lbmj;a(Ljy;)V",
+        "Lnet/minecraft/world/biome/BiomeGenBase;canRain()Z": "Lady;e()Z",
+        "addRainParticles": "Lbfk;o()V",
+        "Lnet/minecraft/client/renderer/WorldRenderer;pos(DDD)Lnet/minecraft/client/renderer/WorldRenderer;": "Lbfd;b(DDD)Lbfd;",
+        "Lnet/minecraft/client/renderer/WorldRenderer;color(FFFF)Lnet/minecraft/client/renderer/WorldRenderer;": "Lbfd;a(FFFF)Lbfd;",
         "renderRainSnow": "Lbfk;c(F)V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinGuiOptionSlider": {
         "mouseDragged": "Lawj;b(Lave;II)V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinBiomeGenBase": {
-        "getFloatTemperature": "Lady;a(Lcj;)F",
-        "isSnowyBiome": "Lady;j()Z",
-        "getEnableSnow": "Lady;d()Z",
-        "canRain": "Lady;e()Z",
         "getGrassColorAtPos": "Lady;b(Lcj;)I",
         "getFoliageColorAtPos": "Lady;c(Lcj;)I"
       },
@@ -109,6 +123,10 @@
         "getGrassColorAtPos": "Laea;a(Ladq;Lcj;)I",
         "getFoliageColorAtPos": "Laea;b(Ladq;Lcj;)I"
       },
+      "client/m1ck3y/rattix/injection/mixin/MixinWorldClient": {
+        "playSound(DDDLjava/lang/String;FFZ)V": "Lbdb;a(DDDLjava/lang/String;FFZ)V",
+        "net/minecraft/client/audio/PositionedSoundRecord": "bpf"
+      },
       "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
         "Lnet/minecraft/client/Minecraft;dispatchKeypresses()V": "Lave;Z()V",
         "startGame": "Lave;am()V",
@@ -117,6 +135,9 @@
         "Lnet/minecraft/client/Minecraft;checkGLError(Ljava/lang/String;)V": "Lave;b(Ljava/lang/String;)V",
         "shutdown": "Lave;m()V",
         "displayGuiScreen": "Lave;a(Laxu;)V"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinEffectRenderer": {
+        "addEffect": "Lbec;a(Lbeb;)V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinWorld": {
         "setWorldTime": "Ladm;b(J)V",
@@ -156,16 +177,20 @@
       "client/m1ck3y/rattix/injection/mixin/MixinEntityRenderer": {
         "setupFog": "Lnet/minecraft/client/renderer/EntityRenderer;func_78468_a(IF)V",
         "Lnet/minecraft/world/biome/WorldChunkManager;getTemperatureAtHeight(FI)F": "Lnet/minecraft/world/biome/WorldChunkManager;func_76939_a(FI)F",
+        "Lnet/minecraft/world/biome/BiomeGenBase;getEnableSnow()Z": "Lnet/minecraft/world/biome/BiomeGenBase;func_76746_c()Z",
+        "Lnet/minecraft/client/renderer/WorldRenderer;tex(DD)Lnet/minecraft/client/renderer/WorldRenderer;": "Lnet/minecraft/client/renderer/WorldRenderer;func_181673_a(DD)Lnet/minecraft/client/renderer/WorldRenderer;",
+        "Lnet/minecraft/world/biome/BiomeGenBase;getFloatTemperature(Lnet/minecraft/util/BlockPos;)F": "Lnet/minecraft/world/biome/BiomeGenBase;func_180626_a(Lnet/minecraft/util/BlockPos;)F",
+        "Lnet/minecraft/client/renderer/texture/TextureManager;bindTexture(Lnet/minecraft/util/ResourceLocation;)V": "Lnet/minecraft/client/renderer/texture/TextureManager;func_110577_a(Lnet/minecraft/util/ResourceLocation;)V",
+        "Lnet/minecraft/world/biome/BiomeGenBase;canRain()Z": "Lnet/minecraft/world/biome/BiomeGenBase;func_76738_d()Z",
+        "addRainParticles": "Lnet/minecraft/client/renderer/EntityRenderer;func_78484_h()V",
+        "Lnet/minecraft/client/renderer/WorldRenderer;pos(DDD)Lnet/minecraft/client/renderer/WorldRenderer;": "Lnet/minecraft/client/renderer/WorldRenderer;func_181662_b(DDD)Lnet/minecraft/client/renderer/WorldRenderer;",
+        "Lnet/minecraft/client/renderer/WorldRenderer;color(FFFF)Lnet/minecraft/client/renderer/WorldRenderer;": "Lnet/minecraft/client/renderer/WorldRenderer;func_181666_a(FFFF)Lnet/minecraft/client/renderer/WorldRenderer;",
         "renderRainSnow": "Lnet/minecraft/client/renderer/EntityRenderer;func_78474_d(F)V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinGuiOptionSlider": {
         "mouseDragged": "Lnet/minecraft/client/gui/GuiOptionSlider;func_146119_b(Lnet/minecraft/client/Minecraft;II)V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinBiomeGenBase": {
-        "getFloatTemperature": "Lnet/minecraft/world/biome/BiomeGenBase;func_180626_a(Lnet/minecraft/util/BlockPos;)F",
-        "isSnowyBiome": "Lnet/minecraft/world/biome/BiomeGenBase;func_150559_j()Z",
-        "getEnableSnow": "Lnet/minecraft/world/biome/BiomeGenBase;func_76746_c()Z",
-        "canRain": "Lnet/minecraft/world/biome/BiomeGenBase;func_76738_d()Z",
         "getGrassColorAtPos": "Lnet/minecraft/world/biome/BiomeGenBase;func_180627_b(Lnet/minecraft/util/BlockPos;)I",
         "getFoliageColorAtPos": "Lnet/minecraft/world/biome/BiomeGenBase;func_180625_c(Lnet/minecraft/util/BlockPos;)I"
       },
@@ -185,6 +210,9 @@
         "getGrassColorAtPos": "Lnet/minecraft/world/biome/BiomeColorHelper;func_180286_a(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/BlockPos;)I",
         "getFoliageColorAtPos": "Lnet/minecraft/world/biome/BiomeColorHelper;func_180287_b(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/BlockPos;)I"
       },
+      "client/m1ck3y/rattix/injection/mixin/MixinWorldClient": {
+        "playSound(DDDLjava/lang/String;FFZ)V": "Lnet/minecraft/client/multiplayer/WorldClient;func_72980_b(DDDLjava/lang/String;FFZ)V"
+      },
       "client/m1ck3y/rattix/injection/mixin/MixinMinecraft": {
         "Lnet/minecraft/client/Minecraft;dispatchKeypresses()V": "Lnet/minecraft/client/Minecraft;func_152348_aa()V",
         "startGame": "Lnet/minecraft/client/Minecraft;func_71384_a()V",
@@ -193,6 +221,9 @@
         "Lnet/minecraft/client/Minecraft;checkGLError(Ljava/lang/String;)V": "Lnet/minecraft/client/Minecraft;func_71361_d(Ljava/lang/String;)V",
         "shutdown": "Lnet/minecraft/client/Minecraft;func_71400_g()V",
         "displayGuiScreen": "Lnet/minecraft/client/Minecraft;func_147108_a(Lnet/minecraft/client/gui/GuiScreen;)V"
+      },
+      "client/m1ck3y/rattix/injection/mixin/MixinEffectRenderer": {
+        "addEffect": "Lnet/minecraft/client/particle/EffectRenderer;func_78873_a(Lnet/minecraft/client/particle/EntityFX;)V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinWorld": {
         "setWorldTime": "Lnet/minecraft/world/World;func_72877_b(J)V",
