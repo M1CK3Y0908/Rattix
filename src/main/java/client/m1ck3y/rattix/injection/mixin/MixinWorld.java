@@ -1,6 +1,7 @@
 package client.m1ck3y.rattix.injection.mixin;
 
-import client.m1ck3y.rattix.features.module.modules.Ambiance;
+import client.m1ck3y.rattix.features.module.modules.Time;
+import client.m1ck3y.rattix.features.module.modules.Weather;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,9 +22,9 @@ public abstract class MixinWorld {
     @Inject(method = "getWorldTime", at = @At("HEAD"), cancellable = true)
     private void onGetWorldTime(CallbackInfoReturnable<Long> cir) {
         if (this.isRemote) {
-            Ambiance ambiance = Ambiance.getInstance();
-            if (ambiance != null && ambiance.isEnabled()) {
-                cir.setReturnValue((long) ambiance.getCurrentTime());
+            Time time = Time.getInstance();
+            if (time != null && time.isEnabled()) {
+                cir.setReturnValue((long) time.getCurrentTime());
             }
         }
     }
@@ -34,9 +35,9 @@ public abstract class MixinWorld {
     @Inject(method = "setWorldTime", at = @At("HEAD"), cancellable = true)
     private void onSetWorldTime(long time, CallbackInfo ci) {
         if (this.isRemote) {
-            Ambiance ambiance = Ambiance.getInstance();
-            if (ambiance != null && ambiance.isEnabled()) {
-                ambiance.setSavedTime(time);
+            Time timeMod = Time.getInstance();
+            if (timeMod != null && timeMod.isEnabled()) {
+                timeMod.setSavedTime(time);
                 ci.cancel();
             }
         }
@@ -48,41 +49,41 @@ public abstract class MixinWorld {
     @Inject(method = "getCelestialAngle", at = @At("HEAD"), cancellable = true)
     private void onGetCelestialAngle(float partialTicks, CallbackInfoReturnable<Float> cir) {
         if (this.isRemote) {
-            Ambiance ambiance = Ambiance.getInstance();
-            if (ambiance != null && ambiance.isEnabled()) {
-                cir.setReturnValue(ambiance.getCelestialAngle(partialTicks));
+            Time time = Time.getInstance();
+            if (time != null && time.isEnabled()) {
+                cir.setReturnValue(time.getCelestialAngle(partialTicks));
             }
         }
     }
 
     /**
-     * 自定义降雨/降雪强度：根据 Weather 单选模式与 CustomRain 设定（参考 Augustus 实现）
+     * 自定义降雨/降雪强度：平滑插值降雨强度与天气状态控制（参考 Miralune 实现）
      */
     @Inject(method = "getRainStrength", at = @At("HEAD"), cancellable = true)
     private void onGetRainStrength(float partialTicks, CallbackInfoReturnable<Float> cir) {
         if (this.isRemote) {
-            Ambiance ambiance = Ambiance.getInstance();
-            if (ambiance != null && ambiance.isEnabled()) {
-                if (ambiance.isWeatherClear()) {
+            Weather weather = Weather.getInstance();
+            if (weather != null && weather.isEnabled()) {
+                if (weather.isWeatherClear()) {
                     cir.setReturnValue(0.0F);
-                } else if (ambiance.isRainingActive()) {
-                    cir.setReturnValue(1.0F);
+                } else if (weather.isWeatherVanilla()) {
+                    // 原版处理
+                } else {
+                    cir.setReturnValue(weather.rainStrength((World) (Object) this, partialTicks));
                 }
             }
         }
     }
 
     /**
-     * 阻止服务器天气数据包在 Ambiance 生效时重置客户端降雨强度（参考 Augustus 实现）
+     * 阻止服务器天气数据包在 Weather 生效时重置客户端降雨强度
      */
     @Inject(method = "setRainStrength", at = @At("HEAD"), cancellable = true)
     private void onSetRainStrength(float strength, CallbackInfo ci) {
         if (this.isRemote) {
-            Ambiance ambiance = Ambiance.getInstance();
-            if (ambiance != null && ambiance.isEnabled()) {
-                if (ambiance.isWeatherClear() || ambiance.isRainingActive()) {
-                    ci.cancel();
-                }
+            Weather weather = Weather.getInstance();
+            if (weather != null && weather.isEnabled() && !weather.isWeatherVanilla()) {
+                ci.cancel();
             }
         }
     }
@@ -93,11 +94,11 @@ public abstract class MixinWorld {
     @Inject(method = "getThunderStrength", at = @At("HEAD"), cancellable = true)
     private void onGetThunderStrength(float partialTicks, CallbackInfoReturnable<Float> cir) {
         if (this.isRemote) {
-            Ambiance ambiance = Ambiance.getInstance();
-            if (ambiance != null && ambiance.isEnabled()) {
-                if (ambiance.isWeatherClear()) {
+            Weather weather = Weather.getInstance();
+            if (weather != null && weather.isEnabled()) {
+                if (weather.isWeatherClear()) {
                     cir.setReturnValue(0.0F);
-                } else if (ambiance.thunder.getValue()) {
+                } else if (weather.thunder.getValue()) {
                     cir.setReturnValue(1.0F);
                 }
             }

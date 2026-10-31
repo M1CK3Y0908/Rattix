@@ -207,7 +207,10 @@ public class ModuleManager {
                 Fullbright.class,
                 Keystrokes.class,
                 PingDisplay.class,
-                Ambiance.class,
+                Weather.class,
+                Fog.class,
+                Time.class,
+                Foliage.class,
                 MenuShader.class,
                 ToggleSprint.class
         };
