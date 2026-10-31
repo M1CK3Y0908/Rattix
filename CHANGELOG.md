@@ -1,3 +1,67 @@
+### **CHANGELOG 102526(15)**
+
+[#]Fix **1/2 Scale Control Button Width & 1/2 Scale Vector Icon Sizing** Accurately applied 1/2 scale reduction to both control button width and vector caption icons in `SubpageWindow.java` per design specifications:
+- Reduced control button width by 1/2 from 46.0f to 23.0f (`controlW = 23.0f`), preserving the 1.15 aspect ratio inside the 20px titlebar (`23px x 20px`)
+- Reduced caption vector icons by 1/2 from 10x10 to compact 5x5 bounding box (`[0, 5] x [0, 5]`) with 1.0f stroke width:
+  - Minimize: 4.0f length horizontal line centered at `(x + 0.5f, y + 2.5f)` to `(x + 4.5f, y + 2.5f)`
+  - Maximize: 4.0f x 4.0f rectangular outline at `(x + 0.5f, y + 0.5f)`
+  - Restore: 3.0f x 3.0f front rectangle at `(x + 0.5f, y + 1.5f)` with back corner strokes extending to `(x + 4.5f, y + 0.5f)` and `(x + 4.5f, y + 3.5f)`
+  - Close: 4.0f x 4.0f diagonal cross from `(x + 0.5f, y + 0.5f)` to `(x + 4.5f, y + 4.5f)`
+- Centered 5x5 icons inside 23x20 buttons with comfortable 9px horizontal padding: `iconOffX = (23.0f - 5.0f) / 2.0f = 9.0f`, `iconOffY = (20.0f - 5.0f) / 2.0f = 7.5f`
+- Synchronized taskbar dock chip buttons to 23.0f width (`btnW = 23.0f`), centered 5x5 icons at `(9.0f, 7.5f)`, and adjusted chip width to 180.0f (`MINIMIZED_WIDTH = 180.0f`)
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory
+
+### **CHANGELOG 102526(14)**
+
+[#]Fix **ClickGUI Identical Control Button Sizing & Decoupled Icon Width** Restored full 46.0f width (`controlW = 46.0f`) to window control buttons in `SubpageWindow.java`, completely decoupling button click/hover dimensions from the inner icon size and matching ClickGUI's native Windows 11 Fluent specifications:
+- Set titlebar control button width to 46.0f (`controlW = 46.0f`), providing generous, comfortable 18px horizontal padding on both sides of caption icons rather than hugging icon bounds
+- Restored ClickGUI's standard 10x10 Win11 vector caption icons with 1.2f line-width (Minimize `-`, Maximize `□`, Restore `❐`, Close `×`), horizontally centered at `iconOffX = (controlW - 10.0f) / 2.0f` (18.0f) and vertically centered in titlebar at `iconOffY = 5.0f`
+- Synchronized taskbar dock chip buttons to 46.0f width (`btnW = 46.0f`), expanded chip width to 260.0f (`MINIMIZED_WIDTH = 260.0f`) to accommodate 138px control button trio alongside 10px type icons and text titles
+- Verified mouse hitboxes (`mouseClicked` and `mouseClickedMinimized`) strictly match the 46.0f hover highlights
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory
+
+### **CHANGELOG 102526(13)**
+
+[#]Fix **Titlebar Control Buttons 1/2 Dimension & Vector Icon Visual Parity** Reduced titlebar control button width and vector caption icons to exactly 1/2 scale, achieving 100% exact visual parity with ClickGUI under Minecraft Scaled Resolution:
+- Standardized titlebar control button width to 12.0f (`controlW = 12.0f`, halved from 24.0f) in `SubpageWindow.java`
+- Rescaled Win11 caption vector icons from 10x10 to compact 5x5 bounding box with 1.0f crisp stroke width:
+  - Minimize: 4px horizontal stroke at `y + 2.5f`
+  - Maximize: 4.0f x 4.0f crisp rect outline
+  - Restore: 3.0f x 3.0f front rect outline with back corner lines extending to 4.5f
+  - Close: 4.0f x 4.0f diagonal cross
+- Centered caption icons inside 12x20 buttons at `iconOffX = (controlW - 5.0f) / 2.0f` (3.5f) and `iconOffY = (titlebarH - 5.0f) / 2.0f` (7.5f)
+- Aligned taskbar minimized dock chip control buttons and hitboxes to `btnW = controlW` (12.0f) with matching 5x5 centered vector icons
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory
+
+### **CHANGELOG 102526(12)**
+
+[#]Fix **1/2 Scale Proportions & Tabless Clean Titlebar Architecture** Restructured secondary page windows (`SubpageWindow`) to exact 1/2 scale (matching ClickGUI's physical display proportions under ScaledResolution):
+- Standardized titlebar height to 20.0f (`titlebarH = 20.0f`) and control buttons to 23.0f (`controlW = 23.0f`)
+- Removed tab cards, tab separators, and active bottom bars from subpage windows: titlebar is now a clean, unified Windows 11 title surface with 10px type icons vertically centered at `curY + 5.0f` and 1x typography vertically centered at `curY + 6.0f`
+- Centered Win11 vector caption icons in 23x20 buttons at `iconOffX = 6.5f, iconOffY = 5.0f`
+- Scaled taskbar dock chips to 160.0f x 20.0f (`MINIMIZED_WIDTH` / `MINIMIZED_HEIGHT`) with 23px control buttons, 10px icons, and 1x text
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory
+
+### **CHANGELOG 102526(11)**
+
+[#]Fix **1:1 ClickGUI Window Title Typography & Exact Baseline Parity** Completely aligned window title font rendering and layout in `SubpageWindow` with ClickGUI's native specifications. Replaced downscaled `FontUtil.drawString1x` with ClickGUI's standard `FontUtil.drawString2x` and `FontUtil.getStringWidth2x`, aligning title text vertically at `curY + 11.0f` and category/type vector icons at `curY + 8.0f` inside the 40px titlebar. Synchronized minimized taskbar dock chip title rendering to `FontUtil.drawString2x` at `minY + 11.0f` and icon at `minY + 8.0f` with dynamic ellipsis trimming, achieving 100% visual parity with ClickGUI tab styling
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory
+
+### **CHANGELOG 102526(10)**
+
+[#]Fix **Titlebar Control Buttons Dimensions & Visual Parity** Restored ClickGUI's standard control button sizing in `SubpageWindow` titlebars to 46.0f width (`controlW = 46.0f`) and 40.0f height (`titlebarH = 40.0f`). Aligned all vector button icon strokes (Minimize line, Maximize 8x8 rect, Restore overlapping double-rect, and Close 8x8 cross with 1.2f line-width) centered at `btnX + 18.0f, curY + 15.0f` matching ClickGUI pixel-for-pixel
+[#]Fix **Taskbar Dock Minimized Hitboxes & Button Sizing** Synchronized minimized taskbar dock chip buttons to 46.0f width (`btnW = 46.0f`, `MINIMIZED_WIDTH = 300.0f`, `MINIMIZED_HEIGHT = 40.0f`), fixing the previous 20px click hitbox discrepancy in `mouseClickedMinimized` so click registration matches the visible 46px hover background
+[#]Fix **Window Chrome Radius & Category Icon Sizing** Aligned window surface and top corner radius to ClickGUI's native 8.0f (`winRadius = 8.0f`), updated `drawTypeIcon` across all subpage types (`MODULES`, `SETTINGS`, `SINGLEPLAYER`, `MULTIPLAYER`, `OPTIONS`, `CUSTOM`) to 20.0f x 20.0f vector/SVG rendering at `curY + 10.0f`, and centered FontUtil 1x titles at `curY + 15.5f`
+[#]Update **Modular Window Manager Default Bounds** Standardized default window size to 500.0f x 340.0f in `WindowManager.open` and `calcDefaultBounds()`, providing a balanced desktop presentation with generous padding on both vanilla options and custom subpages
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory
+
+### **CHANGELOG 102526(9)**
+
+[#]Add **Modular Unified Window Architecture & Encapsulated API** Re-architected secondary desktop page windows (`SubpageWindow`) and `WindowManager` into a self-contained, modular window component framework. Callers now only need to provide 4 core parameters: Registration Name (`id`), Window Title (`title`), Display Content (`content` as `GuiScreen`), and Default Resolution (`defaultWidth`, `defaultHeight`). `WindowManager.open(id, title, content, defaultW, defaultH)` automatically handles duplicate suppression, taskbar un-minimizing, top-focus z-indexing, and cascaded positioning
+[#]Fix **1:1 ClickGUI Vector Button Icons & Corner Radii Parity** Fully synchronized all window chrome geometry with ClickGUI's native visual specifications. Window surface and outline radius standardized to 6.0f (`winRadius = 6.0f`), tab card top corners to 5.0f radius with 1.0f active bar indicator, and close button hover to match window/chip corner rounding. Restored ClickGUI's exact vector drawing line offsets (1.2f stroke width) for Minimize, Maximize, Restore, and Close buttons, and centered all control icons in 24x22 titlebar buttons and 20x22 taskbar chips
+[#]Add **Dynamic SvgIconHelper Icon Detection for Custom Subpages** Integrated `SvgIconHelper.hasIcon` and `WindowType.fromId(id)`: newly registered custom windows dynamically render matching SVG icons from their ID (e.g. `combat`, `movement`, `player`, `ghost`, `theme`, `other`) or gracefully fall back to the terminal prompt vector icon
+[#]Deploy **Production Release Binary** Recompiled release artifact `build/libs/Rattix-1.0.0.jar` with clean ForgeGradle build and synchronized to launcher mods directory
+
 ### **CHANGELOG 102526(8)**
 
 [#]Fix **Window Dimensions & GUI Coordinate Scaling Parity** Corrected window sizing and layout proportions for secondary page desktop windows (`SubpageWindow`) and `WindowManager` to match ClickGUI's sleek visual appearance. While ClickGUI renders under an unscaled physical screen matrix (`1.0f / scale`), `SubpageWindow` operates in Minecraft Scaled GUI Units. Adjusted default window dimensions to 480.0f x 320.0f and minimum bounds to 380.0f x 240.0f (guaranteeing 310px vanilla button layouts fit with generous margins), preventing windows from dominating the entire screen

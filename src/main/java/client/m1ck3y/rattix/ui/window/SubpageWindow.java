@@ -42,8 +42,8 @@ public class SubpageWindow {
     // Dimensions matching ClickGUI
     public static final float MIN_WINDOW_WIDTH = 380.0f;
     public static final float MIN_WINDOW_HEIGHT = 240.0f;
-    public static final float MINIMIZED_WIDTH = 160.0f;
-    public static final float MINIMIZED_HEIGHT = 22.0f;
+    public static final float MINIMIZED_WIDTH = 180.0f;
+    public static final float MINIMIZED_HEIGHT = 20.0f;
 
     private final String id;
     private String title;
@@ -82,14 +82,40 @@ public class SubpageWindow {
     private float resizeStartW = 0;
     private float resizeStartH = 0;
 
-    // Layout matching ClickGUI
-    private final float titlebarH = 22.0f;
-    private final float controlW = 24.0f;
+    // Layout matching ClickGUI (23px control buttons, 1/2 proportion, unified titlebar)
+    private final float titlebarH = 20.0f;
+    private final float controlW = 23.0f;
+
+    /**
+     * Modular constructor requiring only: Registration Name (id), Title, Display Content, and Default Resolution.
+     * Packages window components together for clean, unified invocation across the client.
+     *
+     * @param id           注册名称 (Unique window identifier, e.g. "singleplayer", "alts", etc.)
+     * @param title        标题 (Window title displayed in tab and taskbar chip)
+     * @param content      显示内容 (GuiScreen embedded inside the window)
+     * @param defaultWidth 默认分辨率宽 (Default window width)
+     * @param defaultHeight 默认分辨率高 (Default window height)
+     */
+    public SubpageWindow(String id, String title, GuiScreen content, float defaultWidth, float defaultHeight) {
+        this(id, WindowType.fromId(id), title, content, -1.0f, -1.0f, defaultWidth, defaultHeight);
+    }
+
+    /**
+     * Convenience constructor requiring only: Registration Name (id), Title, and Display Content.
+     * Uses standard default resolution (500 x 340).
+     *
+     * @param id      注册名称 (Unique window identifier)
+     * @param title   标题 (Window title)
+     * @param content 显示内容 (GuiScreen embedded inside the window)
+     */
+    public SubpageWindow(String id, String title, GuiScreen content) {
+        this(id, title, content, 500.0f, 340.0f);
+    }
 
     public SubpageWindow(String id, WindowType type, String title, GuiScreen content, float posX, float posY, float width, float height) {
-        this.id = id;
-        this.type = type;
-        this.title = (title != null && !title.isEmpty()) ? title : (type != null ? type.getDefaultTitle() : "Window");
+        this.id = (id != null && !id.isEmpty()) ? id : (type != null ? type.name().toLowerCase() : "window");
+        this.type = (type != null) ? type : WindowType.fromId(this.id);
+        this.title = (title != null && !title.isEmpty()) ? title : (this.type != null ? this.type.getDefaultTitle() : "Window");
         this.content = content;
         this.posX = posX;
         this.posY = posY;
@@ -362,7 +388,7 @@ public class SubpageWindow {
         float curY = isMaximized ? 0 : posY;
         float curW = isMaximized ? screenW : windowWidth;
         float curH = isMaximized ? screenH : windowHeight;
-        float winRadius = isMaximized ? 0 : 8.0f;
+        float winRadius = isMaximized ? 0 : 5.0f;
 
         // 4. Update Hardware Cursor when hovering resize borders
         if (isTopFocus && !isMaximized && !dragging) {
@@ -401,69 +427,45 @@ public class SubpageWindow {
         int winBg = 0xFF0C0C0C;
         RenderUtil.drawRoundedRect(curX, curY, curW, curH, winRadius, winBg);
 
-        // 6. Draw Titlebar (matching ClickGUI)
+        // 6. Draw Titlebar (Clean window titlebar without tab container)
         int tbBg = 0xFF202020;
         int tbSep = 0xFF303030;
         RenderUtil.drawRoundedRect(curX, curY, curW, titlebarH, isMaximized ? 0 : winRadius, isMaximized ? 0 : winRadius, 0, 0, tbBg);
         RenderUtil.drawRect(curX, curY + titlebarH - 1, curX + curW, curY + titlebarH, tbSep);
 
-        // Tab Card (matching ClickGUI titlebar tab style)
-        float controlsTotalW = controlW * 3;
-        float tabsViewportW = curW - controlsTotalW;
-
-        float textWidth = FontUtil.getStringWidth1x(title);
-        float tabW = Math.min(tabsViewportW - 10.0f, textWidth + 36.0f);
-        float tabX = curX + 2.0f;
-
-        int activeTabBg = 0xFF0C0C0C;
-        int inactTabBg = 0xFF181818;
-        int tabBg = isTopFocus ? activeTabBg : inactTabBg;
-        RenderUtil.drawRoundedRect(tabX + 1, curY + 2, tabW - 2, titlebarH - 3, 3, 3, 0, 0, tabBg);
-
-        int tabSep = 0xFF2C2C2C;
-        RenderUtil.drawRect(tabX + tabW - 1, curY + 4, tabX + tabW, curY + titlebarH - 4, tabSep);
-
-        if (isTopFocus) {
-            int activeTabBar = 0xFF76B9ED;
-            RenderUtil.drawRoundedRect(tabX + 3, curY + titlebarH - 2, tabW - 6, 2, 1, activeTabBar);
-        }
-
-        // Icon & Title (12px icon + FontUtil 1x string matching ClickGUI title size)
-        float textOffset = tabX + 7.0f;
+        // Left Icon & Title (10px icon + FontUtil 1x string, vertically centered)
+        float textOffset = curX + 7.0f;
         int iconColor = isTopFocus ? 0xFF76B9ED : 0xFFB0B0B0;
-        drawTypeIcon(textOffset, curY + 5.0f, iconColor);
-        textOffset += 16.0f;
+        drawTypeIcon(textOffset, curY + (titlebarH - 10.0f) / 2.0f, iconColor);
+        textOffset += 15.0f;
 
         int textColor = isTopFocus ? 0xFFFFFFFF : 0xFFD7D7D7;
-        FontUtil.drawString1x(title, textOffset, curY + 6.5f, textColor);
+        FontUtil.drawString1x(title, textOffset, curY + (titlebarH - 8.0f) / 2.0f, textColor);
 
-        // 7. Right Control Buttons (Minimize, Maximize/Restore, Close - 24px each, matching ClickGUI)
-        float controlsStartX = curX + curW - controlsTotalW;
-        int controlsBg = 0xFF202020;
-        RenderUtil.drawRoundedRect(controlsStartX, curY, controlsTotalW, titlebarH, 0, isMaximized ? 0 : winRadius, 0, 0, controlsBg);
-        RenderUtil.drawRect(controlsStartX, curY + titlebarH - 1, curX + curW, curY + titlebarH, tbSep);
-
+        // 7. Right Control Buttons (Minimize, Maximize/Restore, Close - 23px wide, 20px high)
         float closeBtnX = curX + curW - controlW;
         float maxBtnX = closeBtnX - controlW;
         float minBtnX = maxBtnX - controlW;
 
         int ctrlHoverBg = 0xFF333333;
         int ctrlIcon = 0xFFDDDDDD;
+        float iconOffX = (controlW - 5.0f) / 2.0f; // 9.0f
+        float iconOffY = (titlebarH - 5.0f) / 2.0f; // 7.5f
 
         // Minimize button
         boolean minHover = isTopFocus && isHovered(mouseX, mouseY, minBtnX, curY, controlW, titlebarH);
         if (minHover) RenderUtil.drawRect(minBtnX, curY, minBtnX + controlW, curY + titlebarH, ctrlHoverBg);
         int minColor = minHover ? 0xFFFFFFFF : ctrlIcon;
-        drawWin11MinimizeIcon(minBtnX + 7.5f, curY + 6.5f, minColor);
+        drawWin11MinimizeIcon(minBtnX + iconOffX, curY + iconOffY, minColor);
 
         // Maximize/Restore button
         boolean maxHover = isTopFocus && isHovered(mouseX, mouseY, maxBtnX, curY, controlW, titlebarH);
         if (maxHover) RenderUtil.drawRect(maxBtnX, curY, maxBtnX + controlW, curY + titlebarH, ctrlHoverBg);
         int maxColor = maxHover ? 0xFFFFFFFF : ctrlIcon;
         if (isMaximized) {
-            drawWin11RestoreIcon(maxBtnX + 7.5f, curY + 6.5f, maxColor);
+            drawWin11RestoreIcon(maxBtnX + iconOffX, curY + iconOffY, maxColor);
         } else {
-            drawWin11MaximizeIcon(maxBtnX + 7.5f, curY + 6.5f, maxColor);
+            drawWin11MaximizeIcon(maxBtnX + iconOffX, curY + iconOffY, maxColor);
         }
 
         // Close button
@@ -477,7 +479,7 @@ public class SubpageWindow {
             }
         }
         int closeColor = closeHover ? 0xFFFFFFFF : ctrlIcon;
-        drawWin11CloseIcon(closeBtnX + 7.5f, curY + 6.5f, closeColor);
+        drawWin11CloseIcon(closeBtnX + iconOffX, curY + iconOffY, closeColor);
 
         // 8. Content Area Rendering with Scissoring
         float contentX = curX;
@@ -526,7 +528,7 @@ public class SubpageWindow {
         float minX = getMinimizedX(minIndex, screenW);
         float minY = getMinimizedY(minIndex, screenH);
         float minW = MINIMIZED_WIDTH;  // 160.0f
-        float minH = MINIMIZED_HEIGHT; // 22.0f
+        float minH = MINIMIZED_HEIGHT; // 20.0f
         float winRadius = 4.0f;
 
         // 1. Drop Shadow
@@ -541,13 +543,13 @@ public class SubpageWindow {
         int outlineColor = isTopFocus ? 0xFF4C4C4C : 0xFF303030;
         RenderUtil.drawRoundedOutline(minX, minY, minW, minH, winRadius, 1.0f, outlineColor);
 
-        // 4. Icon & Title (12px icon + FontUtil string)
+        // 4. Icon & Title (10px icon + FontUtil 1x string)
         int accent = 0xFF76B9ED;
         float textOffset = minX + 6.0f;
-        drawTypeIcon(textOffset, minY + 5.0f, accent);
-        textOffset += 16.0f;
+        drawTypeIcon(textOffset, minY + (minH - 10.0f) / 2.0f, accent);
+        textOffset += 14.0f;
 
-        float btnW = 20.0f;
+        float btnW = controlW; // 12.0f
         float closeX = minX + minW - btnW;
         float maxX = closeX - btnW;
         float restoreX = maxX - btnW;
@@ -560,11 +562,13 @@ public class SubpageWindow {
             }
             displayTitle = displayTitle + "...";
         }
-        FontUtil.drawString1x(displayTitle, textOffset, minY + 6.5f, 0xFFFFFFFF);
+        FontUtil.drawString1x(displayTitle, textOffset, minY + (minH - 8.0f) / 2.0f, 0xFFFFFFFF);
 
-        // 5. Right Control Buttons: Restore, Maximize, Close (20px each, matching ClickGUI)
+        // 5. Right Control Buttons: Restore, Maximize, Close
         int ctrlHoverBg = 0xFF333333;
         int ctrlIcon = 0xFFDDDDDD;
+        float iconOffX = (btnW - 5.0f) / 2.0f; // 9.0f
+        float iconOffY = (minH - 5.0f) / 2.0f; // 7.5f
 
         // Restore
         boolean restoreHover = isHovered(mouseX, mouseY, restoreX, minY, btnW, minH);
@@ -572,7 +576,7 @@ public class SubpageWindow {
             RenderUtil.drawRect(restoreX, minY, restoreX + btnW, minY + minH, ctrlHoverBg);
         }
         int restoreColor = restoreHover ? 0xFFFFFFFF : ctrlIcon;
-        drawWin11RestoreIcon(restoreX + 5.5f, minY + 6.5f, restoreColor);
+        drawWin11RestoreIcon(restoreX + iconOffX, minY + iconOffY, restoreColor);
 
         // Maximize
         boolean maxHover = isHovered(mouseX, mouseY, maxX, minY, btnW, minH);
@@ -580,7 +584,7 @@ public class SubpageWindow {
             RenderUtil.drawRect(maxX, minY, maxX + btnW, minY + minH, ctrlHoverBg);
         }
         int maxColor = maxHover ? 0xFFFFFFFF : ctrlIcon;
-        drawWin11MaximizeIcon(maxX + 5.5f, minY + 6.5f, maxColor);
+        drawWin11MaximizeIcon(maxX + iconOffX, minY + iconOffY, maxColor);
 
         // Close
         boolean closeHover = isHovered(mouseX, mouseY, closeX, minY, btnW, minH);
@@ -588,7 +592,7 @@ public class SubpageWindow {
             RenderUtil.drawRoundedRect(closeX, minY, btnW, minH, 0, winRadius, winRadius, 0, 0xFFC42B1C);
         }
         int closeColor = closeHover ? 0xFFFFFFFF : ctrlIcon;
-        drawWin11CloseIcon(closeX + 5.5f, minY + 6.5f, closeColor);
+        drawWin11CloseIcon(closeX + iconOffX, minY + iconOffY, closeColor);
     }
 
     public float getMinimizedX(int minIndex, float screenW) {
@@ -807,7 +811,7 @@ public class SubpageWindow {
             return false;
         }
 
-        float btnW = 20.0f;
+        float btnW = controlW;
         float closeX = curX + curW - btnW;
         float maxX = closeX - btnW;
         float restoreX = maxX - btnW;
@@ -895,49 +899,54 @@ public class SubpageWindow {
     }
 
     private void drawTypeIcon(float x, float y, int color) {
-        if (type == null) {
-            RenderUtil.drawTerminalIcon(x, y, 12.0f, color);
+        if (type == null || type == WindowType.CUSTOM) {
+            String cleanId = (id != null) ? id.toLowerCase().trim() : "";
+            if (SvgIconHelper.hasIcon(cleanId)) {
+                SvgIconHelper.drawIcon(cleanId, x, y, 10.0f, color);
+            } else {
+                RenderUtil.drawTerminalIcon(x, y, 10.0f, color);
+            }
             return;
         }
         switch (type) {
             case MODULES:
-                RenderUtil.drawModulesIcon(x, y, 12.0f, color);
+                RenderUtil.drawModulesIcon(x, y, 10.0f, color);
                 break;
             case SETTINGS:
-                RenderUtil.drawTerminalIcon(x, y, 12.0f, color);
+                RenderUtil.drawTerminalIcon(x, y, 10.0f, color);
                 break;
             case SINGLEPLAYER:
-                SvgIconHelper.drawIcon("player", x, y, 12.0f, color);
+                SvgIconHelper.drawIcon("player", x, y, 10.0f, color);
                 break;
             case MULTIPLAYER:
-                SvgIconHelper.drawIcon("ghost", x, y, 12.0f, color);
+                SvgIconHelper.drawIcon("ghost", x, y, 10.0f, color);
                 break;
             case OPTIONS:
-                SvgIconHelper.drawIcon("other", x, y, 12.0f, color);
+                SvgIconHelper.drawIcon("other", x, y, 10.0f, color);
                 break;
             default:
-                RenderUtil.drawTerminalIcon(x, y, 12.0f, color);
+                RenderUtil.drawTerminalIcon(x, y, 10.0f, color);
                 break;
         }
     }
 
     private void drawWin11MinimizeIcon(float x, float y, int color) {
-        RenderUtil.drawLine(x + 0.5f, y + 4.5f, x + 8.5f, y + 4.5f, 1.2f, color);
+        RenderUtil.drawLine(x + 0.5f, y + 2.5f, x + 4.5f, y + 2.5f, 1.0f, color);
     }
 
     private void drawWin11MaximizeIcon(float x, float y, int color) {
-        RenderUtil.drawRectOutline(x + 0.5f, y + 0.5f, 8.0f, 8.0f, 1.2f, color);
+        RenderUtil.drawRectOutline(x + 0.5f, y + 0.5f, 4.0f, 4.0f, 1.0f, color);
     }
 
     private void drawWin11RestoreIcon(float x, float y, int color) {
-        RenderUtil.drawRectOutline(x + 0.5f, y + 2.5f, 6.0f, 6.0f, 1.2f, color);
-        RenderUtil.drawLine(x + 2.5f, y + 0.5f, x + 8.5f, y + 0.5f, 1.2f, color);
-        RenderUtil.drawLine(x + 8.5f, y + 0.5f, x + 8.5f, y + 6.5f, 1.2f, color);
+        RenderUtil.drawRectOutline(x + 0.5f, y + 1.5f, 3.0f, 3.0f, 1.0f, color);
+        RenderUtil.drawLine(x + 1.5f, y + 0.5f, x + 4.5f, y + 0.5f, 1.0f, color);
+        RenderUtil.drawLine(x + 4.5f, y + 0.5f, x + 4.5f, y + 3.5f, 1.0f, color);
     }
 
     private void drawWin11CloseIcon(float x, float y, int color) {
-        RenderUtil.drawLine(x + 0.5f, y + 0.5f, x + 8.5f, y + 8.5f, 1.2f, color);
-        RenderUtil.drawLine(x + 8.5f, y + 0.5f, x + 0.5f, y + 8.5f, 1.2f, color);
+        RenderUtil.drawLine(x + 0.5f, y + 0.5f, x + 4.5f, y + 4.5f, 1.0f, color);
+        RenderUtil.drawLine(x + 4.5f, y + 0.5f, x + 0.5f, y + 4.5f, 1.0f, color);
     }
 
     private boolean isHovered(float mx, float my, float x, float y, float w, float h) {

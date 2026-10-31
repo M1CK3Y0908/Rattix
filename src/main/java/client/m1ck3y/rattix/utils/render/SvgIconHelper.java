@@ -228,6 +228,11 @@ public class SvgIconHelper {
         return BUILTIN_SVGS.get(name);
     }
 
+    public static boolean hasIcon(String name) {
+        if (name == null) return false;
+        return BUILTIN_SVGS.containsKey(name) || SvgIconHelper.class.getResource("/assets/rattix/icons/" + name + ".svg") != null;
+    }
+
     public static void drawIcon(String name, float x, float y, float size, int color) {
         int texId = getTextureId(name);
         if (texId <= 0) return;

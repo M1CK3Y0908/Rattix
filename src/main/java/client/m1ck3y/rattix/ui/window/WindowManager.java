@@ -88,9 +88,22 @@ public class WindowManager {
         }
     }
 
+    public SubpageWindow getWindow(String id) {
+        if (id == null) return null;
+        for (SubpageWindow window : windows) {
+            if (id.equalsIgnoreCase(window.getId())) {
+                return window;
+            }
+        }
+        return null;
+    }
+
     public void openWindow(SubpageWindow window) {
         if (window == null) return;
-        SubpageWindow existing = getWindow(window.getType());
+        SubpageWindow existing = getWindow(window.getId());
+        if (existing == null && window.getType() != null && window.getType() != WindowType.CUSTOM) {
+            existing = getWindow(window.getType());
+        }
         if (existing != null) {
             if (existing.isMinimized()) {
                 existing.setMinimized(false);
@@ -98,109 +111,93 @@ public class WindowManager {
             bringToFront(existing);
             return;
         }
+        if (window.getPosX() < 0 || window.getPosY() < 0) {
+            float[] bounds = calcDefaultBounds(window.getWindowWidth(), window.getWindowHeight());
+            window.setPosX(bounds[0]);
+            window.setPosY(bounds[1]);
+            window.setWindowWidth(bounds[2]);
+            window.setWindowHeight(bounds[3]);
+        }
         windows.add(window);
         bringToFront(window);
     }
 
-    public void openSingleplayer(GuiScreen parent) {
-        SubpageWindow existing = getWindow(WindowType.SINGLEPLAYER);
+    /**
+     * Modular window opener requiring only: Registration Name (id), Title, Display Content, and Default Resolution.
+     * Packages window handling together so callers don't need boilerplate.
+     *
+     * @param id           注册名称 (Unique window identifier, e.g. "singleplayer", "alts", etc.)
+     * @param title        标题 (Window title shown in titlebar and taskbar chip)
+     * @param content      显示内容 (GuiScreen embedded inside the window)
+     * @param defaultWidth 默认分辨率宽 (Default window width)
+     * @param defaultHeight 默认分辨率高 (Default window height)
+     * @return The opened or focused SubpageWindow instance
+     */
+    public SubpageWindow open(String id, String title, GuiScreen content, float defaultWidth, float defaultHeight) {
+        SubpageWindow existing = getWindow(id);
         if (existing != null) {
             if (existing.isMinimized()) existing.setMinimized(false);
             bringToFront(existing);
-            return;
+            return existing;
         }
-        float[] bounds = calcDefaultBounds();
-        openWindow(new SubpageWindow(
-                "singleplayer",
-                WindowType.SINGLEPLAYER,
-                WindowType.SINGLEPLAYER.getDefaultTitle(),
-                new GuiSelectWorld(parent != null ? parent : mainMenu),
+        float[] bounds = calcDefaultBounds(defaultWidth, defaultHeight);
+        SubpageWindow window = new SubpageWindow(
+                id,
+                WindowType.fromId(id),
+                title,
+                content,
                 bounds[0], bounds[1], bounds[2], bounds[3]
-        ));
+        );
+        windows.add(window);
+        bringToFront(window);
+        return window;
+    }
+
+    /**
+     * Convenience window opener using standard default resolution (500 x 340).
+     */
+    public SubpageWindow open(String id, String title, GuiScreen content) {
+        return open(id, title, content, 500.0f, 340.0f);
+    }
+
+    public void openSingleplayer(GuiScreen parent) {
+        open("singleplayer", "Singleplayer", new GuiSelectWorld(parent != null ? parent : mainMenu), 500, 340);
     }
 
     public void openMultiplayer(GuiScreen parent) {
-        SubpageWindow existing = getWindow(WindowType.MULTIPLAYER);
-        if (existing != null) {
-            if (existing.isMinimized()) existing.setMinimized(false);
-            bringToFront(existing);
-            return;
-        }
-        float[] bounds = calcDefaultBounds();
-        openWindow(new SubpageWindow(
-                "multiplayer",
-                WindowType.MULTIPLAYER,
-                WindowType.MULTIPLAYER.getDefaultTitle(),
-                new GuiMultiplayer(parent != null ? parent : mainMenu),
-                bounds[0], bounds[1], bounds[2], bounds[3]
-        ));
+        open("multiplayer", "Multiplayer", new GuiMultiplayer(parent != null ? parent : mainMenu), 500, 340);
     }
 
     public void openOptions(GuiScreen parent) {
-        SubpageWindow existing = getWindow(WindowType.OPTIONS);
-        if (existing != null) {
-            if (existing.isMinimized()) existing.setMinimized(false);
-            bringToFront(existing);
-            return;
-        }
         Minecraft mc = Minecraft.getMinecraft();
-        float[] bounds = calcDefaultBounds();
-        openWindow(new SubpageWindow(
-                "options",
-                WindowType.OPTIONS,
-                WindowType.OPTIONS.getDefaultTitle(),
-                new GuiOptions(parent != null ? parent : mainMenu, mc.gameSettings),
-                bounds[0], bounds[1], bounds[2], bounds[3]
-        ));
+        open("options", "Options", new GuiOptions(parent != null ? parent : mainMenu, mc.gameSettings), 500, 340);
     }
 
     public void openClientSettings(GuiScreen parent) {
-        SubpageWindow existing = getWindow(WindowType.SETTINGS);
-        if (existing != null) {
-            if (existing.isMinimized()) existing.setMinimized(false);
-            bringToFront(existing);
-            return;
-        }
-        float[] bounds = calcDefaultBounds();
-        openWindow(new SubpageWindow(
-                "settings",
-                WindowType.SETTINGS,
-                WindowType.SETTINGS.getDefaultTitle(),
-                new GuiClientConfiguration(parent != null ? parent : mainMenu),
-                bounds[0], bounds[1], bounds[2], bounds[3]
-        ));
+        open("settings", "Client Settings", new GuiClientConfiguration(parent != null ? parent : mainMenu), 500, 340);
     }
 
     public void openModules() {
-        SubpageWindow existing = getWindow(WindowType.MODULES);
-        if (existing != null) {
-            if (existing.isMinimized()) existing.setMinimized(false);
-            bringToFront(existing);
-            return;
-        }
-        float[] bounds = calcDefaultBounds();
-        openWindow(new SubpageWindow(
-                "modules",
-                WindowType.MODULES,
-                WindowType.MODULES.getDefaultTitle(),
-                new GuiModulesOverview(mainMenu),
-                bounds[0], bounds[1], bounds[2], bounds[3]
-        ));
+        open("modules", "Modules", new GuiModulesOverview(mainMenu), 500, 340);
     }
 
-    private float[] calcDefaultBounds() {
+    public float[] calcDefaultBounds(float defaultW, float defaultH) {
         Minecraft mc = Minecraft.getMinecraft();
         float screenW = mc.currentScreen != null ? mc.currentScreen.width : 854;
         float screenH = mc.currentScreen != null ? mc.currentScreen.height : 480;
 
-        float defaultW = Math.max(SubpageWindow.MIN_WINDOW_WIDTH, Math.min(screenW - 220.0f, 480.0f));
-        float defaultH = Math.max(SubpageWindow.MIN_WINDOW_HEIGHT, Math.min(screenH - 50.0f, 320.0f));
+        float targetW = Math.max(SubpageWindow.MIN_WINDOW_WIDTH, Math.min(screenW - 220.0f, defaultW));
+        float targetH = Math.max(SubpageWindow.MIN_WINDOW_HEIGHT, Math.min(screenH - 50.0f, defaultH));
 
         int offsetIndex = windows.size() % 6;
-        float startX = Math.max(200.0f, Math.min(screenW - defaultW - 10.0f, 210.0f + offsetIndex * 16.0f));
-        float startY = Math.max(24.0f, Math.min(screenH - defaultH - 20.0f, 32.0f + offsetIndex * 14.0f));
+        float startX = Math.max(200.0f, Math.min(screenW - targetW - 10.0f, 210.0f + offsetIndex * 16.0f));
+        float startY = Math.max(24.0f, Math.min(screenH - targetH - 20.0f, 32.0f + offsetIndex * 14.0f));
 
-        return new float[]{startX, startY, defaultW, defaultH};
+        return new float[]{startX, startY, targetW, targetH};
+    }
+
+    public float[] calcDefaultBounds() {
+        return calcDefaultBounds(500.0f, 340.0f);
     }
 
     public boolean isMouseOverAnyWindow(int mouseX, int mouseY) {
