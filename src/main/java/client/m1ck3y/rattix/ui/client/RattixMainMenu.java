@@ -3,7 +3,9 @@ package client.m1ck3y.rattix.ui.client;
 import client.m1ck3y.rattix.ui.elements.FluentGuiButton;
 import client.m1ck3y.rattix.ui.window.WindowManager;
 import client.m1ck3y.rattix.utils.render.AugustusMainMenuRenderer;
+import client.m1ck3y.rattix.utils.render.RenderUtil;
 import client.m1ck3y.rattix.utils.render.shader.ShaderBackgroundRenderer;
+import client.m1ck3y.rattix.utils.ui.UiScaleManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -49,23 +51,22 @@ public class RattixMainMenu extends GuiScreen {
 
     public void checkResolutionUpdate() {
         if (mc == null) return;
-        ScaledResolution sr = new ScaledResolution(mc);
-        int srW = sr.getScaledWidth();
-        int srH = sr.getScaledHeight();
-        int scaleFactor = sr.getScaleFactor();
+        int targetW = UiScaleManager.getInstance().getScaledWidth();
+        int targetH = UiScaleManager.getInstance().getScaledHeight();
+        int targetScale = (int) (UiScaleManager.getInstance().getEffectiveScale() * 1000);
 
-        if (this.width != srW || this.height != srH || this.lastScaleFactor != scaleFactor) {
+        if (this.width != targetW || this.height != targetH || this.lastScaleFactor != targetScale) {
             int oldW = this.width;
             int oldH = this.height;
-            this.width = srW;
-            this.height = srH;
-            this.lastScaleFactor = scaleFactor;
+            this.width = targetW;
+            this.height = targetH;
+            this.lastScaleFactor = targetScale;
 
             this.buttonList.clear();
             this.initGui();
 
             if (windowManager != null) {
-                windowManager.onScreenResize(oldW, oldH, srW, srH);
+                windowManager.onScreenResize(oldW, oldH, targetW, targetH);
             }
         }
     }
@@ -76,11 +77,14 @@ public class RattixMainMenu extends GuiScreen {
         int oldH = this.height;
         super.setWorldAndResolution(mc, width, height);
         if (mc != null) {
-            ScaledResolution sr = new ScaledResolution(mc);
-            this.lastScaleFactor = sr.getScaleFactor();
+            this.width = UiScaleManager.getInstance().getScaledWidth();
+            this.height = UiScaleManager.getInstance().getScaledHeight();
+            this.lastScaleFactor = (int) (UiScaleManager.getInstance().getEffectiveScale() * 1000);
+            this.buttonList.clear();
+            this.initGui();
         }
-        if (windowManager != null && (oldW != width || oldH != height)) {
-            windowManager.onScreenResize(oldW, oldH, width, height);
+        if (windowManager != null && (oldW != this.width || oldH != this.height)) {
+            windowManager.onScreenResize(oldW, oldH, this.width, this.height);
         }
     }
 
@@ -90,11 +94,14 @@ public class RattixMainMenu extends GuiScreen {
         int oldH = this.height;
         super.onResize(mc, w, h);
         if (mc != null) {
-            ScaledResolution sr = new ScaledResolution(mc);
-            this.lastScaleFactor = sr.getScaleFactor();
+            this.width = UiScaleManager.getInstance().getScaledWidth();
+            this.height = UiScaleManager.getInstance().getScaledHeight();
+            this.lastScaleFactor = (int) (UiScaleManager.getInstance().getEffectiveScale() * 1000);
+            this.buttonList.clear();
+            this.initGui();
         }
-        if (windowManager != null) {
-            windowManager.onScreenResize(oldW, oldH, w, h);
+        if (windowManager != null && (oldW != this.width || oldH != this.height)) {
+            windowManager.onScreenResize(oldW, oldH, this.width, this.height);
         }
     }
 
@@ -126,14 +133,17 @@ public class RattixMainMenu extends GuiScreen {
         renderBackgroundPass();
 
         // 2. 独立 UI 渲染阶段（UI Pass）：完全隔离在干净的标准 GUI 正交管线中
-        renderUIPass(mouseX, mouseY, partialTicks);
+        int uiMouseX = UiScaleManager.getInstance().getMouseX();
+        int uiMouseY = UiScaleManager.getInstance().getMouseY();
+        renderUIPass(uiMouseX, uiMouseY, partialTicks);
     }
 
     private void renderBackgroundPass() {
         if (ShaderBackgroundRenderer.shouldRenderShader()) {
             ShaderBackgroundRenderer.renderCurrentScreen(true);
         } else {
-            drawDefaultBackground();
+            UiScaleManager.getInstance().setupOverlayRendering();
+            RenderUtil.drawRect(0, 0, this.width, this.height, 0xFF141414);
             ShaderBackgroundRenderer.isolateBackgroundAndPrepareUI();
         }
     }
@@ -141,6 +151,7 @@ public class RattixMainMenu extends GuiScreen {
     private void renderUIPass(int mouseX, int mouseY, float partialTicks) {
         // 保证 UI 渲染阶段的管线纯净，不受背景着色器的任何状态影响
         ShaderBackgroundRenderer.isolateBackgroundAndPrepareUI();
+        UiScaleManager.getInstance().setupOverlayRendering();
 
         // 绘制左侧半透明黑色导航栏及 4x Rattix 标题
         AugustusMainMenuRenderer.draw(this, mc, mouseX, mouseY, null, windowManager);
@@ -217,8 +228,8 @@ public class RattixMainMenu extends GuiScreen {
     public void handleMouseInput() throws IOException {
         checkResolutionUpdate();
         if (windowManager != null) {
-            int mouseX = Mouse.getEventX() * width / Math.max(1, mc.displayWidth);
-            int mouseY = height - Mouse.getEventY() * height / Math.max(1, mc.displayHeight) - 1;
+            int mouseX = UiScaleManager.getInstance().getMouseX();
+            int mouseY = UiScaleManager.getInstance().getMouseY();
             windowManager.handleMouseInput(mouseX, mouseY);
         }
         super.handleMouseInput();

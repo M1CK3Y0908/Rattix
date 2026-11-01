@@ -5,6 +5,7 @@ import client.m1ck3y.rattix.features.module.Module;
 import client.m1ck3y.rattix.features.module.ModuleManager;
 import client.m1ck3y.rattix.features.module.modules.ClickGUI;
 import client.m1ck3y.rattix.ui.elements.FluentGuiButton;
+import client.m1ck3y.rattix.ui.window.SubpageWindow;
 import client.m1ck3y.rattix.utils.render.RenderUtil;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
@@ -102,7 +103,9 @@ public class GuiModulesOverview extends GuiScreen {
         float contentW = width - 28;
         float contentH = contentBottom - contentTop;
 
-        RenderUtil.enableScissor(14, contentTop, contentW, contentH);
+        float scissorX = SubpageWindow.isRenderingEmbedded ? (SubpageWindow.currentContentX + 14) : 14;
+        float scissorY = SubpageWindow.isRenderingEmbedded ? (SubpageWindow.currentContentY + contentTop) : contentTop;
+        RenderUtil.enableScissor(scissorX, scissorY, contentW, contentH);
 
         List<Module> list = getFilteredModules();
         float cardH = 34.0f;

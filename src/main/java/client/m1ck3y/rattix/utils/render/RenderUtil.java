@@ -618,8 +618,14 @@ public class RenderUtil {
     }
 
     public static void enableScissor(float x, float y, float width, float height) {
-        getScaledResolution();
-        enablePixelScissor(x * cachedScaleFactor, y * cachedScaleFactor, width * cachedScaleFactor, height * cachedScaleFactor);
+        float factor;
+        if (client.m1ck3y.rattix.utils.ui.UiScaleManager.isRattixUiActive()) {
+            factor = client.m1ck3y.rattix.utils.ui.UiScaleManager.getInstance().getEffectiveScale();
+        } else {
+            getScaledResolution();
+            factor = (float) cachedScaleFactor;
+        }
+        enablePixelScissor(x * factor, y * factor, width * factor, height * factor);
     }
 
     public static void disableScissor() {

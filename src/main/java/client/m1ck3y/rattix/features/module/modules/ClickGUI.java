@@ -7,6 +7,7 @@ import client.m1ck3y.rattix.features.module.Category;
 import client.m1ck3y.rattix.features.module.Module;
 import client.m1ck3y.rattix.features.module.ModuleManager;
 import client.m1ck3y.rattix.utils.ui.CursorUtil;
+import client.m1ck3y.rattix.utils.ui.UiScaleManager;
 import client.m1ck3y.rattix.file.FileManager;
 import client.m1ck3y.rattix.ui.font.FontUtil;
 import client.m1ck3y.rattix.utils.render.RenderUtil;
@@ -850,6 +851,22 @@ public class ClickGUI extends Module {
     // Window
     // ==========================================
     public static class Window {
+        public static float getScreenW() {
+            Minecraft mc = Minecraft.getMinecraft();
+            int dw = (mc != null) ? mc.displayWidth : 1920;
+            return dw / UiScaleManager.getInstance().getScaleMultiplier();
+        }
+
+        public static float getScreenH() {
+            Minecraft mc = Minecraft.getMinecraft();
+            int dh = (mc != null) ? mc.displayHeight : 1080;
+            return dh / UiScaleManager.getInstance().getScaleMultiplier();
+        }
+
+        public static void enableGuiScissor(float x, float y, float w, float h) {
+            float mult = UiScaleManager.getInstance().getScaleMultiplier();
+            RenderUtil.enablePixelScissor(x * mult, y * mult, w * mult, h * mult);
+        }
         public static final float MIN_WINDOW_WIDTH = 640;
         public static final float MIN_WINDOW_HEIGHT = 400;
 
@@ -1050,23 +1067,21 @@ public class ClickGUI extends Module {
         }
 
         public float getMinimizedX(int minIndex) {
-            Minecraft mc = Minecraft.getMinecraft();
             float margin = 16.0f;
             float gap = 10.0f;
-            float availW = mc.displayWidth - margin * 2;
+            float availW = getScreenW() - margin * 2;
             int perRow = Math.max(1, (int) ((availW + gap) / (MINIMIZED_WIDTH + gap)));
             int col = Math.max(0, minIndex) % perRow;
             return margin + col * (MINIMIZED_WIDTH + gap);
         }
 
         public float getMinimizedY(int minIndex) {
-            Minecraft mc = Minecraft.getMinecraft();
             float margin = 16.0f;
             float gap = 10.0f;
-            float availW = mc.displayWidth - margin * 2;
+            float availW = getScreenW() - margin * 2;
             int perRow = Math.max(1, (int) ((availW + gap) / (MINIMIZED_WIDTH + gap)));
             int row = Math.max(0, minIndex) / perRow;
-            return mc.displayHeight - margin - MINIMIZED_HEIGHT - row * (MINIMIZED_HEIGHT + gap);
+            return getScreenH() - margin - MINIMIZED_HEIGHT - row * (MINIMIZED_HEIGHT + gap);
         }
 
         public boolean isMenuHovered(int mouseX, int mouseY) {
@@ -1117,31 +1132,28 @@ public class ClickGUI extends Module {
                 float minY = getMinimizedY(minIndex);
                 return mx >= minX && mx <= minX + MINIMIZED_WIDTH && my >= minY && my <= minY + MINIMIZED_HEIGHT;
             }
-            Minecraft mc = Minecraft.getMinecraft();
             float curX = isMaximized ? 0 : posX;
             float curY = isMaximized ? 0 : posY;
-            float curW = isMaximized ? mc.displayWidth : windowWidth;
-            float curH = isMaximized ? mc.displayHeight : windowHeight;
+            float curW = isMaximized ? getScreenW() : windowWidth;
+            float curH = isMaximized ? getScreenH() : windowHeight;
             return mx >= curX - RESIZE_BORDER && mx <= curX + curW + RESIZE_BORDER &&
                    my >= curY - RESIZE_BORDER && my <= curY + curH + RESIZE_BORDER;
         }
 
         public boolean isInsideTitlebar(float mx, float my) {
             if (isMinimized) return false;
-            Minecraft mc = Minecraft.getMinecraft();
             float curX = isMaximized ? 0 : posX;
             float curY = isMaximized ? 0 : posY;
-            float curW = isMaximized ? mc.displayWidth : windowWidth;
+            float curW = isMaximized ? getScreenW() : windowWidth;
             float titlebarH = 40;
             return mx >= curX && mx <= curX + curW && my >= curY && my <= curY + titlebarH;
         }
 
         public int getTabInsertionIndex(float mx, float my) {
             if (isMinimized) return -1;
-            Minecraft mc = Minecraft.getMinecraft();
             float curX = isMaximized ? 0 : posX;
             float curY = isMaximized ? 0 : posY;
-            float curW = isMaximized ? mc.displayWidth : windowWidth;
+            float curW = isMaximized ? getScreenW() : windowWidth;
             float titlebarH = 40;
             float controlW = 46;
             float tabsViewportW = curW - (controlW * 3);
@@ -1318,33 +1330,35 @@ public class ClickGUI extends Module {
                 }
             }
 
-            if (!isMaximized && mc.displayWidth > 0 && mc.displayHeight > 0) {
+            float screenW = getScreenW();
+            float screenH = getScreenH();
+            if (!isMaximized && screenW > 0 && screenH > 0) {
                 if (!resizing) {
-                    if (windowWidth > mc.displayWidth) {
-                        windowWidth = Math.max(Math.min(MIN_WINDOW_WIDTH, mc.displayWidth), Math.max(200.0f, mc.displayWidth - 40.0f));
+                    if (windowWidth > screenW) {
+                        windowWidth = Math.max(Math.min(MIN_WINDOW_WIDTH, screenW), Math.max(200.0f, screenW - 40.0f));
                     }
-                    if (windowHeight > mc.displayHeight) {
-                        windowHeight = Math.max(Math.min(MIN_WINDOW_HEIGHT, mc.displayHeight), Math.max(150.0f, mc.displayHeight - 40.0f));
+                    if (windowHeight > screenH) {
+                        windowHeight = Math.max(Math.min(MIN_WINDOW_HEIGHT, screenH), Math.max(150.0f, screenH - 40.0f));
                     }
                 }
                 if (!dragging && !resizing) {
-                    if (posX + windowWidth > mc.displayWidth) {
-                        posX = Math.max(0, mc.displayWidth - windowWidth);
+                    if (posX + windowWidth > screenW) {
+                        posX = Math.max(0, screenW - windowWidth);
                     }
-                    if (posY + windowHeight > mc.displayHeight) {
-                        posY = Math.max(0, mc.displayHeight - windowHeight);
+                    if (posY + windowHeight > screenH) {
+                        posY = Math.max(0, screenH - windowHeight);
                     }
                     if (posX < 0) posX = 0;
                     if (posY < 0) posY = 0;
                 } else if (dragging) {
-                    posY = Math.max(0, Math.min(mc.displayHeight - 40, posY));
+                    posY = Math.max(0, Math.min(screenH - 40, posY));
                 }
             }
 
             float curX = isMaximized ? 0 : posX;
             float curY = isMaximized ? 0 : posY;
-            float curW = isMaximized ? mc.displayWidth : windowWidth;
-            float curH = isMaximized ? mc.displayHeight : windowHeight;
+            float curW = isMaximized ? screenW : windowWidth;
+            float curH = isMaximized ? screenH : windowHeight;
             float winRadius = isMaximized ? 0 : 8.0f;
 
             ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
@@ -1379,7 +1393,7 @@ public class ClickGUI extends Module {
             tabScrollX = Math.min(0, Math.max(-maxTabScroll, tabScrollX));
 
             // 5. 渲染 Titlebar 选项卡（Scissor 遮罩）
-            RenderUtil.enablePixelScissor(curX, curY, tabsViewportW, titlebarH);
+            enableGuiScissor(curX, curY, tabsViewportW, titlebarH);
 
             float tabX = curX + tabScrollX;
             for (int i = 0; i < openTabs.size(); i++) {
@@ -1435,7 +1449,7 @@ public class ClickGUI extends Module {
             float newTabW = 40;
             boolean isHoverPlusBtn = isTopFocus && (RenderUtil.isHovered(mouseX, mouseY, tabX, curY, newTabW, titlebarH) && mouseX < curX + tabsViewportW);
             newTabMenuX = Math.max(curX + 5, Math.min(tabX, curX + curW - newTabMenuW - 5));
-            newTabMenuY = Math.min(curY + titlebarH, mc.displayHeight - getNewTabMenuH() - 5);
+            newTabMenuY = Math.min(curY + titlebarH, getScreenH() - getNewTabMenuH() - 5);
             boolean isHoverMenu = showNewTabMenu && RenderUtil.isHovered(mouseX, mouseY, newTabMenuX - 4, newTabMenuY - 4, newTabMenuW + 8, getNewTabMenuH() + 8);
 
             if (isHoverPlusBtn) {
@@ -1597,7 +1611,7 @@ public class ClickGUI extends Module {
             float contentW = w - 40;
             float contentH = h - 32;
 
-            RenderUtil.enablePixelScissor(x, y, w, h);
+            enableGuiScissor(x, y, w, h);
 
             ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
             int termText = clickGui != null ? clickGui.terminalTextColor.getRGB() : 0xFFF2F2F2;
@@ -1664,7 +1678,7 @@ public class ClickGUI extends Module {
             RenderUtil.drawRect(x, y, x + sidebarW, y + h, sideBg);
             RenderUtil.drawRect(x + sidebarW, y, x + sidebarW + 1, y + h, sideDiv);
 
-            RenderUtil.enablePixelScissor(x, y, sidebarW, h);
+            enableGuiScissor(x, y, sidebarW, h);
             float itemY = y + 14 + tab.getModuleListScrollY();
 
             if (cat == Category.THEME) {
@@ -1765,7 +1779,7 @@ public class ClickGUI extends Module {
                 float baseSettingY = curMetaY + 30;
                 float scissorY = baseSettingY - 4;
                 float scissorH = h - (baseSettingY - y) + 4;
-                RenderUtil.enablePixelScissor(rightX - 6, scissorY, w - sidebarW - 14, scissorH);
+                enableGuiScissor(rightX - 6, scissorY, w - sidebarW - 14, scissorH);
 
                 float settingY = baseSettingY + tab.getSettingsScrollY();
                 float clipTop = scissorY - 30;
@@ -2110,7 +2124,7 @@ public class ClickGUI extends Module {
             float baseSettingY = metaY + 16;
             float scissorY = baseSettingY - 4;
             float scissorH = h - (baseSettingY - y) + 4;
-            RenderUtil.enablePixelScissor(rightX - 6, scissorY, w - sidebarW - 14, scissorH);
+            enableGuiScissor(rightX - 6, scissorY, w - sidebarW - 14, scissorH);
 
             float settingY = baseSettingY + tab.getSettingsScrollY();
             float clipTop = scissorY - 30;
@@ -2651,11 +2665,10 @@ public class ClickGUI extends Module {
         }
 
         public WindowClickResult mouseClicked(int mouseX, int mouseY, int mouseButton) {
-            Minecraft mc = Minecraft.getMinecraft();
             float curX = isMaximized ? 0 : posX;
             float curY = isMaximized ? 0 : posY;
-            float curW = isMaximized ? mc.displayWidth : windowWidth;
-            float curH = isMaximized ? mc.displayHeight : windowHeight;
+            float curW = isMaximized ? getScreenW() : windowWidth;
+            float curH = isMaximized ? getScreenH() : windowHeight;
             float titlebarH = 40;
 
             float controlW = 46;
@@ -3058,10 +3071,9 @@ public class ClickGUI extends Module {
             if (dWheel == 0) return;
             if (isMenuHovered(mouseX, mouseY)) return;
 
-            Minecraft mc = Minecraft.getMinecraft();
             float curX = isMaximized ? 0 : posX;
             float curY = isMaximized ? 0 : posY;
-            float curW = isMaximized ? mc.displayWidth : windowWidth;
+            float curW = isMaximized ? getScreenW() : windowWidth;
             float titlebarH = 40;
             float controlW = 46;
             float tabsViewportW = curW - (controlW * 3);
@@ -3629,8 +3641,8 @@ public class ClickGUI extends Module {
                 } else {
                     float defaultW = 960;
                     float defaultH = 600;
-                    float posX = Math.max(0, (mc.displayWidth - defaultW) / 2.0f);
-                    float posY = Math.max(0, (mc.displayHeight - defaultH) / 2.0f);
+                    float posX = Math.max(0, (Window.getScreenW() - defaultW) / 2.0f);
+                    float posY = Math.max(0, (Window.getScreenH() - defaultH) / 2.0f);
                     Window defaultWindow = new Window(
                             UUID.randomUUID().toString(),
                             posX, posY, defaultW, defaultH, false,
@@ -3677,11 +3689,15 @@ public class ClickGUI extends Module {
         }
 
         private int getRawMouseX() {
-            return Mouse.getX();
+            float mult = UiScaleManager.getInstance().getScaleMultiplier();
+            return (int) (Mouse.getX() / mult);
         }
 
         private int getRawMouseY() {
-            return mc.displayHeight - Mouse.getY() - 1;
+            Minecraft mc = Minecraft.getMinecraft();
+            int dh = (mc != null) ? mc.displayHeight : 1080;
+            float mult = UiScaleManager.getInstance().getScaleMultiplier();
+            return (int) ((dh - Mouse.getY() - 1) / mult);
         }
 
         private int getCursorForDir(int dir) {
@@ -3714,9 +3730,10 @@ public class ClickGUI extends Module {
 
             ScaledResolution sr = getScaledResolution();
             float scale = sr.getScaleFactor();
+            float mult = UiScaleManager.getInstance().getScaleMultiplier();
 
             GlStateManager.pushMatrix();
-            GlStateManager.scale(1.0f / scale, 1.0f / scale, 1.0f / scale);
+            GlStateManager.scale(mult / scale, mult / scale, mult / scale);
 
             // 1. 处理 Tab 拖拽、脱出 (Tear-off) 与合并逻辑
             if (pendingResetName == null) {
@@ -4121,10 +4138,12 @@ public class ClickGUI extends Module {
             float contentW = Math.max(promptW, subPromptW);
             float dialogW = Math.max(400.0f, contentW + 60.0f);
             float dialogH = 150.0f;
+            float sw = Window.getScreenW();
+            float sh = Window.getScreenH();
 
             if (resetDialogX < 0 || resetDialogY < 0) {
-                resetDialogX = (mc.displayWidth - dialogW) / 2.0f;
-                resetDialogY = (mc.displayHeight - dialogH) / 2.0f;
+                resetDialogX = (sw - dialogW) / 2.0f;
+                resetDialogY = (sh - dialogH) / 2.0f;
             }
 
             if (isDraggingResetDialog) {
@@ -4136,11 +4155,11 @@ public class ClickGUI extends Module {
                 }
             }
 
-            resetDialogX = Math.max(0, Math.min(mc.displayWidth - dialogW, resetDialogX));
-            resetDialogY = Math.max(0, Math.min(mc.displayHeight - dialogH, resetDialogY));
+            resetDialogX = Math.max(0, Math.min(sw - dialogW, resetDialogX));
+            resetDialogY = Math.max(0, Math.min(sh - dialogH, resetDialogY));
 
             // 1. 半透明暗色遮罩 (Acrylic scrim backdrop)
-            RenderUtil.drawRect(0, 0, mc.displayWidth, mc.displayHeight, 0x7A000000);
+            RenderUtil.drawRect(0, 0, sw, sh, 0x7A000000);
 
             // 2. 窗口柔和阴影
             RenderUtil.drawDropShadow(resetDialogX, resetDialogY, dialogW, dialogH, 8.0f, 24.0f, 0x88000000);
@@ -4246,8 +4265,8 @@ public class ClickGUI extends Module {
             float dialogH = 150.0f;
 
             if (resetDialogX < 0 || resetDialogY < 0) {
-                resetDialogX = (mc.displayWidth - dialogW) / 2.0f;
-                resetDialogY = (mc.displayHeight - dialogH) / 2.0f;
+                resetDialogX = (Window.getScreenW() - dialogW) / 2.0f;
+                resetDialogY = (Window.getScreenH() - dialogH) / 2.0f;
             }
 
             float btnW = 86.0f;

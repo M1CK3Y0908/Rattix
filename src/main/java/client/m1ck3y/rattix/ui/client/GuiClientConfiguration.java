@@ -4,6 +4,7 @@ import client.m1ck3y.rattix.RattixMod;
 import client.m1ck3y.rattix.ui.elements.FluentGuiButton;
 import client.m1ck3y.rattix.utils.render.RenderUtil;
 import client.m1ck3y.rattix.utils.render.shader.ShaderManager;
+import client.m1ck3y.rattix.utils.ui.UiScaleManager;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import org.lwjgl.input.Keyboard;
@@ -12,7 +13,7 @@ import java.io.IOException;
 
 /**
  * GuiClientConfiguration - Modern client settings interface.
- * Configures background shaders, rendering pacing, ClickGUI shortcuts, and general preferences.
+ * Configures background shaders, rendering pacing, Rattix UI scale, ClickGUI shortcuts, and general preferences.
  */
 public class GuiClientConfiguration extends GuiScreen {
     private final GuiScreen parentScreen;
@@ -22,6 +23,7 @@ public class GuiClientConfiguration extends GuiScreen {
     private static final int BTN_CYCLE_SPEED = 3;
     private static final int BTN_CYCLE_RES = 4;
     private static final int BTN_CLICKGUI_KEY = 5;
+    private static final int BTN_CYCLE_SCALE = 6;
     private static final int BTN_DONE = 200;
 
     private boolean listeningForKey = false;
@@ -39,21 +41,24 @@ public class GuiClientConfiguration extends GuiScreen {
         buttonList.clear();
 
         int centerX = width / 2;
-        int startY = Math.max(40, height / 2 - 100);
+        int startY = Math.max(28, height / 2 - 120);
 
         // Shader switcher: Prev / Next
-        buttonList.add(new FluentGuiButton(BTN_PREV_SHADER, centerX - 120, startY + 22, 28, 20, "<"));
-        buttonList.add(new FluentGuiButton(BTN_NEXT_SHADER, centerX + 92, startY + 22, 28, 20, ">"));
+        buttonList.add(new FluentGuiButton(BTN_PREV_SHADER, centerX - 120, startY + 18, 28, 20, "<"));
+        buttonList.add(new FluentGuiButton(BTN_NEXT_SHADER, centerX + 92, startY + 18, 28, 20, ">"));
 
         // Speed & Resolution
-        buttonList.add(new FluentGuiButton(BTN_CYCLE_SPEED, centerX - 120, startY + 68, 115, 20, getSpeedString()));
-        buttonList.add(new FluentGuiButton(BTN_CYCLE_RES, centerX + 5, startY + 68, 115, 20, getResolutionString()));
+        buttonList.add(new FluentGuiButton(BTN_CYCLE_SPEED, centerX - 120, startY + 60, 115, 20, getSpeedString()));
+        buttonList.add(new FluentGuiButton(BTN_CYCLE_RES, centerX + 5, startY + 60, 115, 20, getResolutionString()));
+
+        // Rattix UI Scale (100% 默认对应 2x，125%、150%、175%、200%、225%、250%、Auto)
+        buttonList.add(new FluentGuiButton(BTN_CYCLE_SCALE, centerX - 120, startY + 102, 240, 20, UiScaleManager.getInstance().getDisplayString()));
 
         // Keybind
-        buttonList.add(new FluentGuiButton(BTN_CLICKGUI_KEY, centerX - 120, startY + 114, 240, 20, getKeybindString()));
+        buttonList.add(new FluentGuiButton(BTN_CLICKGUI_KEY, centerX - 120, startY + 144, 240, 20, getKeybindString()));
 
         // Done button
-        buttonList.add(new FluentGuiButton(BTN_DONE, centerX - 75, height - 38, 150, 24, "Done"));
+        buttonList.add(new FluentGuiButton(BTN_DONE, centerX - 75, height - 34, 150, 22, "Done"));
     }
 
     private String getSpeedString() {
@@ -77,26 +82,29 @@ public class GuiClientConfiguration extends GuiScreen {
         drawDefaultBackground();
 
         int centerX = width / 2;
-        int startY = Math.max(40, height / 2 - 100);
+        int startY = Math.max(28, height / 2 - 120);
 
         // Header Title
-        drawCenteredString(fontRendererObj, "Rattix Client Settings", centerX, 16, 0xFF76B9ED);
+        drawCenteredString(fontRendererObj, "Rattix Client Settings", centerX, 12, 0xFF76B9ED);
 
         // Section 1: Background Shader
-        drawCenteredString(fontRendererObj, "Background Shader", centerX, startY + 8, 0xFFE0E5EC);
+        drawCenteredString(fontRendererObj, "Background Shader", centerX, startY + 4, 0xFFE0E5EC);
         String shaderName = ShaderManager.getInstance().formatShaderName(ShaderManager.getInstance().getCurrentShader());
-        RenderUtil.drawRoundedRect(centerX - 88, startY + 22, 176, 20, 4.0f, 0x33000000);
-        RenderUtil.drawRoundedOutline(centerX - 88, startY + 22, 176, 20, 4.0f, 1.0f, 0x403F6D94);
-        drawCenteredString(fontRendererObj, shaderName, centerX, startY + 28, 0xFFFFFFFF);
+        RenderUtil.drawRoundedRect(centerX - 88, startY + 18, 176, 20, 4.0f, 0x33000000);
+        RenderUtil.drawRoundedOutline(centerX - 88, startY + 18, 176, 20, 4.0f, 1.0f, 0x403F6D94);
+        drawCenteredString(fontRendererObj, shaderName, centerX, startY + 24, 0xFFFFFFFF);
 
         // Section 2: Tuning
-        drawCenteredString(fontRendererObj, "Shader Tuning", centerX, startY + 54, 0xFFE0E5EC);
+        drawCenteredString(fontRendererObj, "Shader Tuning", centerX, startY + 46, 0xFFE0E5EC);
 
-        // Section 3: Keybinds
-        drawCenteredString(fontRendererObj, "Keybinds & Controls", centerX, startY + 100, 0xFFE0E5EC);
+        // Section 3: Interface Scale (Rattix 专属 UI 尺寸)
+        drawCenteredString(fontRendererObj, "Interface Scale (UI 尺寸)", centerX, startY + 88, 0xFFE0E5EC);
+
+        // Section 4: Keybinds
+        drawCenteredString(fontRendererObj, "Keybinds & Controls", centerX, startY + 130, 0xFFE0E5EC);
 
         // Info footer
-        drawCenteredString(fontRendererObj, "Press Right Shift anytime in-game to open ClickGUI", centerX, height - 56, 0xFF7E8A99);
+        drawCenteredString(fontRendererObj, "Press Right Shift anytime in-game to open ClickGUI", centerX, height - 52, 0xFF7E8A99);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
@@ -128,6 +136,11 @@ public class GuiClientConfiguration extends GuiScreen {
                 else next = 75.0;
                 sm.setResolution(next);
                 button.displayString = getResolutionString();
+                break;
+            }
+            case BTN_CYCLE_SCALE: {
+                UiScaleManager.getInstance().cycleNext();
+                button.displayString = UiScaleManager.getInstance().getDisplayString();
                 break;
             }
             case BTN_CLICKGUI_KEY:
