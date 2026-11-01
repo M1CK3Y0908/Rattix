@@ -318,6 +318,78 @@ public class FontUtil {
         return getMinecraftStringWidth1x(text);
     }
 
+    // --- 4x Scale Text Rendering (Large Title Display) ---
+    public static void drawString4x(String text, float x, float y, int color) {
+        if (text == null || text.isEmpty()) return;
+        CustomFontRenderer cfr = getGlobalFont();
+        if (cfr != null) {
+            cfr.drawString(text, x, y, color, true, 2.0f);
+        } else {
+            drawMinecraftString4x(text, x, y, color);
+        }
+    }
+
+    public static float getStringWidth4x(String text) {
+        if (text == null || text.isEmpty()) return 0;
+        Font font = Font.getInstance();
+        if (font.cachedIsCustom) {
+            CustomFontRenderer cfr = font.cachedCustomFont;
+            if (cfr != null) {
+                return cfr.getStringWidth(text) * 2.0f * font.cachedEffectiveScale;
+            }
+        }
+        return getMinecraftStringWidth4x(text);
+    }
+
+    public static void drawMinecraftString4x(String text, float x, float y, int color) {
+        if (text == null || text.isEmpty()) return;
+        Font font = Font.getInstance();
+        float sizeScale = font.cachedEffectiveScale;
+        float offX = font.cachedOffsetX;
+        float offY = font.cachedOffsetY;
+        boolean shadowEnabled = font.cachedShadow;
+        float shadowOffX = font.cachedShadowOffsetX;
+        float shadowOffY = font.cachedShadowOffsetY;
+        boolean customShadow = "Custom".equalsIgnoreCase(font.cachedShadowMode);
+
+        int alpha = (color >> 24) & 0xFF;
+        if (alpha == 0) alpha = 255;
+
+        FontRenderer fr = vanillaFontRenderer != null ? vanillaFontRenderer : (Minecraft.getMinecraft() != null ? Minecraft.getMinecraft().fontRendererObj : null);
+        if (fr == null) return;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(x + offX, y + offY, 0);
+        float totalScale = 4.0f * sizeScale;
+        GlStateManager.scale(totalScale, totalScale, 1.0f);
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.enableAlpha();
+
+        if (shadowEnabled) {
+            int shadowColor;
+            if (customShadow) {
+                shadowColor = font.cachedShadowColor;
+            } else {
+                shadowColor = (alpha << 24) | ((color & 0xFCFCFC) >> 2);
+            }
+            fr.drawString(text, shadowOffX * 0.7f, shadowOffY * 0.7f, shadowColor, false);
+            fr.drawString(text, 0, 0, color, false);
+        } else {
+            fr.drawString(text, 0, 0, color, true);
+        }
+
+        GlStateManager.popMatrix();
+    }
+
+    public static float getMinecraftStringWidth4x(String text) {
+        if (text == null || text.isEmpty()) return 0;
+        float sizeScale = Font.getInstance().cachedEffectiveScale;
+        FontRenderer fr = vanillaFontRenderer != null ? vanillaFontRenderer : (Minecraft.getMinecraft() != null ? Minecraft.getMinecraft().fontRendererObj : null);
+        if (fr == null) return text.length() * 6.0f * 4.0f * sizeScale;
+        return fr.getStringWidth(text) * 4.0f * sizeScale;
+    }
+
     public static void drawConsolasString1x(String text, float x, float y, int color) {
         if (text == null || text.isEmpty()) return;
         CustomFontRenderer cfr = getConsolasFont();

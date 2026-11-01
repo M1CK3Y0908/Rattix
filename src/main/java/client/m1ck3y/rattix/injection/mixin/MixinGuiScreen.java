@@ -57,6 +57,7 @@ public abstract class MixinGuiScreen extends Gui {
             if (self.mc == null || self.mc.theWorld == null || self instanceof GuiDownloadTerrain || self instanceof GuiConnecting) {
                 // 纯黑暗色背景替代原版泥土平铺
                 drawRect(0, 0, self.width, self.height, 0xFF141414);
+                ShaderBackgroundRenderer.isolateBackgroundAndPrepareUI();
                 ci.cancel();
             }
         }

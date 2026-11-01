@@ -18,12 +18,31 @@ import java.io.IOException;
  * for floating, resizable, draggable, maximizable, and minimizable secondary page windows.
  */
 public class RattixMainMenu extends GuiScreen {
-    private static final int SINGLEPLAYER = 1, MULTIPLAYER = 2, OPTIONS = 3, QUIT = 4;
+    private static final int SINGLEPLAYER = 1;
+    private static final int MULTIPLAYER = 2;
+    private static final int MODULES = 3;
+    private static final int SETTINGS = 4;
+    private static final int OPTIONS = 5;
+    private static final int QUIT = 6;
 
     private final WindowManager windowManager = new WindowManager(this);
 
     public WindowManager getWindowManager() {
         return windowManager;
+    }
+
+    public int getRailWidth() {
+        if (width < 400) {
+            return Math.max(140, width / 2);
+        }
+        return 180;
+    }
+
+    public int getButtonsStartY() {
+        int btnH = (height < 280) ? 22 : 26;
+        int btnGap = (height < 280) ? 5 : 8;
+        int totalH = 6 * btnH + 5 * btnGap;
+        return Math.max(45, (height - totalH) / 2);
     }
 
     private int lastScaleFactor = -1;
@@ -82,30 +101,54 @@ public class RattixMainMenu extends GuiScreen {
     @Override
     public void initGui() {
         buttonList.clear();
-        int minX = 196;
-        int btnW = 220;
-        if (width < minX + btnW + 10) {
-            btnW = Math.max(120, width - minX - 10);
-        }
-        int x = Math.max(minX, Math.min(width - btnW - 10, (188 + width) / 2 - btnW / 2));
-        int y = Math.max(20, Math.min(height - 100, height / 2 - 18));
-        buttonList.add(new FluentGuiButton(SINGLEPLAYER, x, y, btnW, 24, "Singleplayer"));
-        buttonList.add(new FluentGuiButton(MULTIPLAYER, x, y + 31, btnW, 24, "Multiplayer"));
-        int halfW = (btnW - 8) / 2;
-        buttonList.add(new FluentGuiButton(OPTIONS, x, y + 62, halfW, 24, "Options"));
-        buttonList.add(new FluentGuiButton(QUIT, x + halfW + 8, y + 62, btnW - halfW - 8, 24, "Quit"));
+
+        int railW = getRailWidth();
+        int btnW = Math.max(110, railW - 30);
+        int btnX = (railW - btnW) / 2;
+
+        int btnH = (height < 280) ? 22 : 26;
+        int btnGap = (height < 280) ? 5 : 8;
+        int startY = getButtonsStartY();
+
+        buttonList.add(new FluentGuiButton(SINGLEPLAYER, btnX, startY, btnW, btnH, "Singleplayer"));
+        buttonList.add(new FluentGuiButton(MULTIPLAYER, btnX, startY + (btnH + btnGap), btnW, btnH, "Multiplayer"));
+        buttonList.add(new FluentGuiButton(MODULES, btnX, startY + (btnH + btnGap) * 2, btnW, btnH, "Modules"));
+        buttonList.add(new FluentGuiButton(SETTINGS, btnX, startY + (btnH + btnGap) * 3, btnW, btnH, "Settings"));
+        buttonList.add(new FluentGuiButton(OPTIONS, btnX, startY + (btnH + btnGap) * 4, btnW, btnH, "Options"));
+        buttonList.add(new FluentGuiButton(QUIT, btnX, startY + (btnH + btnGap) * 5, btnW, btnH, "Quit"));
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         checkResolutionUpdate();
+
+        // 1. 独立背景渲染阶段（Background Pass）：动态 GLSL 着色器或后备默认背景
+        renderBackgroundPass();
+
+        // 2. 独立 UI 渲染阶段（UI Pass）：完全隔离在干净的标准 GUI 正交管线中
+        renderUIPass(mouseX, mouseY, partialTicks);
+    }
+
+    private void renderBackgroundPass() {
         if (ShaderBackgroundRenderer.shouldRenderShader()) {
             ShaderBackgroundRenderer.renderCurrentScreen(true);
         } else {
             drawDefaultBackground();
+            ShaderBackgroundRenderer.isolateBackgroundAndPrepareUI();
         }
+    }
+
+    private void renderUIPass(int mouseX, int mouseY, float partialTicks) {
+        // 保证 UI 渲染阶段的管线纯净，不受背景着色器的任何状态影响
+        ShaderBackgroundRenderer.isolateBackgroundAndPrepareUI();
+
+        // 绘制左侧半透明黑色导航栏及 4x Rattix 标题
         AugustusMainMenuRenderer.draw(this, mc, mouseX, mouseY, null, windowManager);
+
+        // 绘制竖向居中排列的导航按钮
         super.drawScreen(mouseX, mouseY, partialTicks);
+
+        // 绘制窗口管理器的浮动桌面窗口
         if (windowManager != null) {
             windowManager.drawWindows(mouseX, mouseY, partialTicks);
         }
@@ -119,6 +162,12 @@ public class RattixMainMenu extends GuiScreen {
                 break;
             case MULTIPLAYER:
                 windowManager.openMultiplayer(this);
+                break;
+            case MODULES:
+                windowManager.openModules();
+                break;
+            case SETTINGS:
+                windowManager.openClientSettings(this);
                 break;
             case OPTIONS:
                 windowManager.openOptions(this);
@@ -136,16 +185,12 @@ public class RattixMainMenu extends GuiScreen {
         if (windowManager != null && windowManager.mouseClicked(mouseX, mouseY, mouseButton)) {
             return;
         }
-        // Left navigation rail click handling (mouseX < 188)
-        if (mouseX < 188) {
-            if (mouseY >= 82 - 9 && mouseY <= 82 + 19) {
+        int railW = getRailWidth();
+        int btnStartY = getButtonsStartY();
+        if (mouseX < railW && mouseY < btnStartY) {
+            // Clicking top brand logo minimizes all windows to show desktop
+            if (windowManager != null) {
                 windowManager.minimizeAll();
-                return;
-            } else if (mouseY >= 118 - 9 && mouseY <= 118 + 19) {
-                windowManager.openModules();
-                return;
-            } else if (mouseY >= 154 - 9 && mouseY <= 154 + 19) {
-                windowManager.openClientSettings(this);
                 return;
             }
         }

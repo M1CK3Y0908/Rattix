@@ -1180,7 +1180,7 @@ public class ClickGUI extends Module {
             float curY = getMinimizedY(minIndex);
             float curW = MINIMIZED_WIDTH;
             float curH = MINIMIZED_HEIGHT;
-            float winRadius = 6.0f;
+            float winRadius = 8.0f;
 
             ClickGUI clickGui = ModuleManager.getModule(ClickGUI.class);
 
@@ -1714,7 +1714,7 @@ public class ClickGUI extends Module {
                 float resetBtnY = modTitleY;
                 boolean isResetHover = RenderUtil.isHovered(mouseX, mouseY, resetBtnX - 6, resetBtnY - 3, resetTextW + 12, 18);
                 if (isResetHover) {
-                    RenderUtil.drawRoundedRect(resetBtnX - 6, resetBtnY - 3, resetTextW + 12, 18, 4.0f, 0x1AFFFFFF);
+                    RenderUtil.drawRoundedRect(resetBtnX - 6, resetBtnY - 3, resetTextW + 12, 18, 3.0f, 0x1AFFFFFF);
                 }
                 drawString2x(resetText, resetBtnX, resetBtnY, isResetHover ? 0xFFFFFFFF : 0xFF888888);
 
@@ -2093,7 +2093,7 @@ public class ClickGUI extends Module {
             float resetBtnY = modTitleY;
             boolean isResetHover = RenderUtil.isHovered(mouseX, mouseY, resetBtnX - 6, resetBtnY - 3, resetTextW + 12, 18);
             if (isResetHover) {
-                RenderUtil.drawRoundedRect(resetBtnX - 6, resetBtnY - 3, resetTextW + 12, 18, 4.0f, 0x1AFFFFFF);
+                RenderUtil.drawRoundedRect(resetBtnX - 6, resetBtnY - 3, resetTextW + 12, 18, 3.0f, 0x1AFFFFFF);
             }
             drawString2x(resetText, resetBtnX, resetBtnY, isResetHover ? 0xFFFFFFFF : 0xFF888888);
 
@@ -4208,16 +4208,16 @@ public class ClickGUI extends Module {
             // 确认按钮 (Win11 主题主按钮)
             int confirmBg = isConfirmHover ? 0xFF005FB8 : 0xFF0067C0;
             int confirmOutline = 0xFF0078D4;
-            RenderUtil.drawRoundedRect(confirmBtnX, btnY, btnW, btnH, 4.0f, confirmBg);
-            RenderUtil.drawRoundedOutline(confirmBtnX, btnY, btnW, btnH, 4.0f, 1.0f, confirmOutline);
+            RenderUtil.drawRoundedRect(confirmBtnX, btnY, btnW, btnH, 3.0f, confirmBg);
+            RenderUtil.drawRoundedOutline(confirmBtnX, btnY, btnW, btnH, 3.0f, 1.0f, confirmOutline);
             float confirmTextW = FontUtil.getStringWidth2x("确认");
             FontUtil.drawString2x("确认", confirmBtnX + (btnW - confirmTextW) / 2.0f, btnY + (btnH - 14.0f) / 2.0f, 0xFFFFFFFF);
 
             // 取消按钮 (Win11 次级按钮)
             int cancelBg = isCancelHover ? 0xFF353535 : 0xFF2A2A2A;
             int cancelOutline = isCancelHover ? 0xFF4D4D4D : 0xFF3C3C3C;
-            RenderUtil.drawRoundedRect(cancelBtnX, btnY, btnW, btnH, 4.0f, cancelBg);
-            RenderUtil.drawRoundedOutline(cancelBtnX, btnY, btnW, btnH, 4.0f, 1.0f, cancelOutline);
+            RenderUtil.drawRoundedRect(cancelBtnX, btnY, btnW, btnH, 3.0f, cancelBg);
+            RenderUtil.drawRoundedOutline(cancelBtnX, btnY, btnW, btnH, 3.0f, 1.0f, cancelOutline);
             float cancelTextW = FontUtil.getStringWidth2x("取消");
             FontUtil.drawString2x("取消", cancelBtnX + (btnW - cancelTextW) / 2.0f, btnY + (btnH - 14.0f) / 2.0f, 0xFFD0D0D0);
         }

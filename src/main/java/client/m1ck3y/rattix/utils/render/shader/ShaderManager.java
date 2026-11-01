@@ -573,7 +573,6 @@ public class ShaderManager {
                 // Render into offscreen FBO
                 shaderFbo.bindFramebuffer(true);
 
-                GlStateManager.pushMatrix();
                 GlStateManager.matrixMode(GL11.GL_PROJECTION);
                 GlStateManager.pushMatrix();
                 GlStateManager.loadIdentity();
@@ -588,7 +587,11 @@ public class ShaderManager {
                 GlStateManager.disableDepth();
                 GlStateManager.depthMask(false);
 
-                GL20.glUseProgram(programId);
+                if (OpenGlHelper.shadersSupported) {
+                    OpenGlHelper.glUseProgram(programId);
+                } else {
+                    GL20.glUseProgram(programId);
+                }
 
                 if (timeLoc != -1) GL20.glUniform1f(timeLoc, accumulatedTime);
                 if (resolutionLoc != -1) GL20.glUniform2f(resolutionLoc, (float) renderW, (float) renderH);
@@ -609,18 +612,17 @@ public class ShaderManager {
                 GL11.glVertex2f(-1.0f, 1.0f);
                 GL11.glEnd();
 
-                GL20.glUseProgram(0);
+                if (OpenGlHelper.shadersSupported) {
+                    OpenGlHelper.glUseProgram(0);
+                } else {
+                    GL20.glUseProgram(0);
+                }
 
-                GlStateManager.enableDepth();
-                GlStateManager.depthMask(true);
-                GlStateManager.enableAlpha();
-                GlStateManager.enableCull();
-
+                GlStateManager.matrixMode(GL11.GL_MODELVIEW);
                 GlStateManager.popMatrix();
                 GlStateManager.matrixMode(GL11.GL_PROJECTION);
                 GlStateManager.popMatrix();
                 GlStateManager.matrixMode(GL11.GL_MODELVIEW);
-                GlStateManager.popMatrix();
 
                 shaderFbo.unbindFramebuffer();
 
@@ -628,11 +630,11 @@ public class ShaderManager {
                 if (mc.getFramebuffer() != null) {
                     mc.getFramebuffer().bindFramebuffer(true);
                 }
+                GlStateManager.viewport(0, 0, mc.displayWidth, mc.displayHeight);
                 hasRenderedFrame = true;
             }
 
             // Blit FBO texture to the screen (bilinear filtered upscaling)
-            GlStateManager.pushMatrix();
             GlStateManager.matrixMode(GL11.GL_PROJECTION);
             GlStateManager.pushMatrix();
             GlStateManager.loadIdentity();
@@ -660,21 +662,14 @@ public class ShaderManager {
 
             shaderFbo.unbindFramebufferTexture();
 
-            GlStateManager.disableTexture2D();
-            GlStateManager.enableDepth();
-            GlStateManager.depthMask(true);
-            GlStateManager.enableAlpha();
-            GlStateManager.enableCull();
-
+            GlStateManager.matrixMode(GL11.GL_MODELVIEW);
             GlStateManager.popMatrix();
             GlStateManager.matrixMode(GL11.GL_PROJECTION);
             GlStateManager.popMatrix();
             GlStateManager.matrixMode(GL11.GL_MODELVIEW);
-            GlStateManager.popMatrix();
 
         } else {
             // Direct screen render fallback (if FBO is not supported)
-            GlStateManager.pushMatrix();
             GlStateManager.matrixMode(GL11.GL_PROJECTION);
             GlStateManager.pushMatrix();
             GlStateManager.loadIdentity();
@@ -689,7 +684,11 @@ public class ShaderManager {
             GlStateManager.disableDepth();
             GlStateManager.depthMask(false);
 
-            GL20.glUseProgram(programId);
+            if (OpenGlHelper.shadersSupported) {
+                OpenGlHelper.glUseProgram(programId);
+            } else {
+                GL20.glUseProgram(programId);
+            }
 
             if (timeLoc != -1) GL20.glUniform1f(timeLoc, accumulatedTime);
             if (resolutionLoc != -1) GL20.glUniform2f(resolutionLoc, dispW, dispH);
@@ -710,19 +709,42 @@ public class ShaderManager {
             GL11.glVertex2f(-1.0f, 1.0f);
             GL11.glEnd();
 
-            GL20.glUseProgram(0);
+            if (OpenGlHelper.shadersSupported) {
+                OpenGlHelper.glUseProgram(0);
+            } else {
+                GL20.glUseProgram(0);
+            }
 
-            GlStateManager.enableDepth();
-            GlStateManager.depthMask(true);
-            GlStateManager.enableAlpha();
-            GlStateManager.enableCull();
-
+            GlStateManager.matrixMode(GL11.GL_MODELVIEW);
             GlStateManager.popMatrix();
             GlStateManager.matrixMode(GL11.GL_PROJECTION);
             GlStateManager.popMatrix();
             GlStateManager.matrixMode(GL11.GL_MODELVIEW);
-            GlStateManager.popMatrix();
         }
+
+        // Clean & isolate OpenGL state upon completion of background shader render
+        cleanGlStateAfterShader();
+    }
+
+    /**
+     * Cleanly restores standard Minecraft GUI OpenGL states after rendering background shaders,
+     * ensuring zero state pollution or bleeding into the foreground UI pass.
+     */
+    public void cleanGlStateAfterShader() {
+        if (OpenGlHelper.shadersSupported) {
+            OpenGlHelper.glUseProgram(0);
+        }
+        GlStateManager.enableTexture2D();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.enableAlpha();
+        GlStateManager.alphaFunc(516, 0.1F);
+        GlStateManager.disableDepth();
+        GlStateManager.depthMask(true);
+        GlStateManager.disableLighting();
+        GlStateManager.disableCull();
+        GlStateManager.shadeModel(7424);
     }
 
     public void renderUI(int mouseX, int mouseY, int screenWidth, int screenHeight) {
@@ -755,7 +777,7 @@ public class ShaderManager {
         int prevH = 18;
         boolean hoverPrev = mouseX >= prevX && mouseX <= prevX + prevW && mouseY >= prevY && mouseY <= prevY + prevH;
         if (hoverPrev) {
-            RenderUtil.drawRoundedRect(prevX, prevY, prevW, prevH, 4.0f, 0x4038B6FF);
+            RenderUtil.drawRoundedRect(prevX, prevY, prevW, prevH, 3.0f, 0x4038B6FF);
         }
         int prevCol = hoverPrev ? 0xFF38B6FF : 0xFFB0B0B8;
         fr.drawString("<", prevX + (prevW - fr.getStringWidth("<")) / 2, prevY + 5, prevCol);
@@ -767,7 +789,7 @@ public class ShaderManager {
         int nextH = 18;
         boolean hoverNext = mouseX >= nextX && mouseX <= nextX + nextW && mouseY >= nextY && mouseY <= nextY + nextH;
         if (hoverNext) {
-            RenderUtil.drawRoundedRect(nextX, nextY, nextW, nextH, 4.0f, 0x4038B6FF);
+            RenderUtil.drawRoundedRect(nextX, nextY, nextW, nextH, 3.0f, 0x4038B6FF);
         }
         int nextCol = hoverNext ? 0xFF38B6FF : 0xFFB0B0B8;
         fr.drawString(">", nextX + (nextW - fr.getStringWidth(">")) / 2, nextY + 5, nextCol);
@@ -910,8 +932,8 @@ public class ShaderManager {
         int rBtnY = dy + 230;
         boolean hoverReset = mouseX >= rBtnX && mouseX <= rBtnX + btnW && mouseY >= rBtnY && mouseY <= rBtnY + btnH;
         int rBg = hoverReset ? 0x4038B6FF : 0x20FFFFFF;
-        RenderUtil.drawRoundedRect(rBtnX, rBtnY, btnW, btnH, 4.0f, rBg);
-        RenderUtil.drawRoundedOutline(rBtnX, rBtnY, btnW, btnH, 4.0f, 1.0f, hoverReset ? 0xFF38B6FF : 0x30FFFFFF);
+        RenderUtil.drawRoundedRect(rBtnX, rBtnY, btnW, btnH, 3.0f, rBg);
+        RenderUtil.drawRoundedOutline(rBtnX, rBtnY, btnW, btnH, 3.0f, 1.0f, hoverReset ? 0xFF38B6FF : 0x30FFFFFF);
         String resetStr = "重置为默认值";
         fr.drawString(resetStr, rBtnX + (btnW - fr.getStringWidth(resetStr)) / 2, rBtnY + 7, hoverReset ? 0xFF38B6FF : 0xFFCCCCCC);
 
@@ -920,7 +942,7 @@ public class ShaderManager {
         int dBtnY = dy + 230;
         boolean hoverDone = mouseX >= dBtnX && mouseX <= dBtnX + btnW && mouseY >= dBtnY && mouseY <= dBtnY + btnH;
         int dBg = hoverDone ? 0xFF4AC4FF : 0xFF38B6FF;
-        RenderUtil.drawRoundedRect(dBtnX, dBtnY, btnW, btnH, 4.0f, dBg);
+        RenderUtil.drawRoundedRect(dBtnX, dBtnY, btnW, btnH, 3.0f, dBg);
         String doneStr = "完成 (Done)";
         fr.drawString(doneStr, dBtnX + (btnW - fr.getStringWidth(doneStr)) / 2, dBtnY + 7, 0xFF101014);
     }

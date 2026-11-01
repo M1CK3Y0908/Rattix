@@ -113,18 +113,18 @@ public final class Win11UiRenderer {
         int background = button.enabled ? (hovered ? 0xFF1F242B : 0xFF1A1D23) : 0xFF16181D;
         int border = button.enabled ? (hovered ? 0xFF76B9ED : 0x553A424E) : 0x333A424E;
 
-        // Base rounded background
-        RenderUtil.drawRoundedRect(button.xPosition, button.yPosition, button.width, button.height, 4.0f, background);
+        // Base rounded background (3px corner radius per design spec)
+        RenderUtil.drawRoundedRect(button.xPosition, button.yPosition, button.width, button.height, 3.0f, background);
 
         // Hover reveal highlight
         if (button.enabled && hovered) {
             int revealAlpha = 18 + (int) (18.0f * hoverState);
-            RenderUtil.drawRoundedRect(button.xPosition + 1, button.yPosition + 1, button.width - 2, button.height - 2, 3.0f,
+            RenderUtil.drawRoundedRect(button.xPosition + 1, button.yPosition + 1, button.width - 2, button.height - 2, 2.0f,
                     (revealAlpha << 24) | 0xFFFFFF);
         }
 
-        // Outline border
-        RenderUtil.drawRoundedOutline(button.xPosition, button.yPosition, button.width, button.height, 4.0f, 1.0f, border);
+        // Outline border (3px corner radius)
+        RenderUtil.drawRoundedOutline(button.xPosition, button.yPosition, button.width, button.height, 3.0f, 1.0f, border);
 
         // Bottom accent line on hover
         if (button.enabled && hovered) {

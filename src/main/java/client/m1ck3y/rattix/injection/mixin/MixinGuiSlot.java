@@ -13,33 +13,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGuiSlot {
 
     /**
-     * 在滚动列表（单人世界选择、多人服务器列表、材质包、键位等）渲染之初，
-     * 自动绘制全屏动态 GLSL 着色器背景，呈现与主菜单完全一致的生动视觉。
-     * 当处于内嵌子页面窗口（SubpageWindow）时跳过全屏着色器，保留窗口半透明亚克力质感。
-     */
-    @Inject(method = "drawScreen", at = @At("HEAD"))
-    private void onDrawScreenHead(int mouseXIn, int mouseYIn, float partialTicks, CallbackInfo ci) {
-        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded) {
-            return;
-        }
-        if (ShaderBackgroundRenderer.shouldRenderShader()) {
-            ShaderBackgroundRenderer.renderCurrentScreen();
-        }
-    }
-
-    /**
-     * 取消原版滚动列表默认背景调用
+     * 取消原版滚动列表默认背景调用（泥土平铺），保证底层屏幕已渲染的背景穿透显示，
+     * 绝不在此子组件阶段重绘全屏着色器，杜绝背景对列表及其他 UI 内容的重叠覆盖。
      */
     @Inject(method = "drawBackground", at = @At("HEAD"), cancellable = true)
     private void onDrawBackground(CallbackInfo ci) {
-        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded) {
+        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded || ShaderBackgroundRenderer.shouldRenderShader()) {
             ci.cancel();
-            return;
-        }
-        if (ShaderBackgroundRenderer.shouldRenderShader()) {
-            if (ShaderBackgroundRenderer.renderCurrentScreen()) {
-                ci.cancel();
-            }
         }
     }
 
@@ -48,14 +28,8 @@ public abstract class MixinGuiSlot {
      */
     @Inject(method = "drawContainerBackground", at = @At("HEAD"), cancellable = true, remap = false)
     private void onDrawContainerBackground(Tessellator tessellator, CallbackInfo ci) {
-        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded) {
+        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded || ShaderBackgroundRenderer.shouldRenderShader()) {
             ci.cancel();
-            return;
-        }
-        if (ShaderBackgroundRenderer.shouldRenderShader()) {
-            if (ShaderBackgroundRenderer.renderCurrentScreen()) {
-                ci.cancel();
-            }
         }
     }
 
@@ -64,14 +38,8 @@ public abstract class MixinGuiSlot {
      */
     @Inject(method = "overlayBackground", at = @At("HEAD"), cancellable = true)
     private void onOverlayBackground(int startY, int endY, int startAlpha, int endAlpha, CallbackInfo ci) {
-        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded) {
+        if (client.m1ck3y.rattix.ui.window.SubpageWindow.isRenderingEmbedded || ShaderBackgroundRenderer.shouldRenderShader()) {
             ci.cancel();
-            return;
-        }
-        if (ShaderBackgroundRenderer.shouldRenderShader()) {
-            if (ShaderBackgroundRenderer.renderCurrentScreen()) {
-                ci.cancel();
-            }
         }
     }
 

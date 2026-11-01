@@ -109,6 +109,9 @@ public abstract class MixinEntityRenderer {
     // 现代降水渲染管线 (1:1 还原 Miralune MixinEnvironmentRenderer)
     // ==========================================
 
+    @Unique
+    private static final ResourceLocation RATTIX_RAIN_PNG = new ResourceLocation("rattix", "textures/environment/rain.png");
+
     @Inject(method = "renderRainSnow", at = @At("HEAD"))
     private void environmentWeatherClock(float partial, CallbackInfo ci) {
         Minecraft client = Minecraft.getMinecraft();
@@ -119,7 +122,7 @@ public abstract class MixinEntityRenderer {
     private void environmentWeatherSnapshot(CallbackInfo callback) {
         Weather weather = Weather.getInstance();
         environmentWeatherMode = (weather == null) ? 0 : weather.activeMode();
-        environmentRainColor = (weather != null && weather.isEnabled()) ? (weather.rainColor.getRGB() & 0xFFFFFF) : 0xFFFFFF;
+        environmentRainColor = (weather != null && weather.isEnabled()) ? (weather.rainColor.getRGB() & 0xFFFFFF) : 0x4667C3;
         environmentSnowColor = (weather != null && weather.isEnabled()) ? (weather.snowColor.getRGB() & 0xFFFFFF) : 0xFFFFFF;
         environmentSnowBatch = false;
         environmentRainSpeed = (weather != null && weather.isEnabled()) ? weather.fallSpeed.getValue().floatValue() : 1.0F;
@@ -163,7 +166,12 @@ public abstract class MixinEntityRenderer {
             target = "Lnet/minecraft/client/renderer/texture/TextureManager;bindTexture(Lnet/minecraft/util/ResourceLocation;)V"), require = 0)
     private void environmentPrecipitationTexture(TextureManager textures, ResourceLocation texture) {
         environmentSnowBatch = texture != null && texture.getResourcePath().endsWith("snow.png");
-        textures.bindTexture(texture);
+        Weather weather = Weather.getInstance();
+        if (!environmentSnowBatch && weather != null && weather.isEnabled()) {
+            textures.bindTexture(RATTIX_RAIN_PNG);
+        } else {
+            textures.bindTexture(texture);
+        }
     }
 
     @Redirect(method = "renderRainSnow", at = @At(value = "INVOKE",

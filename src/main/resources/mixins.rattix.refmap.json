@@ -63,7 +63,6 @@
     "client/m1ck3y/rattix/injection/mixin/MixinGuiSlot": {
       "drawSelectionBox": "Lnet/minecraft/client/gui/GuiSlot;func_148120_b(IIII)V",
       "drawBackground": "Lnet/minecraft/client/gui/GuiSlot;func_148123_a()V",
-      "drawScreen": "Lnet/minecraft/client/gui/GuiSlot;func_148128_a(IIF)V",
       "overlayBackground": "Lnet/minecraft/client/gui/GuiSlot;func_148136_c(IIII)V"
     },
     "client/m1ck3y/rattix/injection/mixin/MixinGuiMainMenu": {
@@ -152,7 +151,6 @@
       "client/m1ck3y/rattix/injection/mixin/MixinGuiSlot": {
         "drawSelectionBox": "Lawi;b(IIII)V",
         "drawBackground": "Lawi;a()V",
-        "drawScreen": "Lawi;a(IIF)V",
         "overlayBackground": "Lawi;c(IIII)V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinGuiMainMenu": {
@@ -239,7 +237,6 @@
       "client/m1ck3y/rattix/injection/mixin/MixinGuiSlot": {
         "drawSelectionBox": "Lnet/minecraft/client/gui/GuiSlot;func_148120_b(IIII)V",
         "drawBackground": "Lnet/minecraft/client/gui/GuiSlot;func_148123_a()V",
-        "drawScreen": "Lnet/minecraft/client/gui/GuiSlot;func_148128_a(IIF)V",
         "overlayBackground": "Lnet/minecraft/client/gui/GuiSlot;func_148136_c(IIII)V"
       },
       "client/m1ck3y/rattix/injection/mixin/MixinGuiMainMenu": {

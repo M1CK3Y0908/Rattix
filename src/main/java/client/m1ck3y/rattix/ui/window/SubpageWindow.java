@@ -471,7 +471,7 @@ public class SubpageWindow {
         float curY = isMaximized ? 0 : posY;
         float curW = isMaximized ? screenW : windowWidth;
         float curH = isMaximized ? screenH : windowHeight;
-        float winRadius = isMaximized ? 0 : 5.0f;
+        float winRadius = isMaximized ? 0 : 8.0f;
 
         // 4. Update Hardware Cursor when hovering resize borders
         if (isTopFocus && !isMaximized && !dragging) {
@@ -616,7 +616,7 @@ public class SubpageWindow {
         float minY = getMinimizedY(minIndex, screenH);
         float minW = MINIMIZED_WIDTH;  // 160.0f
         float minH = MINIMIZED_HEIGHT; // 20.0f
-        float winRadius = 4.0f;
+        float winRadius = 8.0f;
 
         // 1. Drop Shadow
         int shadowColor = isTopFocus ? 0x65000000 : 0x40000000;

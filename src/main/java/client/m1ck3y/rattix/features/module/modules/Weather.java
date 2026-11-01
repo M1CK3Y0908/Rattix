@@ -43,8 +43,8 @@ public class Weather extends Module {
     public final NumberSetting intensity = new NumberSetting("Intensity", 100.0, 0.0, 100.0, 5.0, "Weather");
     public final NumberSetting transitionSeconds = new NumberSetting("TransitionSeconds", 0.0, 0.0, 30.0, 1.0, "Weather");
 
-    // 2. Precipitation Visuals (1:1 还原 Miralune Weather，纯白默认色 0xFFFFFFFF)
-    public final ColorSetting rainColor = new ColorSetting("RainColor", 0xFFFFFFFF, "Visuals");
+    // 2. Precipitation Visuals (雨滴底图为纯白 0xFFFFFF，设置默认值为原版雨水蓝 0xFF4667C3)
+    public final ColorSetting rainColor = new ColorSetting("RainColor", 0xFF4667C3, "Visuals");
     public final ColorSetting snowColor = new ColorSetting("SnowColor", 0xFFFFFFFF, "Visuals");
     public final NumberSetting fallSpeed = new NumberSetting("FallSpeed", 1.0, 0.1, 4.0, 0.1, "Visuals");
     public final NumberSetting windX = new NumberSetting("WindX", 0.0, -100.0, 100.0, 5.0, "Visuals");
